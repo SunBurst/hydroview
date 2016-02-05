@@ -1,0 +1,9 @@
+{% if locations_list %}
+    <ul>
+    {% for location_name in locations_list %}
+        <li><a href = "{% url 'readings:simple_chart' %}">{{ location_name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No locations are available.</p>
+{% endif %}
