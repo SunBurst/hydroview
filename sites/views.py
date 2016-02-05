@@ -7,7 +7,7 @@ from django.views import generic
 from .charts import ChartData
 from .forms import LocationAddForm
 from .sites import SiteData
-from .models import Sites
+from .models import Location_info_by_location
 
 class IndexView(generic.TemplateView):
     template_name = 'sites/index.html'
@@ -26,8 +26,14 @@ def load_sites_data(request):
 
 def load_location(request, site_name, location_name):
     template_name = 'sites/location.html'
-    context = {'site' : site_name,
-               'location' : location_name}
+    location_info = Location_info_by_location.objects.filter(location=location_name)
+    context = {}
+    for location in location_info:
+        context = {'site' : site_name,
+                   'location' : location.location,
+                   'description' : location.description,
+                   'latitude' : location.latitude,
+                   'longitude' : location.longitude}
     return render(request, template_name, context)
 
 def load_location_data(request):
