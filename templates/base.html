@@ -115,8 +115,8 @@
     <script type="text/javascript">
     $(document).ready(function() {
 
-        var jsonSitesUrl = '{% url 'load_sites_data' %}';
-        var jsonLocationsUrl = '{% url 'load_locations_data' %}';
+        var jsonSitesUrl = '{% url 'sites:load_sites_data' %}';
+        var jsonLocationsUrl = '{% url 'sites:load_locations_data' %}';
 
         var jsonAllSitesDataUrl = jsonSitesUrl + "?name=load_all_sites";
 
@@ -135,7 +135,8 @@
                         $.each(locationData, function(i ,v) {
 
                             if (val.site === v.site) {
-                                $('#' + val.site + '-nav').append("<li id='" + v.location + "'>" + "<a href='" + v.site + "/" + v.location + "'><i class='fa fa-map-marker fa-fw'></i>" + " " + v.location + "</a></li>");
+                                loadLocUrl = '{% url 'sites:load_location' %}' + "?site_name=" + val.site + "&location_name=" + v.location;
+                                $('#' + val.site + '-nav').append("<li id='" + v.location + "'>" + "<a href='" + loadLocUrl +"'><i class='fa fa-map-marker fa-fw'></i>" + " " + v.location + "</a></li>");
                             }
                         });
 

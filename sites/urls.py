@@ -4,7 +4,7 @@ from . import views
 urlpatterns = [
     url(r'^$', views.IndexView.as_view(), name='index'),
     url(
-        regex=r'^(?P<site_name>[^/]+)/(?P<location_name>[^/]+)/',
+        regex=r'^load_location/$',
         view=views.load_location,
         name='load_location',
     ),

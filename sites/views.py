@@ -24,8 +24,13 @@ def load_sites_data(request):
         return HttpResponse(json.dumps(sites_data), content_type='application/json')
     return HttpResponse(json.dumps("test"), content_type='application/json')
 
-def load_location(request, site_name, location_name):
+def load_location(request):
     template_name = 'sites/location.html'
+    params = request.GET
+
+    site_name = params.get('site_name', '')
+    location_name = params.get('location_name', '')
+
     location_info = Location_info_by_location.objects.filter(location=location_name)
     context = {}
     for location in location_info:

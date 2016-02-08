@@ -7,7 +7,7 @@ from django.conf.urls import include, patterns, url
 
 urlpatterns = [
     #url(r'^$', IndexView.as_view(), name='index'),
-    url(r'^sites/', include('sites.urls')),
+    url(r'^sites/', include('sites.urls', namespace="sites")),
     url(r'^admin/', include(admin.site.urls)),
 ]
 

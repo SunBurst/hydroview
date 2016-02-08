@@ -12,18 +12,62 @@
 
 {% block content %}
 
-    <ul id="myTab" class="nav nav-tabs">
-        <li class="active"><a href="#info" data-toggle="tab">Info</a></li>
-        <li><a href="#profile" data-toggle="tab">Profile</a></li>
-    </ul>
-    <div id="myTabContent" class="tab-content">
-        <div class="tab-pane fade in active" id="info">
-            <div id="map_canvas"></div>
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs">
+                    <li class="active"><a href="#info" data-toggle="tab">Info</a>
+                    </li>
+                    <li><a href="#data" data-toggle="tab">Data</a>
+                    </li>
+                    <li><a href="#charts" data-toggle="tab">Charts</a>
+                    </li>
+                    <li><a href="#sensors" data-toggle="tab">Sensors</a>
+                    </li>
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content">
+                    <div class="tab-pane fade in active" id="info">
+
+                        <div id="map_container" class="col-md-6">
+                            <h4>Position</h4>
+                            <div id="map_canvas">
+                            </div>
+                        </div>
+                        <div id="locationInfo" class="col-md-6">
+                            <h4>Location Info</h4>
+                            <ul id="basicInfo" class="list-unstyled">
+                                <li><strong>Site:</strong> {{ site }}</li>
+                                <li><strong>Location:</strong> {{ location }}</li>
+                                <li><strong>GPS (WGS 84):</strong> {{ latitude }}, {{ longitude }}</li>
+                            </ul>
+                            <dl>
+                                <dt>Description</dt>
+                                <dd>{{ description }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="data">
+                        <h4>Data</h4>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                    </div>
+                    <div class="tab-pane fade" id="charts">
+                        <h4>Charts</h4>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                    </div>
+                    <div class="tab-pane fade" id="sensors">
+                        <h4>Sensors</h4>
+
+                    </div>
+                </div>
+            </div>
+            <!-- /.panel-body -->
         </div>
-        <div class="tab-pane fade" id="profile">
-            <p>Raw denim you probably haven't heard of them jean shorts Austin. Nesciunt tofu stumptown aliqua, retro synth master cleanse. Mustache cliche tempor, williamsburg carles vegan helvetica. Reprehenderit butcher retro keffiyeh dreamcatcher synth. Cosby sweater eu banh mi, qui irure terry richardson ex squid. Aliquip placeat salvia cillum iphone. Seitan aliquip quis cardigan american apparel, butcher voluptate nisi qui.</p>
-        </div>
+        <!-- /.panel -->
     </div>
+    <!-- /.col-lg-6 -->
 
 {% endblock %}
 
@@ -35,26 +79,37 @@
     <script type="text/javascript">
     $(document).ready(function() {
 
-        var latlng = new google.maps.LatLng({{ latitude }}, {{ longitude }});
-        var myOptions = {
-            zoom: 11,
-            center: latlng,
-            mapTypeId: google.maps.MapTypeId.TERRAIN
-        };
-        map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+        function initMap() {
 
-        var marker = new google.maps.Marker({
-            position: latlng,
-            map: map,
-            title: '{{ location }}' + ' ({{ latitude }}, {{ longitude }})'
-        });
+            var latlng = new google.maps.LatLng({{ latitude }}, {{ longitude }});
+            var myOptions = {
+                zoom: 13,
+                center: latlng,
+                mapTypeId: google.maps.MapTypeId.TERRAIN
+            };
+            map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 
-        google.maps.event.trigger(map, 'resize');
+            var marker = new google.maps.Marker({
+                position: latlng,
+                map: map,
+                title: '{{ location }}' + ' ({{ latitude }}, {{ longitude }})'
+            });
 
-        $('a[href="#info"]').on('shown', function(e) {
             google.maps.event.trigger(map, 'resize');
-        });
-        $("#map_canvas").css("width", 400).css("height", 400);
+
+            $('a[href="#info"]').on('shown', function(e) {
+                google.maps.event.trigger(map, 'resize');
+            });
+            $("#map_canvas").css("width", 400).css("height", 400);
+
+        }
+
+    initMap();
+
+        function loadSensors() {
+
+
+        }
 
     });
     </script>
