@@ -9,8 +9,24 @@ from .forms import LocationAddForm
 from .sites import SiteData
 from .models import Location_info_by_location
 
-class IndexView(generic.TemplateView):
+def index(request):
     template_name = 'sites/index.html'
+    sites_data = SiteData.get_all_sites()
+    print(sites_data)
+    monitored_sites = []
+    context = {'monitored_sites' : []}
+    for site in sites_data:
+        current_site = {
+                    'site' : site['site'],
+                    'description' : site['description'],
+                    'latitude' : site['latitude'],
+                    'longitude' : site['longitude']
+            }
+        monitored_sites.append(current_site)
+    context['monitored_sites'] = monitored_sites
+
+    return render(request, template_name, context)
+
 
 def load_sites_data(request):
     print("HEJ", request)

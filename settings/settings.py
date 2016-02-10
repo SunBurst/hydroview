@@ -60,10 +60,11 @@ LOCAL_APPS = (
 DJANGO_CASSANDRA_ENGINE = ('django_cassandra_engine',
 )
 
-EXTERNAL_APPS = ('compressor',
-                 'django_extensions',
-                 'crispy_forms',
-)
+EXTERNAL_APPS = ()
+    #('compressor',
+    #             'django_extensions',
+    #             'crispy_forms',
+#)
 
 INSTALLED_APPS = DJANGO_CASSANDRA_ENGINE + DJANGO_APPS + LOCAL_APPS + EXTERNAL_APPS
 
@@ -114,7 +115,7 @@ DATABASES = {
     'cassandra': {
         'ENGINE': 'django_cassandra_engine',
         'NAME': (parser.get('DBSETTINGS', 'keyspace')),
-        'TEST_NAME': 'test_db',
+        'TEST': {'NAME': 'test_db'},
         'HOST': (parser.get('DBSETTINGS', 'host')),
         'OPTIONS': {
             'replication': {

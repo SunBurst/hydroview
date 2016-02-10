@@ -2,34 +2,84 @@
 
 {% load staticfiles %}
 
+{% block extracss %}
+    <style>
+        .carousel-inner img {
+              width: 100%; /* Set width to 100% */
+              margin: auto;
+              min-height:200px;
+          }
+
+          /* Hide the carousel text when the screen is less than 600 pixels wide */
+          @media (max-width: 600px) {
+            .carousel-caption {
+              display: none;
+            }
+          }
+  </style>
+{% endblock %}
+
 {% block heading %}
 <h1 class="page-header">Monitored Sites</h1>
 {% endblock %}
 
 {% block content %}
-<div class="col-sm-8">
+<div class="col-lg-12">
+    {% if monitored_sites %}
     <div id="sitesCarousel" class="carousel slide" data-ride="carousel">
         <!-- Indicators -->
-        <ol id="sitesInd" class="carousel-indicators"></ol>
+        <ol id="sitesIndicators" class="carousel-indicators"></ol>
 
         <!-- Wrapper for slides -->
         <div id="sitesInner" class="carousel-inner" role="listbox"></div>
 
         <!-- Left and right controls -->
-        <a class="left carousel-control" href="#sitesCarousel" role="button" data-slide="prev">
-            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-            <span class="sr-only">Previous</span>
-        </a>
-        <a class="right carousel-control" href="#sitesCarousel" role="button" data-slide="next">
-            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-            <span class="sr-only">Next</span>
-        </a>
+       <a class="left carousel-control" href="#sitesCarousel" role="button" data-slide="prev">
+        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+        <span class="sr-only">Previous</span>
+      </a>
+      <a class="right carousel-control" href="#sitesCarousel" role="button" data-slide="next">
+        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+        <span class="sr-only">Next</span>
+      </a>
     </div>
+    <!--Carousel-->
+    {% else %}
+    <p>No sites configured. <br></p>
+    {% endif %}
 </div>
 
 
 {% endblock %}
 
 {% block extrajs %}
+<script type="text/javascript">
+    $(document).ready(function() {
 
+        var jsonSitesUrl = '{% url 'sites:load_sites_data' %}';
+        var jsonAllSitesDataUrl = jsonSitesUrl + "?name=load_all_sites";
+
+        var $sitesCarousel = $('#sitesCarousel');
+        var $sitesIndicators = $('#sitesIndicators');
+        var $sitesInner = $('#sitesInner');
+
+        $.getJSON(jsonAllSitesDataUrl, function(allSitesData) {
+            $.each(allSitesData, function(i, val) {
+                if (i == 0) {
+                    $sitesIndicators.append('<li data-target="#sitesCarousel" data-slide-to="' + i + '" class="active"></li>');
+                    $sitesInner.append('<div class="item active"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Erken_nordsidan.JPG/1280px-Erken_nordsidan.JPG" alt="Image"><div class="container"><div class="carousel-caption"><h1>' + val.site + '</h1><p>' + val.description + '</p></div></div></div>');
+
+                }
+                else {
+                    $sitesIndicators.append('<li data-target="#sitesCarousel" data-slide-to="' + i + '"></li>');
+                    $sitesInner.append('<div class="item"><div class="container"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Erken_nordsidan.JPG/1280px-Erken_nordsidan.JPG" alt="Image"><div class="carousel-caption"><h1>' + val.site + '</h1><p>' + val.description + '</p></div></div></div>');
+
+                }
+            });
+
+        });
+
+
+    });
+</script>
 {% endblock %}

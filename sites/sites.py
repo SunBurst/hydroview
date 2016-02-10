@@ -8,6 +8,7 @@ class SiteData(object):
         all_sites = Sites.objects.filter(bucket=0)
 
         for site in all_sites:
+
             current_site = {'site' : site.site,
                             'description' : site.description,
                             'latitude' : site.latitude,
