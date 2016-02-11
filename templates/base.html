@@ -1,6 +1,6 @@
 {% load staticfiles %}
 
-<!doctype html>
+<!DOCTYPE html>
 
 <html lang="en">
 
@@ -12,7 +12,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>{% block title %}HydroView | {{ site_name }}{% endblock %}</title>
+    <title>HydroView | {% block title %}{% endblock %}</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -64,15 +64,15 @@
                         <i class="fa fa-gear fa-fw"></i>  <i class="fa fa-caret-down"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-settings">
-                        <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                        <li><a href="{% url 'sites:add_site' %}"><i class="fa fa-plus fa-fw"></i> Add New Site</a>
                         </li>
-                        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                        <li><a href="#myModal" data-toggle="modal"><i class="fa fa-pencil fa-fw"></i> Edit Site</a>
                         </li>
                         <li class="divider"></li>
-                        <li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
                         </li>
                     </ul>
-                    <!-- /.dropdown-user -->
+                    <!-- /.dropdown-settings -->
                 </li>
                 <!-- /.dropdown -->
                 <li class="dropdown">
@@ -105,6 +105,32 @@
             </div> <!-- /.row -->
                 {% block content %} {% endblock %}
         </div> <!-- /#page-wrapper -->
+
+        <!-- Modal -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Edit Site</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="btn-group">
+                            <i class="dropdown-arrow dropdown-arrow"></i>
+                            <a class="btn dropdown-toggle btn-select" data-toggle="dropdown" href="#">Choose Site <span class="caret"></span></a>
+                            <ul id="modalDropdown" class="dropdown-menu dropdown-modal"></ul>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="btnCloseModal" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <!-- /.modal -->
+
     </div> <!-- /#wrapper -->
 
     <!-- jQuery -->
@@ -131,15 +157,19 @@
 
         var jsonAllSitesDataUrl = jsonSitesUrl + "?name=load_all_sites";
 
-        var $sites = $('#side-menu');
+        var $sideMenu = $('#side-menu');
+        var $modalDropdown = $('#modalDropdown');
 
 
         $.getJSON(jsonAllSitesDataUrl, function(allSitesData) {
             $.each(allSitesData, function(i, val) {
 
-                    $sites.append("<li id='" + val.site + "'>" + "<a href='#'>" + val.site + "<span class='" + "fa arrow" + "'</span>" + "</a></li>");
-                    $sites.append("<ul id='" + val.site + "-nav'" + " class='nav nav-second-level'></ul>");
+                    $sideMenu.append("<li id='" + val.site + "'>" + "<a href='#'>" + val.site + "<span class='" + "fa arrow" + "'</span>" + "</a></li>");
+                    $sideMenu.append("<ul id='" + val.site + "-nav'" + " class='nav nav-second-level'></ul>");
                     jsonLocationDataUrl = jsonLocationsUrl + "?name=load_site" + "&site=" + val.site;
+
+                    var editSiteUrl = "{% url "sites:edit_site" %}" + "?site_name=" + val.site;
+                    $modalDropdown.append('<li><a href=' + editSiteUrl + '>' + val.site + '</a></li>');
 
                     $.getJSON(jsonLocationDataUrl, function(locationData) {
 
@@ -159,6 +189,14 @@
         });
 
     </script>
+
+    <script type="text/javascript">
+        $(document.body).on('click', '.dropdown-modal li a', function (e) {
+            var selText = $(this).text();
+            $(this).parents('.btn-group').find('.dropdown-toggle').html(selText+' <span class="caret"></span>');
+        });
+    </script>
+
     {% block extrajs %} {% endblock %}
 
 </body>

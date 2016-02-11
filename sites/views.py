@@ -5,25 +5,26 @@ from django.shortcuts import HttpResponse, redirect, render
 from django.views import generic
 
 from .charts import ChartData
-from .forms import LocationAddForm
+from .forms import AddSiteForm
 from .sites import SiteData
-from .models import Location_info_by_location
+from .models import Location_info_by_location, Sites, Site_info_by_site
 
 def index(request):
     template_name = 'sites/index.html'
-    sites_data = SiteData.get_all_sites()
-    print(sites_data)
-    monitored_sites = []
-    context = {'monitored_sites' : []}
-    for site in sites_data:
-        current_site = {
-                    'site' : site['site'],
-                    'description' : site['description'],
-                    'latitude' : site['latitude'],
-                    'longitude' : site['longitude']
-            }
-        monitored_sites.append(current_site)
-    context['monitored_sites'] = monitored_sites
+    #sites_data = SiteData.get_all_sites()
+    #print(sites_data)
+    #monitored_sites = []
+    context = {}
+    #context = {'monitored_sites' : []}
+    #for site in sites_data:
+    #    current_site = {
+    #                'site' : site['site'],
+     #               'description' : site['description'],
+     #               'latitude' : site['latitude'],
+     #               'longitude' : site['longitude']
+    #        }
+     #   monitored_sites.append(current_site)
+    #context['monitored_sites'] = monitored_sites
 
     return render(request, template_name, context)
 
@@ -103,32 +104,72 @@ def dashboard(request):#request, chartID = 'chart_ID', chart_type = 'line', char
     #                                                'xAxis': xAxis, 'yAxis': yAxis})
     return render(request, template)
 
-def location_add(request):
-    form = LocationAddForm(request.POST or None)
+def add_site(request):
+    # TODO: Merge add and edit
+    form = AddSiteForm(request.POST or None, initial={})
     if form.is_valid():
-        location_name = form.cleaned_data['name']
-        location_latitude = form.cleaned_data['latitude']
-        location_longitude = form.cleaned_data['longitude']
-        location_description = form.cleaned_data['description']
+        site_name = form.cleaned_data['site']
+        site_description = form.cleaned_data['description']
+        site_latitude = form.cleaned_data['latitude']
+        site_longitude = form.cleaned_data['longitude']
 
-        Locations.create(bucket=0,
-                         name=location_name,
-                         description=location_description,
-                         latitude = location_latitude,
-                         longitude = location_longitude)
+        Sites.create(
+            bucket=0,
+            site=site_name,
+            description=site_description,
+            latitude = site_latitude,
+            longitude = site_longitude
+        )
+
+        return HttpResponseRedirect('/sites/')
 
     context = {
         "form" : form
     }
 
-    template = 'sites/location_add.html'
+    template = 'sites/add_site.html'
     return render(request, template, context)
 
-def location_post(request):
-    template = ('sites/location_post.html')
-    name = request.POST['name']
+def edit_site(request):
 
+    params = request.GET
+    site = params.get('site_name', '')
 
+    site_data = SiteData.get_site(site)
+    print("edit", site_data)
+    site_info_dict = site_data[0]
+
+    fill_site_name = site_info_dict.get('site')
+    fill_site_desc = site_info_dict.get('description')
+    fill_site_lat = site_info_dict.get('latitude')
+    fill_site_long = site_info_dict.get('longitude')
+
+    site_fill_form = dict
+    site_fill_form = {'site' : fill_site_name, 'description' : fill_site_desc, 'latitude' : fill_site_lat, 'longitude' : fill_site_long}
+
+    form = AddSiteForm(request.POST or None, initial=site_fill_form)
+    if form.is_valid():
+        site_name = form.cleaned_data['site']
+        site_description = form.cleaned_data['description']
+        site_latitude = form.cleaned_data['latitude']
+        site_longitude = form.cleaned_data['longitude']
+
+        Sites.create(
+            bucket=0,
+            site=site_name,
+            description=site_description,
+            latitude = site_latitude,
+            longitude = site_longitude
+        )
+
+        return HttpResponseRedirect('/sites/')
+
+    context = {
+        "form" : form
+    }
+
+    template = 'sites/add_site.html'
+    return render(request, template, context)
 
 def chart_data_json(request):
 

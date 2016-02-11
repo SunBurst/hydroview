@@ -29,14 +29,14 @@ urlpatterns = [
         name='chart_data_json',
     ),
     url(
-        regex=r'^add/',
-        view=views.location_add,
-        name='location_add',
+        regex=r'^add_site/',
+        view=views.add_site,
+        name='add_site',
     ),
     url(
-        regex=r'^location_new_post/',
-        view=views.location_post,
-        name='location_post',
+        regex=r'^edit_site/',
+        view=views.edit_site,
+        name='edit_site',
     ),
     url(
         regex=r'^dashboard/',

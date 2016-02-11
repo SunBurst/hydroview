@@ -1,4 +1,4 @@
-from .models import Sites, Locations_by_site, Location_info_by_location
+from .models import Sites, Site_info_by_site, Locations_by_site, Location_info_by_location
 
 class SiteData(object):
 
@@ -16,6 +16,22 @@ class SiteData(object):
             sites_data.append(current_site)
         print(sites_data)
         return sites_data
+
+    @classmethod
+    def get_site(cls, site_name):
+
+        site_data = []
+        site_info = Site_info_by_site.objects.filter(site=site_name)
+
+        for site in site_info:
+            print("SITE", site)
+            current_site = {'site' : site.site,
+                            'description' : site.description,
+                            'latitude' : site.latitude,
+                            'longitude' : site.longitude}
+            site_data.append(current_site)
+
+        return site_data
 
     @classmethod
     def get_site_locations(cls, site_name):

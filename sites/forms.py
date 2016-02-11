@@ -1,8 +1,7 @@
 from django import forms
 
-class LocationAddForm(forms.Form):
-    name = forms.CharField(required=True)
-    latitude = forms.FloatField()
-    longitude = forms.FloatField()
-    description = forms.CharField(widget=forms.Textarea)
-
+class AddSiteForm(forms.Form):
+    site = forms.CharField(label='Site', required=True)
+    latitude = forms.FloatField(label='Latitude', required=True)
+    longitude = forms.FloatField(label='Longitude', required=True)
+    description = forms.CharField(label='Description', widget=forms.Textarea, required=True)
