@@ -5,7 +5,7 @@ from django.shortcuts import HttpResponse, redirect, render
 from django.views import generic
 
 from .charts import ChartData
-from .forms import AddSiteForm
+from .forms import ManageSiteForm
 from .sites import SiteData
 from .models import Location_info_by_location, Sites, Site_info_by_site
 
@@ -104,50 +104,33 @@ def dashboard(request):#request, chartID = 'chart_ID', chart_type = 'line', char
     #                                                'xAxis': xAxis, 'yAxis': yAxis})
     return render(request, template)
 
-def add_site(request):
-    # TODO: Merge add and edit
-    form = AddSiteForm(request.POST or None, initial={})
-    if form.is_valid():
-        site_name = form.cleaned_data['site']
-        site_description = form.cleaned_data['description']
-        site_latitude = form.cleaned_data['latitude']
-        site_longitude = form.cleaned_data['longitude']
-
-        Sites.create(
-            bucket=0,
-            site=site_name,
-            description=site_description,
-            latitude = site_latitude,
-            longitude = site_longitude
-        )
-
-        return HttpResponseRedirect('/sites/')
-
-    context = {
-        "form" : form
-    }
-
-    template = 'sites/add_site.html'
-    return render(request, template, context)
-
-def edit_site(request):
+def manage_site(request):
 
     params = request.GET
     site = params.get('site_name', '')
 
-    site_data = SiteData.get_site(site)
-    print("edit", site_data)
-    site_info_dict = site_data[0]
-
-    fill_site_name = site_info_dict.get('site')
-    fill_site_desc = site_info_dict.get('description')
-    fill_site_lat = site_info_dict.get('latitude')
-    fill_site_long = site_info_dict.get('longitude')
-
     site_fill_form = dict
-    site_fill_form = {'site' : fill_site_name, 'description' : fill_site_desc, 'latitude' : fill_site_lat, 'longitude' : fill_site_long}
+    template = 'sites/manage_site.html'
 
-    form = AddSiteForm(request.POST or None, initial=site_fill_form)
+    if site:    #: Edit existing site
+
+        site_data = SiteData.get_site(site)
+        site_info_dict = site_data[0]
+
+        fill_site_name = site_info_dict.get('site')
+        fill_site_desc = site_info_dict.get('description')
+        fill_site_lat = site_info_dict.get('latitude')
+        fill_site_long = site_info_dict.get('longitude')
+
+        site_fill_form = {'site' : fill_site_name, 'description' : fill_site_desc, 'latitude' : fill_site_lat, 'longitude' : fill_site_long}
+
+    else:   #: Add new site
+
+        site_fill_form = {}
+        template = 'sites/add_site.html'
+
+    form = ManageSiteForm(request.POST or None, initial=site_fill_form)
+
     if form.is_valid():
         site_name = form.cleaned_data['site']
         site_description = form.cleaned_data['description']
@@ -162,13 +145,19 @@ def edit_site(request):
             longitude = site_longitude
         )
 
+        Site_info_by_site.create(
+            site=site_name,
+            description=site_description,
+            latitude = site_latitude,
+            longitude = site_longitude
+        )
+
         return HttpResponseRedirect('/sites/')
 
     context = {
-        "form" : form
+        'form' : form
     }
 
-    template = 'sites/add_site.html'
     return render(request, template, context)
 
 def chart_data_json(request):

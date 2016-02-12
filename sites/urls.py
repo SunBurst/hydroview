@@ -29,14 +29,9 @@ urlpatterns = [
         name='chart_data_json',
     ),
     url(
-        regex=r'^add_site/',
-        view=views.add_site,
-        name='add_site',
-    ),
-    url(
-        regex=r'^edit_site/',
-        view=views.edit_site,
-        name='edit_site',
+        regex=r'^manage_site/',
+        view=views.manage_site,
+        name='manage_site',
     ),
     url(
         regex=r'^dashboard/',

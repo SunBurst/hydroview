@@ -64,7 +64,7 @@
                         <i class="fa fa-gear fa-fw"></i>  <i class="fa fa-caret-down"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-settings">
-                        <li><a href="{% url 'sites:add_site' %}"><i class="fa fa-plus fa-fw"></i> Add New Site</a>
+                        <li><a href="{% url 'sites:manage_site' %}"><i class="fa fa-plus fa-fw"></i> Add New Site</a>
                         </li>
                         <li><a href="#myModal" data-toggle="modal"><i class="fa fa-pencil fa-fw"></i> Edit Site</a>
                         </li>
@@ -166,10 +166,13 @@
 
                     $sideMenu.append("<li id='" + val.site + "'>" + "<a href='#'>" + val.site + "<span class='" + "fa arrow" + "'</span>" + "</a></li>");
                     $sideMenu.append("<ul id='" + val.site + "-nav'" + " class='nav nav-second-level'></ul>");
+                    $('#' + val.site + '-nav').append();
+                    $('#' + val.site + '-nav').append('<li><a href="#"><i class="fa fa-gear fa-fw"></i> Manage Locations<span class="fa arrow"</span></a><ul class="nav nav-third-level"><li><a href="#"><i class="fa fa-plus fa-fw"></i> Add New Location</a></li><li><a href="#"><i class="fa fa-pencil fa-fw"></i> Edit Location</a></li></ul></li>');
+
                     jsonLocationDataUrl = jsonLocationsUrl + "?name=load_site" + "&site=" + val.site;
 
-                    var editSiteUrl = "{% url "sites:edit_site" %}" + "?site_name=" + val.site;
-                    $modalDropdown.append('<li><a href=' + editSiteUrl + '>' + val.site + '</a></li>');
+                    var manageSiteUrl = "{% url "sites:manage_site" %}" + "?site_name=" + val.site;
+                    $modalDropdown.append('<li><a href=' + manageSiteUrl + '>' + val.site + '</a></li>');
 
                     $.getJSON(jsonLocationDataUrl, function(locationData) {
 
