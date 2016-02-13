@@ -33,6 +33,11 @@ urlpatterns = [
         view=views.manage_site,
         name='manage_site',
     ),
+     url(
+        regex=r'^manage_location/',
+        view=views.manage_location,
+        name='manage_location',
+    ),
     url(
         regex=r'^dashboard/',
         view=views.dashboard,

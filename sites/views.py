@@ -5,9 +5,9 @@ from django.shortcuts import HttpResponse, redirect, render
 from django.views import generic
 
 from .charts import ChartData
-from .forms import ManageSiteForm
+from .forms import ManageLocationForm, ManageSiteForm
 from .sites import SiteData
-from .models import Location_info_by_location, Sites, Site_info_by_site
+from .models import Locations_by_site, Location_info_by_location, Sites, Site_info_by_site
 
 def index(request):
     template_name = 'sites/index.html'
@@ -150,6 +150,53 @@ def manage_site(request):
             description=site_description,
             latitude = site_latitude,
             longitude = site_longitude
+        )
+
+        return HttpResponseRedirect('/sites/')
+
+    context = {
+        'form' : form
+    }
+
+    return render(request, template, context)
+
+def manage_location(request):
+
+    params = request.GET
+    site = params.get('site_name', '')
+    location = params.get('location_name', '')
+
+    location_fill_form = dict
+    template = 'sites/manage_location.html'
+
+    if location:    #: Edit existing location
+        pass
+    else:   #: Add new location
+        location_fill_form = {'site' : site}
+        template = 'sites/add_location.html'
+
+    form = ManageLocationForm(request.POST or None, initial=location_fill_form)
+
+    if form.is_valid():
+        site_name = form.cleaned_data['site']
+        location_name = form.cleaned_data['location']
+        location_description = form.cleaned_data['description']
+        location_latitude = form.cleaned_data['latitude']
+        location_longitude = form.cleaned_data['longitude']
+
+        Locations_by_site.create(
+            site=site_name,
+            location=location_name,
+            description=location_description,
+            latitude = location_latitude,
+            longitude = location_longitude
+        )
+
+        Location_info_by_location.create(
+            location=location_name,
+            description=location_description,
+            latitude = location_latitude,
+            longitude = location_longitude
         )
 
         return HttpResponseRedirect('/sites/')
