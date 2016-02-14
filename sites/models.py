@@ -37,10 +37,11 @@ class Sensors_by_location(models.Model):
     sensor_num = columns.Integer()
     description = columns.Text()
 
-class Sensor_info_by_location(models.Model):
+class Sensor_info_by_sensor(models.Model):
     sensor = columns.Text(primary_key=True)
     description = columns.Text()
-    parameters = columns.List(columns.Text)
+    parameter_order = columns.List(columns.Text)
+    parameter_types = columns.Map(columns.Text, columns.Text)
     file_info = columns.Map(columns.Text, columns.Text)
     time_zone = columns.Text()
     time_ids = columns.List(columns.Text)

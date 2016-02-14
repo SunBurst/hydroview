@@ -25,14 +25,13 @@
                     </li>
                     <li><a href="#sensors" data-toggle="tab">Sensors</a>
                     </li>
-                    <li><a href="#settings" data-toggle="tab">Settings</a>
+                    <li><a href="#editLocation" data-toggle="tab">Edit Info</a>
                     </li>
                 </ul>
 
                 <!-- Tab panes -->
                 <div class="tab-content">
                     <div class="tab-pane fade in active" id="info">
-
                         <div id="map_container" class="col-md-6">
                             <h4>Position</h4>
                             <div id="map_canvas">
@@ -59,13 +58,59 @@
                         <h4>Charts</h4>
                         <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
                     </div>
+                    <div class="tab-pane fade" id="editLocation">
+                        <h4></h4>
+                        <div class="col-lg-6">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    Location Info
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <form action="" method="POST">
+                                                {% csrf_token %}
+                                                {{ form.as_p }}
+                                                <input class="btn btn-primary" type="submit" value="Save" />
+                                                <button type="reset" class="btn btn-default">Reset</button>
+                                            </form>
+                                        </div>
+                                        <!-- /.col-lg-6 (nested) -->
+                                    </div>
+                                    <!-- /.row (nested) -->
+                                </div>
+                                <!-- /.panel-body -->
+                            </div>
+                            <!-- /.panel -->
+                        </div>
+                        <!-- /.col-lg-6 -->
+                    </div>
+                    <!-- /.tab-pane -->
                     <div class="tab-pane fade" id="sensors">
                         <h4>Sensors</h4>
+                        <div class="table-responsive">
+                            <table id="sensorsTable" class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>File Path</th>
+                                        <th>Time Zone</th>
+                                        <th>Time Identifiers</th>
+                                        <th>Parameters</th>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sensorsTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.table-responsive -->
                     </div>
-                    <div class="tab-pane fade" id="settings">
-                        <h4>Settings</h4>
-                    </div>
+                    <!-- /.tab-pane -->
                 </div>
+                <!-- Tab panes -->
             </div>
             <!-- /.panel-body -->
         </div>
@@ -82,6 +127,10 @@
 
     <script type="text/javascript">
     $(document).ready(function() {
+
+        var jsonSensorsUrl = '{% url 'sites:load_sensors' %}';
+        var jsonAllSensorsDataUrl = jsonSensorsUrl + "?site_name=" + "{{ site }}" + "&location_name=" + "{{ location }}";
+        console.log(jsonAllSensorsDataUrl);
 
         function initMap() {
 
@@ -101,16 +150,39 @@
 
             google.maps.event.trigger(map, 'resize');
 
-            $('a[href="#info"]').on('shown', function(e) {
-                google.maps.event.trigger(map, 'resize');
+        }
+
+        function initSensors(sensorsUrl) {
+
+            $.getJSON(sensorsUrl, function(allSensorsData) {
+                $.each(allSensorsData, function(i, sensor) {
+
+                    var editSensorUrl = '{% url 'sites:manage_sensor' %}';
+                    editSensorUrl += "?site_name=" + "{{ site }}";
+                    editSensorUrl += "&location_name=" + "{{ location }}";
+                    editSensorUrl += "&sensor_name=" + sensor.sensor;
+
+                    $('#sensorsTableBody').append('<tr><td>' + sensor.sensor + '</td><td>' + sensor.description + '</td><td>' + sensor.file_info.path + '</td><td>' + sensor.time_zone + '</td><td>' + sensor.time_ids + '</td><td>' + sensor.parameters + '</td><td id="editSensor"></td><td id="deleteSensor"></td></tr>');
+                    $('#editSensor').append('<a href="' + editSensorUrl + '"><i class="fa fa-gear fa-fw"></i></a>');
+                    $('#deleteSensor').append('<a><i class="fa fa-trash-o fa-fw"></i></a>');
+
+                });
             });
-            $("#map_canvas").css("width", 400).css("height", 400);
 
         }
 
     initMap();
+    initSensors(jsonAllSensorsDataUrl);
 
     });
+    </script>
+
+    <script type="text/javascript">
+        $('a[href="#info"]').on('shown', function(e) {
+                google.maps.event.trigger(map, 'resize');
+            });
+            $("#map_canvas").css("width", 400).css("height", 400);
+
     </script>
 
 {% endblock %}

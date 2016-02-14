@@ -2,12 +2,14 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import HttpResponse, redirect, render
+from django.core.urlresolvers import reverse
 from django.views import generic
 
 from .charts import ChartData
-from .forms import ManageLocationForm, ManageSiteForm
+from .forms import ManageLocationForm, ManageSensorForm, ManageSiteForm
+from .sensors import SensorData
 from .sites import SiteData
-from .models import Locations_by_site, Location_info_by_location, Sites, Site_info_by_site
+from .models import Locations_by_site, Location_info_by_location, Sensors_by_location, Sensor_info_by_sensor, Sites, Site_info_by_site
 
 def index(request):
     template_name = 'sites/index.html'
@@ -49,14 +51,165 @@ def load_location(request):
     location_name = params.get('location_name', '')
 
     location_info = Location_info_by_location.objects.filter(location=location_name)
+
+    location_fill_form = dict
+
     context = {}
+
     for location in location_info:
-        context = {'site' : site_name,
-                   'location' : location.location,
-                   'description' : location.description,
-                   'latitude' : location.latitude,
-                   'longitude' : location.longitude}
+        location_fill_form = {
+                                'site' : site_name,
+                                'location' : location.location,
+                                'description' : location.description,
+                                'latitude' : location.latitude,
+                                'longitude' : location.longitude
+        }
+        context = {
+                    'site' : site_name,
+                    'location' : location.location,
+                    'description' : location.description,
+                    'latitude' : location.latitude,
+                    'longitude' : location.longitude
+        }
+
+    form = ManageLocationForm(request.POST or None, initial=location_fill_form)
+    context['form'] = form
+
+
+    if form.is_valid():
+        site_name = form.cleaned_data['site']
+        new_location_name = form.cleaned_data['location']
+        new_location_description = form.cleaned_data['description']
+        new_location_latitude = form.cleaned_data['latitude']
+        new_location_longitude = form.cleaned_data['longitude']
+
+        Locations_by_site(site=site_name, location=location_name).delete()
+        Location_info_by_location(location=location_name).delete()
+
+        Locations_by_site.create(
+            site=site_name,
+            location=new_location_name,
+            description=new_location_description,
+            latitude = new_location_latitude,
+            longitude = new_location_longitude
+        )
+
+        Location_info_by_location.create(
+            location=new_location_name,
+            description=new_location_description,
+            latitude = new_location_latitude,
+            longitude = new_location_longitude
+        )
+
+        url = reverse('sites:load_location')
+        url += '?site_name=' + site_name + '&location_name=' + new_location_name
+
+        return HttpResponseRedirect(url)
+
+
+
     return render(request, template_name, context)
+
+def load_sensors(request):
+    params = request.GET
+
+    site_name = params.get('site_name', '')
+    location_name = params.get('location_name', '')
+
+    sensors = Sensors_by_location.objects.filter(location=location_name)
+
+    location_sensors = []
+
+    for sensor in sensors:
+        sensor_name = sensor.sensor
+        sensor_info = Sensor_info_by_sensor.objects.filter(sensor=sensor_name)
+        temp_sensor_dict = {}
+        for temp_sensor in sensor_info:
+            temp_sensor_dict = {'sensor' : temp_sensor.sensor,
+                                'description' : temp_sensor.description,
+                                'file_info' : temp_sensor.file_info,
+                                'parameters' : temp_sensor.parameter_order,
+                                'parameter_types' : temp_sensor.parameter_types,
+                                'time_ids' : temp_sensor.time_ids,
+                                'time_zone' : temp_sensor.time_zone
+            }
+        location_sensors.append(temp_sensor_dict)
+
+    print("SENSORS", json.dumps(location_sensors))
+    return HttpResponse(json.dumps(location_sensors), content_type='application/json')
+
+def manage_sensor(request):
+    params = request.GET
+
+    site_name = params.get('site_name', '')
+    location_name = params.get('location_name', '')
+    sensor_name = params.get('sensor_name', '')
+
+    sensor_fill_form = dict
+    template = 'sites/manage_sensor.html'
+
+    if sensor_name:    #: Edit existing sensor
+        sensor_num = SensorData.get_sensor_num(location_name, sensor_name)
+
+        sensor_data = SensorData.get_sensor(sensor_name)
+        sensor_info_dict = sensor_data[0]
+
+        fill_sensor_num = sensor_num
+        fill_sensor_name = sensor_info_dict.get('sensor')
+        fill_sensor_desc = sensor_info_dict.get('description')
+        #fill_sensor_file_info = sensor_info_dict.get('file_info')
+        #fill_sensor_params = sensor_info_dict.get('parameters')
+        #fill_sensor_param_types = sensor_info_dict.get('parameter_types')
+        #fill_sensor_time_ids = sensor_info_dict.get('time_ids')
+        fill_sensor_time_zone = sensor_info_dict.get('time_zone')
+
+        sensor_fill_form = {'sensor_num' : fill_sensor_num, 'sensor' : fill_sensor_name, 'description' : fill_sensor_desc, 'time_zone' : fill_sensor_time_zone}
+        #sensor_fill_form = {'sensor_num' : fill_sensor_num, 'sensor' : fill_sensor_name, 'description' : fill_sensor_desc, 'file_info' : fill_sensor_file_info, 'parameters' : fill_sensor_params, 'parameter_types' : fill_sensor_param_types, 'time_ids' : fill_sensor_time_ids, 'time_zone' : fill_sensor_time_zone}
+
+    else:
+        pass
+
+    form = ManageSensorForm(request.POST or None, initial=sensor_fill_form)
+
+    if form.is_valid():
+        sensor_num = form.cleaned_data['sensor_num']
+        sensor_name = form.cleaned_data['sensor']
+        sensor_description = form.cleaned_data['description']
+        sensor_file_info = form.cleaned_data['file_info']
+        sensor_params = form.cleaned_data['parameters']
+        sensor_param_types = form.cleaned_data['parameter_types']
+        sensor_time_ids = form.cleaned_data['time_ids']
+        sensor_time_zone = form.cleaned_data['time_zone']
+
+
+        Sensors_by_location.create(
+            location=location_name,
+            sensor=sensor_name,
+            sensor_num=sensor_num,
+            description=sensor_description
+        )
+
+        Sensor_info_by_sensor.create(
+            sensor=sensor_name,
+            description=sensor_description,
+            file_info=sensor_file_info,
+            parameters = sensor_params,
+            parameter_types = sensor_param_types,
+            time_ids = sensor_time_ids,
+            time_zone = sensor_time_zone
+        )
+
+        url = reverse('sites:load_location')
+        url += '?site_name=' + site_name + '&location_name=' + location_name
+
+        return HttpResponseRedirect(url)
+
+    context = {
+        'form' : form
+    }
+
+    return render(request, template, context)
+
 
 def load_location_data(request):
     params = request.GET
