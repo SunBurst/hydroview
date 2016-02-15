@@ -11,9 +11,9 @@ class SensorData(object):
         for temp_sensor in sensor_info:
             temp_sensor_dict = {'sensor' : temp_sensor.sensor,
                                 'description' : temp_sensor.description,
-                                'file_info' : temp_sensor.file_info,
-                                'parameters' : temp_sensor.parameter_order,
-                                'parameter_types' : temp_sensor.parameter_types,
+                                'file_path' : temp_sensor.file_path,
+                                'file_line_num' : temp_sensor.file_line_num,
+                                'parameters' : temp_sensor.parameters,
                                 'time_ids' : temp_sensor.time_ids,
                                 'time_zone' : temp_sensor.time_zone,
             }

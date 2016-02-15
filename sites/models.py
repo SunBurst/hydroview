@@ -1,5 +1,3 @@
-#from django.db import models
-
 from cassandra.cqlengine import columns
 from cassandra.cqlengine import models
 
@@ -40,9 +38,9 @@ class Sensors_by_location(models.Model):
 class Sensor_info_by_sensor(models.Model):
     sensor = columns.Text(primary_key=True)
     description = columns.Text()
-    parameter_order = columns.List(columns.Text)
-    parameter_types = columns.Map(columns.Text, columns.Text)
-    file_info = columns.Map(columns.Text, columns.Text)
+    parameters = columns.List(columns.Text)
+    file_path = columns.Text()
+    file_line_num = columns.Integer()
     time_zone = columns.Text()
     time_ids = columns.List(columns.Text)
 

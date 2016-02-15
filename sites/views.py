@@ -11,6 +11,12 @@ from .sensors import SensorData
 from .sites import SiteData
 from .models import Locations_by_site, Location_info_by_location, Sensors_by_location, Sensor_info_by_sensor, Sites, Site_info_by_site
 
+
+
+###########################################################################
+######################    API FOR LOADING TEMPLATES    ####################
+###########################################################################
+
 def index(request):
     template_name = 'sites/index.html'
     #sites_data = SiteData.get_all_sites()
@@ -29,12 +35,6 @@ def index(request):
     #context['monitored_sites'] = monitored_sites
 
     return render(request, template_name, context)
-
-
-def load_sites_json(request):
-
-    sites_data = SiteData.get_all_sites()
-    return HttpResponse(json.dumps(sites_data), content_type='application/json')
 
 def load_location(request):
     template_name = 'sites/location.html'
@@ -117,101 +117,37 @@ def load_location(request):
 
     return render(request, template_name, context)
 
+
+
+###########################################################################
+#####################    API FOR RETURNING JSON DATA    ###################
+###########################################################################
+
+def load_sites_json(request):
+
+    sites_data = SiteData.get_all_sites()
+    return HttpResponse(json.dumps(sites_data), content_type='application/json')
+
 def load_sensors_json(request):
     params = request.GET
 
     site_name = params.get('site_name', '')
     location_name = params.get('location_name', '')
 
-    #sensors = Sensors_by_location.objects.filter(location=location_name)
     sensors = SensorData.get_sensors_by_location(location_name)
 
     location_sensors = []
 
     for sensor in sensors:
         sensor_name = sensor.get('sensor')
-        #sensor_info = Sensor_info_by_sensor.objects.filter(sensor=sensor_name)
+
         sensor_info = SensorData.get_sensor(sensor_name)
 
         temp_sensor_dict = sensor_info[0]
 
         location_sensors.append(temp_sensor_dict)
 
-    print("SENSORS", json.dumps(location_sensors))
     return HttpResponse(json.dumps(location_sensors), content_type='application/json')
-
-def manage_sensor(request):
-    params = request.GET
-
-    site_name = params.get('site_name', '')
-    location_name = params.get('location_name', '')
-    sensor_name = params.get('sensor_name', '')
-
-    sensor_fill_form = dict
-    template = 'sites/manage_sensor.html'
-
-    if sensor_name:    #: Edit existing sensor
-        sensor_num = SensorData.get_sensor_num(location_name, sensor_name)
-
-        sensor_data = SensorData.get_sensor(sensor_name)
-        sensor_info_dict = sensor_data[0]
-
-        fill_sensor_num = sensor_num
-        fill_sensor_name = sensor_info_dict.get('sensor')
-        fill_sensor_desc = sensor_info_dict.get('description')
-        #fill_sensor_file_info = sensor_info_dict.get('file_info')
-        #fill_sensor_params = sensor_info_dict.get('parameters')
-        #fill_sensor_param_types = sensor_info_dict.get('parameter_types')
-        #fill_sensor_time_ids = sensor_info_dict.get('time_ids')
-        fill_sensor_time_zone = sensor_info_dict.get('time_zone')
-
-        sensor_fill_form = {'location' : location_name, 'sensor_num' : fill_sensor_num, 'sensor' : fill_sensor_name, 'description' : fill_sensor_desc, 'time_zone' : fill_sensor_time_zone}
-        #sensor_fill_form = {'sensor_num' : fill_sensor_num, 'sensor' : fill_sensor_name, 'description' : fill_sensor_desc, 'file_info' : fill_sensor_file_info, 'parameters' : fill_sensor_params, 'parameter_types' : fill_sensor_param_types, 'time_ids' : fill_sensor_time_ids, 'time_zone' : fill_sensor_time_zone}
-
-    else:   #: Add new sensor
-        sensor_fill_form = {'location' : location_name}
-
-    form = ManageSensorForm(request.POST or None, initial=sensor_fill_form)
-
-    if form.is_valid():
-        sensor_num = form.cleaned_data['sensor_num']
-        sensor_name = form.cleaned_data['sensor']
-        sensor_description = form.cleaned_data['description']
-        sensor_line_num = form.cleaned_data['file_line_num']
-        sensor_file_path = form.cleaned_data['file_path']
-        sensor_params = form.cleaned_data['parameters']
-        sensor_param_types = form.cleaned_data['parameter_types']
-        sensor_time_ids = form.cleaned_data['time_ids']
-        sensor_time_zone = form.cleaned_data['time_zone']
-
-
-        Sensors_by_location.create(
-            location=location_name,
-            sensor=sensor_name,
-            sensor_num=sensor_num,
-            description=sensor_description
-        )
-
-        Sensor_info_by_sensor.create(
-            sensor=sensor_name,
-            description=sensor_description,
-            file_info=sensor_file_path,
-            parameters = sensor_params,
-            parameter_types = sensor_param_types,
-            time_ids = sensor_time_ids,
-            time_zone = sensor_time_zone
-        )
-
-        url = reverse('sites:load_location')
-        url += '?site_name=' + site_name + '&location_name=' + location_name
-
-        return HttpResponseRedirect(url)
-
-    context = {
-        'form' : form
-    }
-
-    return render(request, template, context)
 
 def load_locations_json(request):
     params = request.GET
@@ -220,27 +156,11 @@ def load_locations_json(request):
     locations_data = LocationsData.get_site_locations(site_name)
     return HttpResponse(json.dumps(locations_data), content_type='application/json')
 
-#def dashboard(request):#request, chartID = 'chart_ID', chart_type = 'line', chart_height = 400):
-#    template = 'sites/dashboard.html'
-    #status_data = ChartData.get_status_data()
-    #print(status_data)
 
-    #chart = {"renderTo": chartID, "type": chart_type, "zoomType": 'x', "height": chart_height,}
-    #title = {"text": 'Battery Status'}
-    #xAxis = {"title": {"text": 'Time (Local)'}, "type": 'datetime'}
-    #yAxis = {"title": {"text": 'Battery (V)'}}
-    #series = status_data#[{
-        #'name' : status_data['location'],
-        #'data': test
-        #}]
 
-    #context = {'locations_list': sites}
-    #render(request, template, context)
-    #print(template, chartID, chart, series, title, xAxis, yAxis)
-    #return render(request, template, {'chartID': chartID, 'chart': chart,
-    #                                                'series': series, 'title': title,
-    #                                                'xAxis': xAxis, 'yAxis': yAxis})
-#    return render(request, template)
+###########################################################################
+#######################    API FOR MANAGING FORMS    ######################
+###########################################################################
 
 def manage_site(request):
 
@@ -265,7 +185,6 @@ def manage_site(request):
     else:   #: Add new site
 
         site_fill_form = {}
-        template = 'sites/add_site.html'
 
     form = ManageSiteForm(request.POST or None, initial=site_fill_form)
 
@@ -307,11 +226,10 @@ def manage_location(request):
     location_fill_form = dict
     template = 'sites/manage_location.html'
 
-    if location:    #: Edit existing location
+    if location:    #: Edit existing location, not needed here since it's done in location.html.
         pass
     else:   #: Add new location
         location_fill_form = {'site' : site}
-        template = 'sites/add_location.html'
 
     form = ManageLocationForm(request.POST or None, initial=location_fill_form)
 
@@ -344,6 +262,111 @@ def manage_location(request):
     }
 
     return render(request, template, context)
+
+def manage_sensor(request):
+    params = request.GET
+
+    site_name = params.get('site_name', '')
+    location_name = params.get('location_name', '')
+    sensor_name = params.get('sensor_name', '')
+
+    sensor_fill_form = dict
+    parameters = []
+    time_ids = []
+    template = 'sites/manage_sensor.html'
+
+    if sensor_name:    #: Edit existing sensor
+        sensor_num = SensorData.get_sensor_num(location_name, sensor_name)
+
+        sensor_data = SensorData.get_sensor(sensor_name)
+        sensor_info_dict = sensor_data[0]
+
+        fill_sensor_location = location_name
+        fill_sensor_num = sensor_num
+        fill_sensor_name = sensor_info_dict.get('sensor')
+        fill_sensor_desc = sensor_info_dict.get('description')
+        fill_sensor_file_path = sensor_info_dict.get('file_path')
+        fill_sensor_file_line_num = sensor_info_dict.get('file_line_num')
+        #fill_sensor_params = sensor_info_dict.get('parameters')
+        #fill_sensor_time_ids = sensor_info_dict.get('time_ids')
+        fill_sensor_time_zone = sensor_info_dict.get('time_zone')
+        parameters = sensor_info_dict.get('parameters')
+        time_ids = sensor_info_dict.get('time_ids')
+
+        sensor_fill_form = {'location' : fill_sensor_location, 'sensor_num' : fill_sensor_num, 'sensor' : fill_sensor_name, 'description' : fill_sensor_desc, 'file_path' : fill_sensor_file_path, 'file_line_num' : fill_sensor_file_line_num, 'time_zone' : fill_sensor_time_zone}
+
+    else:   #: Add new sensor
+        sensor_fill_form = {'location' : location_name}
+
+    form = ManageSensorForm(request.POST or None, initial=sensor_fill_form, params=parameters, time_ids=time_ids)
+
+    if form.is_valid():
+        sensor_num = form.cleaned_data['sensor_num']
+        sensor_name = form.cleaned_data['sensor']
+        sensor_description = form.cleaned_data['description']
+        sensor_line_num = form.cleaned_data['file_line_num']
+        sensor_file_path = form.cleaned_data['file_path']
+        sensor_time_zone = form.cleaned_data['time_zone']
+        sensor_parameters = form.pack_parameters()
+        print(sensor_parameters)
+        sensor_time_ids = form.pack_time_ids()
+        print(sensor_time_ids)
+
+        Sensors_by_location.create(
+            location=location_name,
+            sensor=sensor_name,
+            sensor_num=sensor_num,
+            description=sensor_description
+        )
+
+        Sensor_info_by_sensor.create(
+            sensor=sensor_name,
+            description=sensor_description,
+            file_path=sensor_file_path,
+            file_line_num=sensor_line_num,
+            parameters = sensor_parameters,
+            time_ids = sensor_time_ids,
+            time_zone = sensor_time_zone
+        )
+
+        url = reverse('sites:load_location')
+        url += '?site_name=' + site_name + '&location_name=' + location_name
+
+        return HttpResponseRedirect(url)
+
+    context = {
+        'form' : form
+    }
+
+    return render(request, template, context)
+
+#def dashboard(request):#request, chartID = 'chart_ID', chart_type = 'line', chart_height = 400):
+#    template = 'sites/dashboard.html'
+    #status_data = ChartData.get_status_data()
+    #print(status_data)
+
+    #chart = {"renderTo": chartID, "type": chart_type, "zoomType": 'x', "height": chart_height,}
+    #title = {"text": 'Battery Status'}
+    #xAxis = {"title": {"text": 'Time (Local)'}, "type": 'datetime'}
+    #yAxis = {"title": {"text": 'Battery (V)'}}
+    #series = status_data#[{
+        #'name' : status_data['location'],
+        #'data': test
+        #}]
+
+    #context = {'locations_list': sites}
+    #render(request, template, context)
+    #print(template, chartID, chart, series, title, xAxis, yAxis)
+    #return render(request, template, {'chartID': chartID, 'chart': chart,
+    #                                                'series': series, 'title': title,
+    #                                                'xAxis': xAxis, 'yAxis': yAxis})
+#    return render(request, template)
+
+
+
+###########################################################################
+######################    API FOR MANAGING CHARTS    ######################
+###########################################################################
 
 def chart_data_json(request):
 

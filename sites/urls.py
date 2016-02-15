@@ -24,16 +24,6 @@ urlpatterns = [
         name='load_sensors_json',
     ),
     url(
-        regex=r'^manage_sensor/$',
-        view=views.manage_sensor,
-        name='manage_sensor',
-    ),
-    url(
-        regex=r'^chart_data_json/$',
-        view=views.chart_data_json,
-        name='chart_data_json',
-    ),
-    url(
         regex=r'^manage_site/',
         view=views.manage_site,
         name='manage_site',
@@ -42,6 +32,16 @@ urlpatterns = [
         regex=r'^manage_location/',
         view=views.manage_location,
         name='manage_location',
+    ),
+    url(
+        regex=r'^manage_sensor/$',
+        view=views.manage_sensor,
+        name='manage_sensor',
+    ),
+    url(
+        regex=r'^chart_data_json/$',
+        view=views.chart_data_json,
+        name='chart_data_json',
     ),
     #url(
     #    regex=r'^dashboard/',

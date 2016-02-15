@@ -97,6 +97,7 @@
                                         <th>Name</th>
                                         <th>Description</th>
                                         <th>File Path</th>
+                                        <th>Last Inserted Line Number</th>
                                         <th>Time Zone</th>
                                         <th>Time Identifiers</th>
                                         <th>Parameters</th>
@@ -164,7 +165,7 @@
                     editSensorUrl += "&location_name=" + "{{ location }}";
                     editSensorUrl += "&sensor_name=" + sensor.sensor;
 
-                    $('#sensorsTableBody').append('<tr><td>' + sensor.sensor + '</td><td>' + sensor.description + '</td><td>' + sensor.file_info.path + '</td><td>' + sensor.time_zone + '</td><td>' + sensor.time_ids + '</td><td>' + sensor.parameters + '</td><td id="editSensor"></td><td id="deleteSensor"></td></tr>');
+                    $('#sensorsTableBody').append('<tr><td>' + sensor.sensor + '</td><td>' + sensor.description + '</td><td>' + sensor.file_path + '</td><td>' + sensor.file_line_num + '</td><td>' + sensor.time_zone + '</td><td>' + sensor.time_ids + '</td><td>' + sensor.parameters + '</td><td id="editSensor"></td><td id="deleteSensor"></td></tr>');
                     $('#editSensor').append('<a href="' + editSensorUrl + '"><i class="fa fa-gear fa-fw"></i></a>');
                     $('#deleteSensor').append('<a><i class="fa fa-trash-o fa-fw"></i></a>');
 
