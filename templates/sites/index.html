@@ -48,8 +48,8 @@
 <script type="text/javascript">
     $(document).ready(function() {
 
-        var jsonSitesUrl = '{% url 'sites:load_sites_data' %}';
-        var jsonAllSitesDataUrl = jsonSitesUrl + "?name=load_all_sites";
+        var jsonSitesUrl = '{% url 'sites:load_sites_json' %}';
+        var jsonAllSitesDataUrl = jsonSitesUrl;
 
         var $sitesCarousel = $('#sitesCarousel');
         var $sitesIndicators = $('#sitesIndicators');

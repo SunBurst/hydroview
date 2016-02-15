@@ -149,14 +149,13 @@
     <script type="text/javascript">
     $(document).ready(function() {
 
-        var jsonSitesUrl = '{% url 'sites:load_sites_data' %}';
-        var jsonLocationsUrl = '{% url 'sites:load_locations_data' %}';
+        var jsonSitesUrl = '{% url 'sites:load_sites_json' %}';
+        var jsonLocationsUrl = '{% url 'sites:load_locations_json' %}';
 
-        var jsonAllSitesDataUrl = jsonSitesUrl + "?name=load_all_sites";
+        var jsonAllSitesDataUrl = jsonSitesUrl;
 
         var $sideMenu = $('#side-menu');
         var $siteModalDropdown = $('#siteModalDropdown');
-
 
         $.getJSON(jsonAllSitesDataUrl, function(allSitesData) {
             $.each(allSitesData, function(i, val) {
@@ -169,7 +168,7 @@
 
                     $('#' + val.site + '-nav').append('<li><a href=' + manageLocationUrl + '><i class="fa fa-plus fa-fw"></i> Add New Location</a></li>');
 
-                    jsonLocationDataUrl = jsonLocationsUrl + "?name=load_site" + "&site=" + val.site;
+                    jsonLocationDataUrl = jsonLocationsUrl + "?site_name=" + val.site;
 
                     var manageSiteUrl = "{% url "sites:manage_site" %}" + "?site_name=" + val.site;
                     $siteModalDropdown.append('<li><a href=' + manageSiteUrl + '>' + val.site + '</a></li>');

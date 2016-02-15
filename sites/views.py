@@ -3,10 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import HttpResponse, redirect, render
 from django.core.urlresolvers import reverse
-from django.views import generic
 
 from .charts import ChartData
 from .forms import ManageLocationForm, ManageSensorForm, ManageSiteForm
+from .locations import LocationsData
 from .sensors import SensorData
 from .sites import SiteData
 from .models import Locations_by_site, Location_info_by_location, Sensors_by_location, Sensor_info_by_sensor, Sites, Site_info_by_site
@@ -31,17 +31,10 @@ def index(request):
     return render(request, template_name, context)
 
 
-def load_sites_data(request):
-    print("HEJ", request)
-    params = request.GET
+def load_sites_json(request):
 
-    name = params.get('name', '')
-
-    if name == 'load_all_sites':
-        sites_data = SiteData.get_all_sites()
-        print(json.dumps(sites_data))
-        return HttpResponse(json.dumps(sites_data), content_type='application/json')
-    return HttpResponse(json.dumps("test"), content_type='application/json')
+    sites_data = SiteData.get_all_sites()
+    return HttpResponse(json.dumps(sites_data), content_type='application/json')
 
 def load_location(request):
     template_name = 'sites/location.html'
@@ -50,27 +43,43 @@ def load_location(request):
     site_name = params.get('site_name', '')
     location_name = params.get('location_name', '')
 
-    location_info = Location_info_by_location.objects.filter(location=location_name)
+    #location_info = Location_info_by_location.objects.filter(location=location_name)
+    location_info = LocationsData.get_location(location_name)
 
     location_fill_form = dict
 
     context = {}
 
-    for location in location_info:
-        location_fill_form = {
+    location = location_info[0]
+    location_fill_form = {
                                 'site' : site_name,
-                                'location' : location.location,
-                                'description' : location.description,
-                                'latitude' : location.latitude,
-                                'longitude' : location.longitude
-        }
-        context = {
+                                'location' : location.get('location'),
+                                'description' : location.get('description'),
+                                'latitude' : location.get('latitude'),
+                                'longitude' : location.get('longitude')
+    }
+    context = {
                     'site' : site_name,
-                    'location' : location.location,
-                    'description' : location.description,
-                    'latitude' : location.latitude,
-                    'longitude' : location.longitude
+                    'location' : location.get('location'),
+                    'description' : location.get('description'),
+                    'latitude' : location.get('latitude'),
+                    'longitude' : location.get('longitude')
         }
+    #for location in location_info:
+    #    location_fill_form = {
+    #                            'site' : site_name,
+    #                            'location' : location.location,
+    #                            'description' : location.description,
+    #                            'latitude' : location.latitude,
+    #                            'longitude' : location.longitude
+    #    }
+    #    context = {
+    #                'site' : site_name,
+    #                'location' : location.location,
+    #                'description' : location.description,
+    #                'latitude' : location.latitude,
+    #                'longitude' : location.longitude
+    #    }
 
     form = ManageLocationForm(request.POST or None, initial=location_fill_form)
     context['form'] = form
@@ -106,33 +115,26 @@ def load_location(request):
 
         return HttpResponseRedirect(url)
 
-
-
     return render(request, template_name, context)
 
-def load_sensors(request):
+def load_sensors_json(request):
     params = request.GET
 
     site_name = params.get('site_name', '')
     location_name = params.get('location_name', '')
 
-    sensors = Sensors_by_location.objects.filter(location=location_name)
+    #sensors = Sensors_by_location.objects.filter(location=location_name)
+    sensors = SensorData.get_sensors_by_location(location_name)
 
     location_sensors = []
 
     for sensor in sensors:
-        sensor_name = sensor.sensor
-        sensor_info = Sensor_info_by_sensor.objects.filter(sensor=sensor_name)
-        temp_sensor_dict = {}
-        for temp_sensor in sensor_info:
-            temp_sensor_dict = {'sensor' : temp_sensor.sensor,
-                                'description' : temp_sensor.description,
-                                'file_info' : temp_sensor.file_info,
-                                'parameters' : temp_sensor.parameter_order,
-                                'parameter_types' : temp_sensor.parameter_types,
-                                'time_ids' : temp_sensor.time_ids,
-                                'time_zone' : temp_sensor.time_zone
-            }
+        sensor_name = sensor.get('sensor')
+        #sensor_info = Sensor_info_by_sensor.objects.filter(sensor=sensor_name)
+        sensor_info = SensorData.get_sensor(sensor_name)
+
+        temp_sensor_dict = sensor_info[0]
+
         location_sensors.append(temp_sensor_dict)
 
     print("SENSORS", json.dumps(location_sensors))
@@ -163,11 +165,11 @@ def manage_sensor(request):
         #fill_sensor_time_ids = sensor_info_dict.get('time_ids')
         fill_sensor_time_zone = sensor_info_dict.get('time_zone')
 
-        sensor_fill_form = {'sensor_num' : fill_sensor_num, 'sensor' : fill_sensor_name, 'description' : fill_sensor_desc, 'time_zone' : fill_sensor_time_zone}
+        sensor_fill_form = {'location' : location_name, 'sensor_num' : fill_sensor_num, 'sensor' : fill_sensor_name, 'description' : fill_sensor_desc, 'time_zone' : fill_sensor_time_zone}
         #sensor_fill_form = {'sensor_num' : fill_sensor_num, 'sensor' : fill_sensor_name, 'description' : fill_sensor_desc, 'file_info' : fill_sensor_file_info, 'parameters' : fill_sensor_params, 'parameter_types' : fill_sensor_param_types, 'time_ids' : fill_sensor_time_ids, 'time_zone' : fill_sensor_time_zone}
 
-    else:
-        pass
+    else:   #: Add new sensor
+        sensor_fill_form = {'location' : location_name}
 
     form = ManageSensorForm(request.POST or None, initial=sensor_fill_form)
 
@@ -175,7 +177,8 @@ def manage_sensor(request):
         sensor_num = form.cleaned_data['sensor_num']
         sensor_name = form.cleaned_data['sensor']
         sensor_description = form.cleaned_data['description']
-        sensor_file_info = form.cleaned_data['file_info']
+        sensor_line_num = form.cleaned_data['file_line_num']
+        sensor_file_path = form.cleaned_data['file_path']
         sensor_params = form.cleaned_data['parameters']
         sensor_param_types = form.cleaned_data['parameter_types']
         sensor_time_ids = form.cleaned_data['time_ids']
@@ -192,7 +195,7 @@ def manage_sensor(request):
         Sensor_info_by_sensor.create(
             sensor=sensor_name,
             description=sensor_description,
-            file_info=sensor_file_info,
+            file_info=sensor_file_path,
             parameters = sensor_params,
             parameter_types = sensor_param_types,
             time_ids = sensor_time_ids,
@@ -210,33 +213,15 @@ def manage_sensor(request):
 
     return render(request, template, context)
 
-
-def load_location_data(request):
+def load_locations_json(request):
     params = request.GET
-    location_data = []
-    name = params.get('name', '')
-    location = params.get('location', '')
+    site_name = params.get('site_name', '')
 
-    if name == 'load_location':
-        location_data = SiteData.get_location(location)
-        return HttpResponse(json.dumps(location_data), content_type='application/json')
-    return HttpResponse(json.dumps(location_data), content_type='application/json')
+    locations_data = LocationsData.get_site_locations(site_name)
+    return HttpResponse(json.dumps(locations_data), content_type='application/json')
 
-def load_locations_data(request):
-    print("HEJ LOCATIONS", request)
-    params = request.GET
-
-    name = params.get('name', '')
-    site = params.get('site', '')
-
-    if name == 'load_site':
-        locations_data = SiteData.get_site_locations(site)
-        print(site, json.dumps(locations_data))
-        return HttpResponse(json.dumps(locations_data), content_type='application/json')
-    return HttpResponse(json.dumps("test"), content_type='application/json')
-
-def dashboard(request):#request, chartID = 'chart_ID', chart_type = 'line', chart_height = 400):
-    template = 'sites/dashboard.html'
+#def dashboard(request):#request, chartID = 'chart_ID', chart_type = 'line', chart_height = 400):
+#    template = 'sites/dashboard.html'
     #status_data = ChartData.get_status_data()
     #print(status_data)
 
@@ -255,7 +240,7 @@ def dashboard(request):#request, chartID = 'chart_ID', chart_type = 'line', char
     #return render(request, template, {'chartID': chartID, 'chart': chart,
     #                                                'series': series, 'title': title,
     #                                                'xAxis': xAxis, 'yAxis': yAxis})
-    return render(request, template)
+#    return render(request, template)
 
 def manage_site(request):
 

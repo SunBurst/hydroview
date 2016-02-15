@@ -14,10 +14,12 @@ class ManageLocationForm(forms.Form):
     description = forms.CharField(label='Description', widget=forms.Textarea, required=True)
 
 class ManageSensorForm(forms.Form):
+    location = forms.CharField(label='Location', required=True)
     sensor_num = forms.IntegerField(label='Sensor Number', required=True)
-    sensor = forms.CharField(label='Sensor', required=True)
+    sensor = forms.CharField(label='Sensor Name', required=True)
     description = forms.CharField(label='Description', widget=forms.Textarea, required=True)
-    file_info = forms.CharField(label='File Info', required=True)
+    file_path = forms.FileField(label='File Path', required=True)
+    file_line_num = forms.CharField(label='Last Line Number', required=True)
     parameters = forms.CharField(label='Parameters', widget=forms.Textarea, required=True)
     time_ids = forms.CharField(label='Time Identifiers', widget=forms.Textarea, required=True)
     time_zone = forms.CharField(label='Time Zone', required=True)

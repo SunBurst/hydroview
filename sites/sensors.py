@@ -4,6 +4,7 @@ class SensorData(object):
 
     @classmethod
     def get_sensor(cls, sensor_name):
+
         sensor_data = []
         sensor_info = Sensor_info_by_sensor.objects.filter(sensor=sensor_name)
 
@@ -22,6 +23,7 @@ class SensorData(object):
 
     @classmethod
     def get_sensors_by_location(cls, location_name):
+
         sensors_data = []
         sensors_info = Sensors_by_location.objects.filter(location=location_name)
 
@@ -37,8 +39,10 @@ class SensorData(object):
 
     @classmethod
     def get_sensor_nums(cls, location_name):
+
         sensor_nums = []
         sensors_info = Sensors_by_location.objects.filter(location=location_name)
+
         for temp_sensor in sensors_info:
             temp_sensor_dict = {
                                 'sensor' : temp_sensor.sensor,
@@ -50,8 +54,10 @@ class SensorData(object):
 
     @classmethod
     def get_sensor_num(cls, location_name, sensor_name):
+
         sensor_nums = cls.get_sensor_nums(location_name)
         num_match = None
+
         for sensor in sensor_nums:
             if (sensor.get('sensor') == sensor_name):
                 num_match = sensor.get('sensor_num')

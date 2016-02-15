@@ -9,24 +9,19 @@ urlpatterns = [
         name='load_location',
     ),
     url(
-        regex=r'^load_sites_data/$',
-        view=views.load_sites_data,
-        name='load_sites_data',
+        regex=r'^load_sites_json/$',
+        view=views.load_sites_json,
+        name='load_sites_json',
     ),
     url(
-        regex=r'^load_location_data/$',
-        view=views.load_location_data,
-        name='load_location_data',
+        regex=r'^load_locations_json/$',
+        view=views.load_locations_json,
+        name='load_locations_json',
     ),
     url(
-        regex=r'^load_locations_data/$',
-        view=views.load_locations_data,
-        name='load_locations_data',
-    ),
-    url(
-        regex=r'^load_sensors/$',
-        view=views.load_sensors,
-        name='load_sensors',
+        regex=r'^load_sensors_json/$',
+        view=views.load_sensors_json,
+        name='load_sensors_json',
     ),
     url(
         regex=r'^manage_sensor/$',
@@ -48,9 +43,9 @@ urlpatterns = [
         view=views.manage_location,
         name='manage_location',
     ),
-    url(
-        regex=r'^dashboard/',
-        view=views.dashboard,
-        name='dashboard',
-    ),
+    #url(
+    #    regex=r'^dashboard/',
+    #    view=views.dashboard,
+    #    name='dashboard',
+    #),
 ]
