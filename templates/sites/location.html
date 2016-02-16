@@ -56,7 +56,24 @@
                     </div>
                     <div class="tab-pane fade" id="charts">
                         <h4>Charts</h4>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <i class="fa fa-bar-chart-o fa-fw"></i> Humidity Chart
+                                    <div class="pull-right">
+                                        <div class="btn-group">
+                                            <select id="humidityByDaySelect" class="form-control input-sm">
+                                                <option value=7>Last 7 Days</option>
+                                                <option value=30>Last 30 Days</option>
+                                                <option value=365>Last 365 Days</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                            </div>
+                            <!-- /.panel-heading -->
+                            <div id="chart_panel" class="panel-body" style="width:100%;height:343px"></div>
+                            <!-- /.panel-body -->
+                        </div>
+                        <!-- /.panel -->
                     </div>
                     <div class="tab-pane fade" id="editLocation">
                         <h4></h4>
@@ -128,6 +145,10 @@
     <!--Google Maps API-->
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDnycWatbGyK6ldFqErjFtko1yeMclNUOA&amp;sensor=true"></script>
 
+    <!-- Highcharts JavaScript -->
+    <script src="{{ STATIC_URL }}Highcharts-4.1.10/js/highcharts.js"></script>
+    <script src="{{ STATIC_URL }}Highcharts-4.1.10/js/modules/exporting.js"></script>
+
     <script type="text/javascript">
     $(document).ready(function() {
 
@@ -174,8 +195,82 @@
 
         }
 
+        function initCharts() {
+            var jsonUrl = '{% url 'sites:chart_data_json' %}'
+
+            Highcharts.setOptions({
+                    global: {
+                    useUTC: false
+                }
+            });
+
+             // Humidity by day chart
+             var humidityByDayOptions = {
+                chart: {
+                    renderTo: 'chart_panel',
+                    type: 'spline',
+                    zoomType: 'x'
+                },
+                title: {
+                    text: 'Daily Humidity'
+                },
+                subtitle: {
+                    text: null
+                },
+                xAxis: {
+                    title: {
+                        text: null
+                    },
+                    type: 'datetime'
+                },
+                yAxis: {
+                    title: {
+                        text: 'Humidity'
+                    },
+                    labels: {
+                        formatter: function () {
+                            return this.value + ' %';
+                        }
+                    }
+                },
+                tooltip: {
+                    crosshairs: true,
+                    shared: true
+                },
+                plotOptions: {
+                    spline: {
+                        marker: {
+                            radius: 4,
+                            lineColor: '#666666',
+                            lineWidth: 1
+                        }
+                    }
+                },
+                series: []
+            };
+            var days = 7
+            var chartDataUrl = jsonUrl + "?name=humidity_by_day" + "&days=" + days; //+ "&days=7";
+                function loadChart(chartDataUrl, days) {
+                $.getJSON(chartDataUrl,
+                    function(list) {
+                        humidityByDayOptions.subtitle = {text: 'Last ' + days + ' Days'}
+                        humidityByDayOptions.series = list
+                        var chart = new Highcharts.Chart(humidityByDayOptions);
+                    });
+
+                }
+
+            $('#humidityByDaySelect').change(function(){
+                var days = $('#humidityByDaySelect').val();
+                var chartDataUrl = jsonUrl + '?name=humidity_by_day&days=' + days;
+                loadChart(chartDataUrl, days);
+            });
+            loadChart(chartDataUrl, days);
+        }
+
     initMap();
     initSensors(jsonAllSensorsDataUrl);
+    initCharts();
 
     });
     </script>

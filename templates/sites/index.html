@@ -8,7 +8,7 @@
     <style>
 
         .carousel{
-            width: 100%;
+            width: 400px;
             height: 300px;
             margin: 0 auto;
     }
@@ -59,12 +59,12 @@
             $.each(allSitesData, function(i, val) {
                 if (i == 0) {
                     $sitesIndicators.append('<li data-target="#sitesCarousel" data-slide-to="' + i + '" class="active"></li>');
-                    $sitesInner.append('<div class="item active"><div class="container"><div class="carousel-caption"><h1>' + val.site + '</h1><p>' + val.description + '</p></div></div></div>');
+                    $sitesInner.append('<div class="item active"><img src="{% static 'Erken_nordsidan.jpg' %}" alt=' + val.site + '</img><div class="container"><div class="carousel-caption"><h1>' + val.site + '</h1><p>' + val.description + '</p></div></div></div>');
 
                 }
                 else {
                     $sitesIndicators.append('<li data-target="#sitesCarousel" data-slide-to="' + i + '"></li>');
-                    $sitesInner.append('<div class="item"><div class="container"><div class="carousel-caption"><h1>' + val.site + '</h1><p>' + val.description + '</p></div></div></div>');
+                    $sitesInner.append('<div class="item"><img src="{% static 'Erken_nordsidan.jpg' %}" alt=' + val.site + '</img><div class="container"><div class="carousel-caption"><h1>' + val.site + '</h1><p>' + val.description + '</p></div></div></div>');
 
                 }
             });

@@ -375,8 +375,8 @@ def chart_data_json(request):
     days = params.get('days', 0)
     name = params.get('name', '')
 
-    if name == 'status_by_day':
-        data = ChartData.get_status_data_by_day(days=int(days))
+    if name == 'humidity_by_day':
+        data = ChartData.get_humidity_data_by_day(days=int(days))
             #user=request.user) #days=int(days))
     #elif name == 'avg_by_day':
     #    data['chart_data'] = ChartData.get_avg_by_day(
