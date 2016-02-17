@@ -34,3 +34,64 @@
 <!-- /.row -->
 
 {% endblock %}
+
+{% block extrajs %}
+
+<script type="text/javascript">
+    $(document).ready(function() {
+
+        function initParams(){
+
+            $('input[id^="id_param_"]').each(function (i, obj) {
+                $('#' + obj.id).parents('p').prepend('<i id="' + 'icon_' + obj.id  + '"' +  ' class="fa fa-trash-o fa-fw"> </i>');
+            });
+
+        }
+
+        function shiftParamFields(targetId) {
+
+            var replaceInputId = null;
+
+            var $data = $('input[id^="id_param_"]');
+            var len = $data.length;
+
+            $data.each(function (i, obj) {
+
+                var currentId = obj.id;
+
+
+                if (replaceInputId) {
+
+                    var currentValue = obj.value;
+
+                    $('#' + replaceInputId).attr('value', currentValue);
+
+                    replaceInputId = currentId;
+                }
+
+                if (i == len - 1) {
+
+                    $('#' + currentId).parent('p').remove();
+                }
+
+                if (currentId == targetId) {
+
+                    replaceInputId = currentId;
+                }
+
+
+
+            });
+        }
+
+        initParams();
+
+    $('i[id^="icon_id_param_"]').click(function() {
+            var $targetFieldId = $(this).parents('p').find('input').attr('id');
+            shiftParamFields($targetFieldId);
+        });
+    });
+</script>
+
+
+{% endblock %}

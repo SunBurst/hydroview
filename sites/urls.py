@@ -43,9 +43,4 @@ urlpatterns = [
         view=views.chart_data_json,
         name='chart_data_json',
     ),
-    #url(
-    #    regex=r'^dashboard/',
-    #    view=views.dashboard,
-    #    name='dashboard',
-    #),
 ]
