@@ -1,97 +1,118 @@
 {% extends 'base.html' %}
 
-{% block heading %}
-<h1 class="page-header">Manage Sensor</h1>
+{% load crispy_forms_tags %}
+
+{% block extracss %}
+
+    <style>
+        .clickableFont {
+         cursor: pointer
+    }
+    </style>
+
 {% endblock %}
 
+
+{% block heading %} <h1 class="page-header">Manage Sensor</h1> {% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-lg-6">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                Sensor Info
-            </div>
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-lg-6">
-                        <form action="" method="POST">
-                            {% csrf_token %}
-                            {{ form.as_p }}
-                            <input class="btn btn-primary" type="submit" value="Save" />
-                            <button type="reset" class="btn btn-default">Reset</button>
-                        </form>
-                    </div>
-                    <!-- /.col-lg-6 (nested) -->
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Sensor Info
                 </div>
-                <!-- /.row (nested) -->
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <form action="" method="POST">
+                                {{ form|crispy }}
+                                <input class="btn btn-primary" type="submit" value="Save" />
+                                <button type="reset" class="btn btn-default">Reset</button>
+                            </form>
+                        </div>
+                        <!-- /.col-lg-6 (nested) -->
+                    </div>
+                    <!-- /.row (nested) -->
+                </div>
+                <!-- /.panel-body -->
             </div>
-            <!-- /.panel-body -->
+            <!-- /.panel -->
         </div>
-        <!-- /.panel -->
+        <!-- /.col-lg-6 -->
     </div>
-    <!-- /.col-lg-6 -->
-</div>
-<!-- /.row -->
+    <!-- /.row -->
 
 {% endblock %}
 
 {% block extrajs %}
 
-<script type="text/javascript">
-    $(document).ready(function() {
+    <script type="text/javascript">
+        $(document).ready(function() {
 
-        function initParams(){
 
-            $('input[id^="id_param_"]').each(function (i, obj) {
-                $('#' + obj.id).parents('p').prepend('<i id="' + 'icon_' + obj.id  + '"' +  ' class="fa fa-trash-o fa-fw"> </i>');
+            function noParams() {
+                $('#id_time_zone').parents('p')
+            }
+
+            function initParams() {
+
+                $('input[id^="id_param_"]').each(function (i, obj) {
+                    $('#' + obj.id).parents('p').prepend(
+                        '<span class="clickableFont"><i id="' + 'icon_append_' + obj.id  + '"' +  ' class="fa fa-arrow-circle-down fa-fw"></i> </span>'
+                        + '<span class="clickableFont"><i id="' + 'icon_prepend_' + obj.id  + '"' +  ' class="fa fa-arrow-circle-up fa-fw"></i> </span>'
+                        + '<span class="clickableFont"><i id="' + 'icon_del_' + obj.id  + '"' +  ' class="fa fa-trash-o fa-fw"></i> </span>'
+
+                    );
+
+                });
+
+            }
+
+            function shiftParamFields(targetId) {
+
+                var replaceInputId = null;
+
+                var $data = $('input[id^="id_param_"]');
+                var len = $data.length;
+
+                $data.each(function (i, obj) {
+
+                    var currentId = obj.id;
+
+
+                    if (replaceInputId) {
+
+                        var currentValue = obj.value;
+
+                        $('#' + replaceInputId).attr('value', currentValue);
+
+                        replaceInputId = currentId;
+                    }
+
+                    if (i == len - 1) {
+
+                        $('#' + currentId).parent('p').remove();
+                    }
+
+                    if (currentId == targetId) {
+
+                        replaceInputId = currentId;
+                    }
+
+
+
+                });
+            }
+
+            initParams();
+
+        $('i[id^="icon_del_id_param_"]').click(function() {
+                var $targetFieldId = $(this).parents('p').find('input').attr('id');
+                shiftParamFields($targetFieldId);
             });
-
-        }
-
-        function shiftParamFields(targetId) {
-
-            var replaceInputId = null;
-
-            var $data = $('input[id^="id_param_"]');
-            var len = $data.length;
-
-            $data.each(function (i, obj) {
-
-                var currentId = obj.id;
-
-
-                if (replaceInputId) {
-
-                    var currentValue = obj.value;
-
-                    $('#' + replaceInputId).attr('value', currentValue);
-
-                    replaceInputId = currentId;
-                }
-
-                if (i == len - 1) {
-
-                    $('#' + currentId).parent('p').remove();
-                }
-
-                if (currentId == targetId) {
-
-                    replaceInputId = currentId;
-                }
-
-
-
-            });
-        }
-
-        initParams();
-
-    $('i[id^="icon_id_param_"]').click(function() {
-            var $targetFieldId = $(this).parents('p').find('input').attr('id');
-            shiftParamFields($targetFieldId);
         });
-    });
-</script>
-
+    </script>
 
 {% endblock %}

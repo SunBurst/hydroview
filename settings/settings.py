@@ -50,9 +50,6 @@ DJANGO_APPS = (
 )
 
 LOCAL_APPS = (
-    #'core',
-    #'export',
-    #'plotting',
     #'qc',
     'sites',
 )
@@ -60,11 +57,9 @@ LOCAL_APPS = (
 DJANGO_CASSANDRA_ENGINE = ('django_cassandra_engine',
 )
 
-EXTERNAL_APPS = ()
-    #('compressor',
-    #             'django_extensions',
-    #             'crispy_forms',
-#)
+EXTERNAL_APPS = (
+    'crispy_forms',
+)
 
 INSTALLED_APPS = DJANGO_CASSANDRA_ENGINE + DJANGO_APPS + LOCAL_APPS + EXTERNAL_APPS
 
@@ -169,3 +164,5 @@ STATICFILES_FINDERS = (
 MEDIA_ROOT = 'media'
 
 MEDIA_URL = '/media/'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'

@@ -22,6 +22,7 @@ class ManageSensorForm(forms.Form):
     file_line_num = forms.IntegerField(label='Last Inserted Line Number', required=True)
     time_zone = forms.CharField(label='Time Zone', required=True)
 
+
     def __init__(self, *args, **kwargs):
         params = kwargs.pop('params')
         time_ids = kwargs.pop('time_ids')
