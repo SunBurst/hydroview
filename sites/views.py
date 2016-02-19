@@ -287,13 +287,12 @@ def manage_sensor(request):
         fill_sensor_desc = sensor_info_dict.get('description')
         fill_sensor_file_path = sensor_info_dict.get('file_path')
         fill_sensor_file_line_num = sensor_info_dict.get('file_line_num')
-        #fill_sensor_params = sensor_info_dict.get('parameters')
-        #fill_sensor_time_ids = sensor_info_dict.get('time_ids')
+        fill_sensor_time_format = sensor_info_dict.get('time_format')
         fill_sensor_time_zone = sensor_info_dict.get('time_zone')
         parameters = sensor_info_dict.get('parameters')
         time_ids = sensor_info_dict.get('time_ids')
 
-        sensor_fill_form = {'location' : fill_sensor_location, 'sensor_num' : fill_sensor_num, 'sensor' : fill_sensor_name, 'description' : fill_sensor_desc, 'file_path' : fill_sensor_file_path, 'file_line_num' : fill_sensor_file_line_num, 'time_zone' : fill_sensor_time_zone}
+        sensor_fill_form = {'location' : fill_sensor_location, 'sensor_num' : fill_sensor_num, 'sensor' : fill_sensor_name, 'description' : fill_sensor_desc, 'file_path' : fill_sensor_file_path, 'file_line_num' : fill_sensor_file_line_num, 'time_format' : fill_sensor_time_format, 'time_zone' : fill_sensor_time_zone}
 
     else:   #: Add new sensor
         sensor_fill_form = {'location' : location_name}
@@ -306,6 +305,7 @@ def manage_sensor(request):
         sensor_description = form.cleaned_data['description']
         sensor_line_num = form.cleaned_data['file_line_num']
         sensor_file_path = form.cleaned_data['file_path']
+        sensor_time_format = form.cleaned_data['time_format']
         sensor_time_zone = form.cleaned_data['time_zone']
         sensor_parameters = form.pack_parameters()
         print(sensor_parameters)
@@ -325,6 +325,7 @@ def manage_sensor(request):
             file_path=sensor_file_path,
             file_line_num=sensor_line_num,
             parameters = sensor_parameters,
+            time_format = sensor_time_format,
             time_ids = sensor_time_ids,
             time_zone = sensor_time_zone
         )

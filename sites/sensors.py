@@ -14,8 +14,9 @@ class SensorData(object):
                                 'file_path' : temp_sensor.file_path,
                                 'file_line_num' : temp_sensor.file_line_num,
                                 'parameters' : temp_sensor.parameters,
-                                'time_ids' : temp_sensor.time_ids,
+                                'time_format' : temp_sensor.time_format,
                                 'time_zone' : temp_sensor.time_zone,
+                                'time_ids' : temp_sensor.time_ids,
             }
             sensor_data.append(temp_sensor_dict)
 

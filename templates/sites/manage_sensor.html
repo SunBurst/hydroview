@@ -6,8 +6,11 @@
 
     <style>
         .clickableFont {
-         cursor: pointer
-    }
+         cursor: pointer;
+        }
+        .tab-content {
+            padding: 15px;
+        }
     </style>
 
 {% endblock %}
@@ -24,23 +27,47 @@
                     Sensor Info
                 </div>
                 <div class="panel-body">
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <form action="" method="POST">
-                                {{ form|crispy }}
-                                <input class="btn btn-primary" type="submit" value="Save" />
-                                <button type="reset" class="btn btn-default">Reset</button>
-                            </form>
+                    <!-- Nav tabs -->
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a href="#basicInfo" data-toggle="tab">Basic Info</a>
+                        </li>
+                        <li><a href="#fileInfo" data-toggle="tab">File Info</a>
+                        </li>
+                        <li><a href="#timeInfo" data-toggle="tab">Time Info</a>
+                        </li>
+                        <li><a href="#parameterInfo" data-toggle="tab">Parameter Info</a>
+                        </li>
+                    </ul>
+
+                    <!-- Form -->
+                    <form>
+                        <!-- Tab panes -->
+                        <div class="tab-content">
+                            <div class="tab-pane fade in active" id="basicInfo">
+                                {% crispy form form.helper1 %}
+                            </div>
+                            <div class="tab-pane fade" id="fileInfo">
+                                {% crispy form form.helper2 %}
+                            </div>
+                            <div class="tab-pane fade" id="timeInfo">
+                                {% crispy form form.helper3 %}
+                            </div>
+                            <div class="tab-pane fade" id="parameterInfo">
+                                {% crispy form form.helper4 %}
+                            </div>
                         </div>
-                        <!-- /.col-lg-6 (nested) -->
-                    </div>
-                    <!-- /.row (nested) -->
+                        <!-- /.tab-content -->
+                        <input class="btn btn-primary" type="submit" value="Save" />
+                        <button type="reset" class="btn btn-default">Reset</button>
+                        <button type="button" class="btn btn-outline btn-danger pull-right">Delete</button>
+                    </form>
+                    <!-- /.form -->
                 </div>
                 <!-- /.panel-body -->
             </div>
-            <!-- /.panel -->
+            <!-- /.panel-body -->
         </div>
-        <!-- /.col-lg-6 -->
+        <!-- /.col-lg-12 -->
     </div>
     <!-- /.row -->
 
@@ -52,23 +79,6 @@
         $(document).ready(function() {
 
 
-            function noParams() {
-                $('#id_time_zone').parents('p')
-            }
-
-            function initParams() {
-
-                $('input[id^="id_param_"]').each(function (i, obj) {
-                    $('#' + obj.id).parents('p').prepend(
-                        '<span class="clickableFont"><i id="' + 'icon_append_' + obj.id  + '"' +  ' class="fa fa-arrow-circle-down fa-fw"></i> </span>'
-                        + '<span class="clickableFont"><i id="' + 'icon_prepend_' + obj.id  + '"' +  ' class="fa fa-arrow-circle-up fa-fw"></i> </span>'
-                        + '<span class="clickableFont"><i id="' + 'icon_del_' + obj.id  + '"' +  ' class="fa fa-trash-o fa-fw"></i> </span>'
-
-                    );
-
-                });
-
-            }
 
             function shiftParamFields(targetId) {
 
@@ -106,7 +116,7 @@
                 });
             }
 
-            initParams();
+
 
         $('i[id^="icon_del_id_param_"]').click(function() {
                 var $targetFieldId = $(this).parents('p').find('input').attr('id');

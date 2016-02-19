@@ -41,6 +41,7 @@ class Sensor_info_by_sensor(models.Model):
     parameters = columns.List(columns.Text)
     file_path = columns.Text()
     file_line_num = columns.Integer()
+    time_format = columns.Text()
     time_zone = columns.Text()
     time_ids = columns.List(columns.Text)
 
