@@ -5,7 +5,10 @@
 {% block extracss %}
 
     <style>
-        .clickableFont {
+        .deleteParamSpan {
+         cursor: pointer;
+        }
+        .addParamSpan {
          cursor: pointer;
         }
         .tab-content {
@@ -44,22 +47,22 @@
                         <!-- Tab panes -->
                         <div class="tab-content">
                             <div class="tab-pane fade in active" id="basicInfo">
-                                {% crispy form form.helper1 %}
+                                {% crispy form form.helperBasicInfo %}
                             </div>
                             <div class="tab-pane fade" id="fileInfo">
-                                {% crispy form form.helper2 %}
+                                {% crispy form form.helperFileInfo %}
                             </div>
                             <div class="tab-pane fade" id="timeInfo">
-                                {% crispy form form.helper3 %}
+                                {% crispy form form.helperTimeInfo %}
                             </div>
                             <div class="tab-pane fade" id="parameterInfo">
-                                {% crispy form form.helper4 %}
+                                {% crispy form form.helperParamsInfo %}
                             </div>
                         </div>
                         <!-- /.tab-content -->
                         <input class="btn btn-primary" type="submit" value="Save" />
                         <button type="reset" class="btn btn-default">Reset</button>
-                        <button type="button" class="btn btn-outline btn-danger pull-right">Delete</button>
+                        <button type="button" class="btn btn-outline btn-danger pull-right"><i class="fa fa-trash-o fa-fw"></i> Delete Sensor</button>
                     </form>
                     <!-- /.form -->
                 </div>
@@ -78,7 +81,30 @@
     <script type="text/javascript">
         $(document).ready(function() {
 
+            initParams();
+            addParamsSpan();
 
+            function addParamsSpan() {
+                $('#parameterInfo').append('<span id="span_add_param" class="addParamSpan"><i class="fa fa-plus fa-fw"></i> Add Parameter</span>');
+            }
+
+            function getParamsLength() {
+                var $params = $('div[id^="div_id_param_"]');
+                var len = $params.length;
+
+                return len;
+            }
+
+            function initParams() {
+
+                var $params = $('div[id^="div_id_param_"]');
+
+                $params.each(function (i, obj) {
+                    $('#' + obj.id).prepend('<span class="deleteParamSpan"><i id="' + 'icon_del_' + obj.id  + '"' +  ' class="fa fa-trash-o fa-fw"></i> </span>');
+
+                });
+
+            }
 
             function shiftParamFields(targetId) {
 
@@ -103,7 +129,7 @@
 
                     if (i == len - 1) {
 
-                        $('#' + currentId).parent('p').remove();
+                        $('#' + currentId).parents('.form-group').remove();
                     }
 
                     if (currentId == targetId) {
@@ -116,12 +142,40 @@
                 });
             }
 
+        $('#parameterInfo').on('click', '.deleteParamSpan', function() {
+            var $targetFieldId = $(this).parents('.form-group').find('.controls input').attr('id');
+            shiftParamFields($targetFieldId);
+        });
 
+        $('#parameterInfo').on('click', '.addParamSpan', function() {
 
-        $('i[id^="icon_del_id_param_"]').click(function() {
-                var $targetFieldId = $(this).parents('p').find('input').attr('id');
-                shiftParamFields($targetFieldId);
+            paramsLength = getParamsLength();
+
+            if (paramsLength == 0) {
+                paramNum = 0;
+            }
+
+            paramNum = paramsLength;
+
+           $('#parameterInfo').append('<div id="div_id_param_' + paramNum + '" class="form-group">'
+                + '<span class="deleteParamSpan"><i id="icon_del_div_id_param_' + paramNum + '" class="fa fa-trash-o fa-fw"></i></span>'
+                + '<label for="id_param_' + paramNum + '" class="control-label requiredField">Parameter ' + paramNum + '<span class="asteriskField">*</span></label>'
+                + '<div class="controls"><input class="textinput textInput form-control" id="id_param_' + paramNum + '" name="param_' + paramNum + '" type="text" value=""></div>'
+                + '</div>');
+
+           $('#span_add_param').remove();
+           addParamsSpan();
+        });
+
+        $('input[type=radio][name=time_format]').on('click', function() {
+                if (this.value == 'timestamp') {
+                    $('#div_id_time_ids').hide();
+                }
+                else if (this.value == 'campbell') {
+                    $('#div_id_time_ids').show();
+                }
             });
+
         });
     </script>
 

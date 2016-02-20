@@ -266,76 +266,84 @@ def manage_location(request):
 def manage_sensor(request):
     params = request.GET
 
-    site_name = params.get('site_name', '')
-    location_name = params.get('location_name', '')
-    sensor_name = params.get('sensor_name', '')
+    siteName = params.get('site_name', '')
+    locationName = params.get('location_name', '')
+    sensorName = params.get('sensor_name', '')
 
-    sensor_fill_form = dict
-    parameters = []
-    time_ids = []
+    initSensorForm = dict
+    initSensorParams = []
+    manageAction = ""
+    #initSensorTimeIds = []
     template = 'sites/manage_sensor.html'
 
-    if sensor_name:    #: Edit existing sensor
-        sensor_num = SensorData.get_sensor_num(location_name, sensor_name)
+    if sensorName:    #: Edit existing sensor
+        manageAction = "edit"
 
-        sensor_data = SensorData.get_sensor(sensor_name)
-        sensor_info_dict = sensor_data[0]
+        sensorNum = SensorData.get_sensor_num(locationName, sensorName)
 
-        fill_sensor_location = location_name
-        fill_sensor_num = sensor_num
-        fill_sensor_name = sensor_info_dict.get('sensor')
-        fill_sensor_desc = sensor_info_dict.get('description')
-        fill_sensor_file_path = sensor_info_dict.get('file_path')
-        fill_sensor_file_line_num = sensor_info_dict.get('file_line_num')
-        fill_sensor_time_format = sensor_info_dict.get('time_format')
-        fill_sensor_time_zone = sensor_info_dict.get('time_zone')
-        parameters = sensor_info_dict.get('parameters')
-        time_ids = sensor_info_dict.get('time_ids')
+        sensorDataList = SensorData.get_sensor(sensorName)
+        sensorData = sensorDataList[0]
 
-        sensor_fill_form = {'location' : fill_sensor_location, 'sensor_num' : fill_sensor_num, 'sensor' : fill_sensor_name, 'description' : fill_sensor_desc, 'file_path' : fill_sensor_file_path, 'file_line_num' : fill_sensor_file_line_num, 'time_format' : fill_sensor_time_format, 'time_zone' : fill_sensor_time_zone}
+        initSensorLocation = locationName
+        initSensorNum = sensorNum
+        initSensorName = sensorData.get('sensor')
+        initSensorDesc = sensorData.get('description')
+        initSensorFilePath = sensorData.get('file_path')
+        initSensorFileLineNum = sensorData.get('file_line_num')
+        initSensorTimeFormat = sensorData.get('time_format')
+        initSensorTimeZone = sensorData.get('time_zone')
+        initSensorParams = sensorData.get('parameters')
+        initSensorTimeIds = sensorData.get('time_ids')
+
+        initSensorForm = {'location' : initSensorLocation, 'sensor_num' : initSensorNum, 'sensor' : initSensorName, 'description' : initSensorDesc, 'file_path' : initSensorFilePath, 'file_line_num' : initSensorFileLineNum, 'time_format' : initSensorTimeFormat, 'time_zone' : initSensorTimeZone, 'time_ids' : initSensorTimeIds}
 
     else:   #: Add new sensor
-        sensor_fill_form = {'location' : location_name}
+        manageAction = "add"
+        initSensorForm = {'location' : locationName}
+        initSensorParams.append('parameter_name_goes_here')
 
-    form = ManageSensorForm(request.POST or None, initial=sensor_fill_form, params=parameters, time_ids=time_ids)
+    form = ManageSensorForm(request.POST or None, initial=initSensorForm, params=initSensorParams)
 
     if form.is_valid():
-        sensor_num = form.cleaned_data['sensor_num']
-        sensor_name = form.cleaned_data['sensor']
-        sensor_description = form.cleaned_data['description']
-        sensor_line_num = form.cleaned_data['file_line_num']
-        sensor_file_path = form.cleaned_data['file_path']
-        sensor_time_format = form.cleaned_data['time_format']
-        sensor_time_zone = form.cleaned_data['time_zone']
-        sensor_parameters = form.pack_parameters()
-        print(sensor_parameters)
-        sensor_time_ids = form.pack_time_ids()
-        print(sensor_time_ids)
+        sensorNum = form.cleaned_data['sensor_num']
+        sensorName = form.cleaned_data['sensor']
+        sensorDesc = form.cleaned_data['description']
+        sensorLineNum = form.cleaned_data['file_line_num']
+        sensorFilePath = form.cleaned_data['file_path']
+        sensorTimeFormat = form.cleaned_data['time_format']
+        sensorTimeZone = form.cleaned_data['time_zone']
+        sensorTimeIds = form.cleaned_data['time_ids']
+        sensorParams = form.pack_parameters()
+        print(sensorParams)
+
+        sensorTimeInfo = {'time_format' : sensorTimeFormat,
+                          'time_zone' : sensorTimeZone,
+                          'time_ids' : sensorTimeIds
+        }
 
         Sensors_by_location.create(
-            location=location_name,
-            sensor=sensor_name,
-            sensor_num=sensor_num,
-            description=sensor_description
+            location=locationName,
+            sensor=sensorName,
+            sensor_num=sensorNum,
+            description=sensorDesc
         )
 
         Sensor_info_by_sensor.create(
-            sensor=sensor_name,
-            description=sensor_description,
-            file_path=sensor_file_path,
-            file_line_num=sensor_line_num,
-            parameters = sensor_parameters,
-            time_format = sensor_time_format,
-            time_ids = sensor_time_ids,
-            time_zone = sensor_time_zone
+            sensor=sensorName,
+            description=sensorDesc,
+            file_path=sensorFilePath,
+            file_line_num=sensorLineNum,
+            parameters = sensorParams,
+            time_info = sensorTimeInfo,
         )
 
         url = reverse('sites:load_location')
-        url += '?site_name=' + site_name + '&location_name=' + location_name
+        url += '?site_name=' + siteName + '&location_name=' + locationName
 
         return HttpResponseRedirect(url)
 
     context = {
+        'manage_action' : manageAction,
         'form' : form
     }
 
