@@ -39,6 +39,11 @@ urlpatterns = [
         name='manage_sensor',
     ),
     url(
+        regex=r'^delete_sensor/$',
+        view=views.delete_sensor,
+        name='delete_sensor',
+    ),
+    url(
         regex=r'^chart_data_json/$',
         view=views.chart_data_json,
         name='chart_data_json',

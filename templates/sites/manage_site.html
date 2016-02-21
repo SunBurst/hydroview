@@ -1,36 +1,38 @@
 {% extends 'base.html' %}
 
-{% block heading %}
-<h1 class="page-header">Manage Site</h1>
-{% endblock %}
+{% load crispy_forms_tags %}
+
+{% block heading %}<h1 class="page-header">Manage Site</h1>{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-6">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                Basic Info
-            </div>
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-lg-6">
-                        <form action="" method="POST">
-                            {% csrf_token %}
-                            {{ form.as_p }}
-                            <input class="btn btn-primary" type="submit" value="Save" />
-                            <button type="reset" class="btn btn-default">Reset</button>
-                        </form>
-                    </div>
-                    <!-- /.col-lg-6 (nested) -->
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Site Info
                 </div>
-                <!-- /.row (nested) -->
+                <div class="panel-body">
+                    {% crispy form %}
+                </div>
+                <!-- /.panel-body -->
             </div>
             <!-- /.panel-body -->
         </div>
-        <!-- /.panel -->
+        <!-- /.col-lg-12 -->
     </div>
-    <!-- /.col-lg-12 -->
-</div>
-<!-- /.row -->
+    <!-- /.row -->
+
+{% endblock %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var homeUrl = '{% url 'sites:index' %}'
+            cancelBtnUrl = "location.href='" + homeUrl + "';"
+            $('#button-id-cancel').attr('onclick',cancelBtnUrl);
+        });
+    </script>
 
 {% endblock %}

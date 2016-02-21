@@ -2,69 +2,18 @@
 
 {% load crispy_forms_tags %}
 
-{% block extracss %}
-
-    <style>
-        .deleteParamSpan {
-         cursor: pointer;
-        }
-        .addParamSpan {
-         cursor: pointer;
-        }
-        .tab-content {
-            padding: 15px;
-        }
-    </style>
-
-{% endblock %}
-
-
 {% block heading %} <h1 class="page-header">Manage Sensor</h1> {% endblock %}
 
 {% block content %}
 
     <div class="row">
-        <div class="col-lg-6">
+        <div class="col-lg-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     Sensor Info
                 </div>
                 <div class="panel-body">
-                    <!-- Nav tabs -->
-                    <ul class="nav nav-tabs">
-                        <li class="active"><a href="#basicInfo" data-toggle="tab">Basic Info</a>
-                        </li>
-                        <li><a href="#fileInfo" data-toggle="tab">File Info</a>
-                        </li>
-                        <li><a href="#timeInfo" data-toggle="tab">Time Info</a>
-                        </li>
-                        <li><a href="#parameterInfo" data-toggle="tab">Parameter Info</a>
-                        </li>
-                    </ul>
-
-                    <!-- Form -->
-                    <form>
-                        <!-- Tab panes -->
-                        <div class="tab-content">
-                            <div class="tab-pane fade in active" id="basicInfo">
-                                {% crispy form form.helperBasicInfo %}
-                            </div>
-                            <div class="tab-pane fade" id="fileInfo">
-                                {% crispy form form.helperFileInfo %}
-                            </div>
-                            <div class="tab-pane fade" id="timeInfo">
-                                {% crispy form form.helperTimeInfo %}
-                            </div>
-                            <div class="tab-pane fade" id="parameterInfo">
-                                {% crispy form form.helperParamsInfo %}
-                            </div>
-                        </div>
-                        <!-- /.tab-content -->
-                        <input class="btn btn-primary" type="submit" value="Save" />
-                        <button type="reset" class="btn btn-default">Reset</button>
-                        <button type="button" class="btn btn-outline btn-danger pull-right"><i class="fa fa-trash-o fa-fw"></i> Delete Sensor</button>
-                    </form>
-                    <!-- /.form -->
+                    {% crispy form %}
                 </div>
                 <!-- /.panel-body -->
             </div>
@@ -74,109 +23,42 @@
     </div>
     <!-- /.row -->
 
+    <!-- Modal -->
+    <div class="modal fade" id="mySensorModal" tabindex="-1" role="dialog" aria-labelledby="mySensorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="mySensorModalLabel">Attention</h4>
+                </div>
+                <div class="modal-body">
+                    All changes will be lost.
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'sites:load_location' %}?site_name={{ site_name }}&location_name={{ location_name }}" class = "btn btn-default" role = "button">Leave Anyway</a>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+
 {% endblock %}
 
 {% block extrajs %}
-
     <script type="text/javascript">
         $(document).ready(function() {
 
-            initParams();
-            addParamsSpan();
-
-            function addParamsSpan() {
-                $('#parameterInfo').append('<span id="span_add_param" class="addParamSpan"><i class="fa fa-plus fa-fw"></i> Add Parameter</span>');
-            }
-
-            function getParamsLength() {
-                var $params = $('div[id^="div_id_param_"]');
-                var len = $params.length;
-
-                return len;
-            }
-
-            function initParams() {
-
-                var $params = $('div[id^="div_id_param_"]');
-
-                $params.each(function (i, obj) {
-                    $('#' + obj.id).prepend('<span class="deleteParamSpan"><i id="' + 'icon_del_' + obj.id  + '"' +  ' class="fa fa-trash-o fa-fw"></i> </span>');
-
+            $('input[type=radio][name=time_format]').on('click', function() {
+                    if (this.value == 'timestamp') {
+                        $('#div_id_time_ids').hide();
+                    }
+                    else if (this.value == 'campbell') {
+                        $('#div_id_time_ids').show();
+                    }
                 });
-
-            }
-
-            function shiftParamFields(targetId) {
-
-                var replaceInputId = null;
-
-                var $data = $('input[id^="id_param_"]');
-                var len = $data.length;
-
-                $data.each(function (i, obj) {
-
-                    var currentId = obj.id;
-
-
-                    if (replaceInputId) {
-
-                        var currentValue = obj.value;
-
-                        $('#' + replaceInputId).attr('value', currentValue);
-
-                        replaceInputId = currentId;
-                    }
-
-                    if (i == len - 1) {
-
-                        $('#' + currentId).parents('.form-group').remove();
-                    }
-
-                    if (currentId == targetId) {
-
-                        replaceInputId = currentId;
-                    }
-
-
-
-                });
-            }
-
-        $('#parameterInfo').on('click', '.deleteParamSpan', function() {
-            var $targetFieldId = $(this).parents('.form-group').find('.controls input').attr('id');
-            shiftParamFields($targetFieldId);
-        });
-
-        $('#parameterInfo').on('click', '.addParamSpan', function() {
-
-            paramsLength = getParamsLength();
-
-            if (paramsLength == 0) {
-                paramNum = 0;
-            }
-
-            paramNum = paramsLength;
-
-           $('#parameterInfo').append('<div id="div_id_param_' + paramNum + '" class="form-group">'
-                + '<span class="deleteParamSpan"><i id="icon_del_div_id_param_' + paramNum + '" class="fa fa-trash-o fa-fw"></i></span>'
-                + '<label for="id_param_' + paramNum + '" class="control-label requiredField">Parameter ' + paramNum + '<span class="asteriskField">*</span></label>'
-                + '<div class="controls"><input class="textinput textInput form-control" id="id_param_' + paramNum + '" name="param_' + paramNum + '" type="text" value=""></div>'
-                + '</div>');
-
-           $('#span_add_param').remove();
-           addParamsSpan();
-        });
-
-        $('input[type=radio][name=time_format]').on('click', function() {
-                if (this.value == 'timestamp') {
-                    $('#div_id_time_ids').hide();
-                }
-                else if (this.value == 'campbell') {
-                    $('#div_id_time_ids').show();
-                }
-            });
-
         });
     </script>
-
 {% endblock %}

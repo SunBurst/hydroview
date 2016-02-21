@@ -209,7 +209,9 @@ def manage_site(request):
             longitude = site_longitude
         )
 
-        return HttpResponseRedirect('/sites/')
+        url = reverse('sites:index')
+
+        return HttpResponseRedirect(url)
 
     context = {
         'form' : form
@@ -271,13 +273,10 @@ def manage_sensor(request):
     sensorName = params.get('sensor_name', '')
 
     initSensorForm = dict
-    initSensorParams = []
-    manageAction = ""
-    #initSensorTimeIds = []
+
     template = 'sites/manage_sensor.html'
 
     if sensorName:    #: Edit existing sensor
-        manageAction = "edit"
 
         sensorNum = SensorData.get_sensor_num(locationName, sensorName)
 
@@ -292,17 +291,16 @@ def manage_sensor(request):
         initSensorFileLineNum = sensorData.get('file_line_num')
         initSensorTimeFormat = sensorData.get('time_format')
         initSensorTimeZone = sensorData.get('time_zone')
-        initSensorParams = sensorData.get('parameters')
+        initSensorParamsList = sensorData.get('parameters')
+        initSensorParams = ",".join(initSensorParamsList)
         initSensorTimeIds = sensorData.get('time_ids')
 
-        initSensorForm = {'location' : initSensorLocation, 'sensor_num' : initSensorNum, 'sensor' : initSensorName, 'description' : initSensorDesc, 'file_path' : initSensorFilePath, 'file_line_num' : initSensorFileLineNum, 'time_format' : initSensorTimeFormat, 'time_zone' : initSensorTimeZone, 'time_ids' : initSensorTimeIds}
+        initSensorForm = {'location' : initSensorLocation, 'sensor_num' : initSensorNum, 'sensor' : initSensorName, 'description' : initSensorDesc, 'file_path' : initSensorFilePath, 'file_line_num' : initSensorFileLineNum, 'time_format' : initSensorTimeFormat, 'time_zone' : initSensorTimeZone, 'time_ids' : initSensorTimeIds, 'parameters' : initSensorParams}
 
     else:   #: Add new sensor
-        manageAction = "add"
         initSensorForm = {'location' : locationName}
-        initSensorParams.append('parameter_name_goes_here')
 
-    form = ManageSensorForm(request.POST or None, initial=initSensorForm, params=initSensorParams)
+    form = ManageSensorForm(request.POST or None, initial=initSensorForm)
 
     if form.is_valid():
         sensorNum = form.cleaned_data['sensor_num']
@@ -312,10 +310,8 @@ def manage_sensor(request):
         sensorFilePath = form.cleaned_data['file_path']
         sensorTimeFormat = form.cleaned_data['time_format']
         sensorTimeZone = form.cleaned_data['time_zone']
-        sensorTimeIds = form.cleaned_data['time_ids']
-        sensorParams = form.pack_parameters()
-        print(sensorParams)
-
+        sensorTimeIds = form.cleanTimeIds(sensorTimeFormat)
+        sensorParams = form.cleaned_data['parameters'].split(',')
         sensorTimeInfo = {'time_format' : sensorTimeFormat,
                           'time_zone' : sensorTimeZone,
                           'time_ids' : sensorTimeIds
@@ -333,8 +329,8 @@ def manage_sensor(request):
             description=sensorDesc,
             file_path=sensorFilePath,
             file_line_num=sensorLineNum,
-            parameters = sensorParams,
-            time_info = sensorTimeInfo,
+            parameters=sensorParams,
+            time_info=sensorTimeInfo,
         )
 
         url = reverse('sites:load_location')
@@ -343,12 +339,27 @@ def manage_sensor(request):
         return HttpResponseRedirect(url)
 
     context = {
-        'manage_action' : manageAction,
+        'site_name' : siteName,
+        'location_name' : locationName,
         'form' : form
     }
 
     return render(request, template, context)
 
+def delete_sensor(request):
+    params = request.GET
+
+    siteName = params.get('site_name', '')
+    locationName = params.get('location_name', '')
+    sensorName = params.get('sensor_name', '')
+
+    Sensors_by_location(location=locationName).delete()
+    Sensor_info_by_sensor(sensor=sensorName).delete()
+
+    url = reverse('sites:load_location')
+    url += '?site_name=' + siteName + '&location_name=' + locationName
+
+    return HttpResponseRedirect(url)
 
 ###########################################################################
 ######################    API FOR MANAGING CHARTS    ######################

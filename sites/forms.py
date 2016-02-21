@@ -2,16 +2,34 @@ from django import forms
 from pytz import all_timezones, timezone
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Div, Field, Layout, Reset, Submit
+from crispy_forms.layout import Button, Field, Fieldset, Layout, Submit
 from crispy_forms.bootstrap import FormActions
 
 from settings.settings import TIME_ZONE
 
 class ManageSiteForm(forms.Form):
     site = forms.CharField(label='Site', required=True)
-    latitude = forms.FloatField(label='Latitude', required=True)
-    longitude = forms.FloatField(label='Longitude', required=True)
-    description = forms.CharField(label='Description', widget=forms.Textarea, required=True)
+    latitude = forms.FloatField(label='Latitude', required=False)
+    longitude = forms.FloatField(label='Longitude', required=False)
+    description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(ManageSiteForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_id = 'manageSiteForm'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Field('site'),
+            Field('latitude'),
+            Field('longitude'),
+            Field('description'),
+
+            FormActions(
+                Submit('save', 'Save', css_class="btn-primary"),
+                Button('cancel', 'Cancel', css_class="btn-default"),
+            )
+        )
 
 class ManageLocationForm(forms.Form):
     site = forms.CharField(label='Site', required=True)
@@ -40,62 +58,75 @@ class ManageSensorForm(forms.Form):
     TIME_IDS_CHOICES = (('yearjulianday','Year/Julian Day',),('yearjuliandayhour', 'Year/Julian Day/Hour',), ('yearjuliandayhourminute', 'Year/Julian Day/Hour/Minute',))
     time_ids = forms.ChoiceField(label='Campbell Time Identifiers', choices=TIME_IDS_CHOICES)
 
+    parameters = forms.CharField(label='Sensor Parameters')
 
     def __init__(self, *args, **kwargs):
-        params = kwargs.pop('params')
+        #params = kwargs.pop('params')
         super(ManageSensorForm, self).__init__(*args, **kwargs)
 
-        self.helperBasicInfo = FormHelper()
-        self.helperBasicInfo.form_tag = False
-        self.helperBasicInfo.disable_csrf = False
-        self.helperBasicInfo.layout = Layout(
-            Field('location'),
-            Field('sensor_num'),
-            Field('sensor'),
-            Field('description')
+        self.helper = FormHelper()
+        self.helper.form_id = 'manageSensorForm'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Fieldset(
+                'Basic Info',
+                Field('location'),
+                Field('sensor_num'),
+                Field('sensor'),
+                Field('description'),
+                css_id = 'basicInfo'
+            ),
+            Fieldset(
+                'File Info',
+                Field('file_path'),
+                Field('file_line_num'),
+                css_id = 'fileInfo'
+            ),
+            Fieldset(
+                'Time Info',
+                Field('time_format'),
+                Field('time_zone'),
+                Field('time_ids'),
+                css_id='timeInfo'
+            ),
+            Fieldset(
+                'Parameter Info',
+                Field('parameters'),
+                css_id='parameterInfo'
+            ),
+            FormActions(
+                Submit('save', 'Save', css_class="btn-primary"),
+                Button('cancel', 'Cancel', css_class="btn-default"),
+            )
         )
 
-        self.helperFileInfo = FormHelper()
-        self.helperFileInfo.form_tag = False
-        self.helperFileInfo.disable_csrf = False
-        self.helperFileInfo.layout = Layout(
-            Field('file_path'),
-            Field('file_line_num')
-        )
+        #for i, param in enumerate(params):
+            #self.fields['param_%s' % i] = forms.CharField(label='Parameter %s' % i, initial=param)
+            #self.helper.layout[3][1].append(Field('param_%s' % i))
 
-        self.helperTimeInfo = FormHelper()
-        self.helperTimeInfo.form_tag = False
-        self.helperTimeInfo.disable_csrf = False
-        self.helperTimeInfo.layout = Layout(
-            Field('time_format'),
-            Field('time_zone'),
-            Field('time_ids')
-        )
+    def cleanTimeIds(self, time_format):
+        timeIds = ""
+        if (time_format == "timestamp"):
+            timeIds = "timestamp"
+        elif (time_format == "campbell"):
+            timeIds = self.cleaned_data['time_ids']
+        return timeIds
 
-        self.helperParamsInfo = FormHelper()
-        self.helperParamsInfo.form_tag = False
-        self.helperParamsInfo.disable_csrf = False
-        self.helperParamsInfo.layout = Layout(
-        )
+    # def pack_parameters(self):
+    #    parameters = []
+    #    temp_dict = {}
 
-        for i, param in enumerate(params):
-            self.fields['param_%s' % i] = forms.CharField(label='Parameter %s' % i, initial=param)
-            self.helperParamsInfo.layout.append(Field('param_%s' % i))
+    #    for name, value in self.cleaned_data.items():
+    #        print(name,value)
+    #        if name.startswith('param_'):
+    #            temp_dict[name] = value
+    #            parameters.append('placeholder')
 
+    #    for param_id, value in temp_dict.items():
+    #        print(param_id, value)
+    #        for i in range(len(temp_dict)):
+    #            if(param_id == 'param_%s' % i):
+    #                parameters.insert(i,value)
+    #                del(parameters[i+1])
 
-    def pack_parameters(self):
-        parameters = []
-        temp_dict = {}
-
-        for name, value in self.cleaned_data.items():
-            if name.startswith('param_'):
-                temp_dict[name] = value
-                parameters.append('placeholder')
-
-        for param_id, value in temp_dict.items():
-            for i in range(len(temp_dict)):
-                if(param_id == 'param_%s' % i):
-                    parameters.insert(i,value)
-                    del(parameters[i+1])
-
-        return parameters
+    #    return parameters
