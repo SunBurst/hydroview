@@ -1,36 +1,75 @@
 {% extends 'base.html' %}
 
-{% block heading %}
-<h1 class="page-header">Add New Location</h1>
-{% endblock %}
+{% load crispy_forms_tags %}
+
+{% block heading %}<h1 class="page-header"></h1>{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-6">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                Basic Info
-            </div>
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-lg-6">
-                        <form action="" method="POST">
-                            {% csrf_token %}
-                            {{ form.as_p }}
-                            <input class="btn btn-primary" type="submit" value="Save" />
-                            <button type="reset" class="btn btn-default">Clear</button>
-                        </form>
-                    </div>
-                    <!-- /.col-lg-6 (nested) -->
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Location Info
                 </div>
-                <!-- /.row (nested) -->
+                <div class="panel-body">
+                    {% crispy form %}
+                </div>
+                <!-- /.panel-body -->
             </div>
             <!-- /.panel-body -->
         </div>
-        <!-- /.panel -->
+        <!-- /.col-lg-12 -->
     </div>
-    <!-- /.col-lg-6 -->
-</div>
-<!-- /.row -->
+    <!-- /.row -->
+
+    <!-- Modal -->
+    <div class="modal fade" id="myLocationModal" tabindex="-1" role="dialog" aria-labelledby="myLocationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myLocationModalLabel">Attention</h4>
+                </div>
+                <div class="modal-body">
+                    Delete this location? This operation cannot be undone!
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'sites:delete_location' %}?site_name={{ site_name }}&location_name={{ location_name }}" class = "btn btn-default" role = "button">OK</a>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+
+{% endblock %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var redirectUrl = '{% url 'sites:load_location' %}';
+            redirectUrl += "?site_name={{ site_name }}";
+            var locationName = "{{ location_name }}";
+
+            if (!locationName) {
+                $('#button-id-delete').hide();
+                $('.page-header').text("Add New Location");
+            }
+
+            else {
+                $('.page-header').text("Manage Location: " + locationName);
+                $('#button-id-delete').attr('data-toggle', "modal");
+                $('#button-id-delete').attr('data-target', "#myLocationModal");
+            }
+
+            $('#button-id-cancel').on('click', function() {
+                document.location.href = redirectUrl;
+            });
+        });
+    </script>
 
 {% endblock %}

@@ -2,7 +2,9 @@
 
 {% load staticfiles %}
 
-{% block title %} {{ site }}/{{ location }} {% endblock %}
+{% load crispy_forms_tags %}
+
+{% block title %} {{ site_name }}/{{ location_name }} {% endblock %}
 
 {% block extracss %}
     <style>
@@ -13,7 +15,7 @@
 {% endblock %}
 
 {% block heading %}
-    <h1 class="page-header">{{ site }}/{{ location }}</h1>
+    <h1 class="page-header">{{ site_name }}/{{ location_name }}</h1>
 {% endblock %}
 
 {% block content %}
@@ -46,8 +48,8 @@
                         <div id="locationInfo" class="col-md-6">
                             <h4>Location Info</h4>
                             <ul id="basicInfo" class="list-unstyled">
-                                <li><strong>Site:</strong> {{ site }}</li>
-                                <li><strong>Location:</strong> {{ location }}</li>
+                                <li><strong>Site:</strong> {{ site_name }}</li>
+                                <li><strong>Location:</strong> {{ location_name }}</li>
                                 <li><strong>GPS (WGS 84):</strong> {{ latitude }}, {{ longitude }}</li>
                             </ul>
                             <dl>
@@ -89,18 +91,7 @@
                                     Location Info
                                 </div>
                                 <div class="panel-body">
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <form action="" method="POST">
-                                                {% csrf_token %}
-                                                {{ form.as_p }}
-                                                <input class="btn btn-primary" type="submit" value="Save" />
-                                                <button type="reset" class="btn btn-default">Reset</button>
-                                            </form>
-                                        </div>
-                                        <!-- /.col-lg-6 (nested) -->
-                                    </div>
-                                    <!-- /.row (nested) -->
+                                    {% crispy form %}
                                 </div>
                                 <!-- /.panel-body -->
                             </div>
@@ -111,7 +102,7 @@
                     <!-- /.tab-pane -->
                     <div class="tab-pane fade" id="sensors">
                         <h4>Configured Sensors</h4>
-                        <h5><a href="{% url 'sites:manage_sensor' %}?site_name={{ site }}&location_name={{ location }}"><i class="fa fa-plus fa-fw"></i> Add New Sensor</a></h5>
+                        <h5><a href="{% url 'sites:manage_sensor' %}?site_name={{ site_name }}&location_name={{ location_name }}"><i class="fa fa-plus fa-fw"></i> Add New Sensor</a></h5>
                         <div class="table-responsive">
                             <table id="sensorsTable" class="table table-striped table-hover">
                                 <thead>
@@ -124,6 +115,7 @@
                                         <th>Time Zone</th>
                                         <th>Time Identifiers</th>
                                         <th>Parameters</th>
+                                        <th></th>
                                         <th></th>
                                         <th></th>
                                     </tr>
@@ -145,6 +137,28 @@
     <!-- /.col-lg-6 -->
 
     <!-- Modal -->
+    <div class="modal fade" id="myLocationModal" tabindex="-1" role="dialog" aria-labelledby="myLocationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myLocationModalLabel">Attention</h4>
+                </div>
+                <div class="modal-body">
+                    Delete this location? This operation cannot be undone!
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'sites:delete_location' %}?site_name={{ site_name }}&location_name={{ location_name }}" class = "btn btn-default" role = "button">OK</a>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+
+    <!-- Modal -->
     <div class="modal fade" id="myDelSensorModal" tabindex="-1" role="dialog" aria-labelledby="myDelSensorModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -156,7 +170,8 @@
                     Delete this sensor? This operation cannot be undone!
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <a class = "btn btn-default" role = "button">OK</a>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
             <!-- /.modal-content -->
@@ -179,27 +194,40 @@
     <script type="text/javascript">
     $(document).ready(function() {
 
+        var siteName = "{{ site_name }}";
+        var locationName = "{{ location_name }}";
+
         var jsonSensorsUrl = '{% url 'sites:load_sensors_json' %}';
-        var jsonAllSensorsDataUrl = jsonSensorsUrl + "?site_name=" + "{{ site }}" + "&location_name=" + "{{ location }}";
-        console.log(jsonAllSensorsDataUrl);
+        var jsonAllSensorsDataUrl = jsonSensorsUrl + "?site_name=" + siteName + "&location_name=" + locationName;
+        var redirectLocationUrl = '{% url 'sites:load_location' %}';
+            redirectLocationUrl += "?site_name={{ site_name }}";
+            redirectLocationUrl += "&location_name=" + locationName;
+
+
 
         function initMap() {
 
-            var latlng = new google.maps.LatLng({{ latitude }}, {{ longitude }});
-            var myOptions = {
-                zoom: 13,
-                center: latlng,
-                mapTypeId: google.maps.MapTypeId.TERRAIN
-            };
-            map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+            var locationLat = "{{ latitude }}";
+            var locationLong = "{{ longitude }}";
 
-            var marker = new google.maps.Marker({
-                position: latlng,
-                map: map,
-                title: '{{ location }}' + ' ({{ latitude }}, {{ longitude }})'
-            });
+                if (locationLat && locationLong) {
+                    var latlng = new google.maps.LatLng(locationLat, locationLong);
+                    var myOptions = {
+                        zoom: 13,
+                        center: latlng,
+                        mapTypeId: google.maps.MapTypeId.TERRAIN
+                    };
+                    map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 
-            google.maps.event.trigger(map, 'resize');
+                    var marker = new google.maps.Marker({
+                        position: latlng,
+                        map: map,
+                        title: '{{ location }}' + ' (locationLat, locationLong)'
+                    });
+
+                    google.maps.event.trigger(map, 'resize');
+
+                }
 
         }
 
@@ -209,14 +237,14 @@
                 $.each(allSensorsData, function(i, sensor) {
 
                     var editSensorUrl = '{% url 'sites:manage_sensor' %}';
-                    editSensorUrl += "?site_name=" + "{{ site }}";
-                    editSensorUrl += "&location_name=" + "{{ location }}";
-                    editSensorUrl += "&sensor_name=" + sensor.sensor;
+                        editSensorUrl += "?site_name=" + siteName;
+                        editSensorUrl += "&location_name=" + locationName;
+                        editSensorUrl += "&sensor_name=" + sensor.sensor;
 
                     var deleteSensorUrl = '{% url 'sites:delete_sensor' %}';
-                    deleteSensorUrl += "?site_name=" + "{{ site }}";
-                    deleteSensorUrl += "&location_name=" + "{{ location }}";
-                    deleteSensorUrl += "&sensor_name=" + sensor.sensor;
+                        deleteSensorUrl += "?site_name=" + siteName;
+                        deleteSensorUrl += "&location_name=" + locationName;
+                        deleteSensorUrl += "&sensor_name=" + sensor.sensor;
 
                     $('#sensorsTableBody').append(
                         '<tr>'
@@ -229,7 +257,7 @@
                             + '<td>' + sensor.time_ids + '</td>'
                             + '<td>' + sensor.parameters + '</td>'
                             + '<td><a href="' + editSensorUrl + '"><i class="fa fa-gear fa-fw"></i></a></td>'
-                            + '<td><a href="' + deleteSensorUrl + '" class="confirmation"><i class="fa fa-trash-o fa-fw"></i></a></td>'
+                            + '<td><span class="deleteSensorSpan" value=' + sensor.sensor + ' data-toggle="modal" data-target="#myDelSensorModal"><i class="fa fa-trash-o fa-fw"></i></span></td>'
                         + '</tr>'
                     );
                 });
@@ -317,6 +345,17 @@
             google.maps.event.trigger(map, 'resize');
             });
             $("#map_canvas").css("width", 400).css("height", 400);
+
+        $('#button-id-cancel').on('click', function() {
+                document.location.href = redirectLocationUrl;
+        });
+        $('#sensorsTableBody').on('click', '.deleteSensorSpan', function() {
+            var targetSensor = $(this).attr('value');
+            var delSensorUrl = "{% url 'sites:delete_sensor' %}?site_name=" + siteName + "&location_name=" + locationName + "&sensor_name=" + targetSensor;
+            $('#myDelSensorModal').find('a').attr('href', delSensorUrl);
+        });
+        $('#button-id-delete').attr('data-toggle', "modal");
+        $('#button-id-delete').attr('data-target', "#myLocationModal");
 
     initMap();
     initSensors(jsonAllSensorsDataUrl);

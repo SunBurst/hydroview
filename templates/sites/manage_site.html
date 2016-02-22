@@ -2,7 +2,7 @@
 
 {% load crispy_forms_tags %}
 
-{% block heading %}<h1 class="page-header">Manage Site</h1>{% endblock %}
+{% block heading %}<h1 class="page-header"></h1>{% endblock %}
 
 {% block content %}
 
@@ -23,15 +23,51 @@
     </div>
     <!-- /.row -->
 
+    <!-- Modal -->
+    <div class="modal fade" id="mySiteModal" tabindex="-1" role="dialog" aria-labelledby="mySiteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="mySiteModalLabel">Attention</h4>
+                </div>
+                <div class="modal-body">
+                    Delete this site? This operation cannot be undone!
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'sites:delete_site' %}?site_name={{ site_name }}" class = "btn btn-default" role = "button">OK</a>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+
 {% endblock %}
 
 {% block extrajs %}
 
     <script type="text/javascript">
         $(document).ready(function() {
-            var homeUrl = '{% url 'sites:index' %}'
-            cancelBtnUrl = "location.href='" + homeUrl + "';"
-            $('#button-id-cancel').attr('onclick',cancelBtnUrl);
+            var redirectIndexUrl = '{% url 'sites:index' %}';
+            var siteName = "{{ site_name }}";
+
+            if (!siteName) {
+                $('#button-id-delete').hide();
+                $('.page-header').text("Add New Site");
+            }
+            else {
+                $('.page-header').text("Manage Site: " + siteName);
+                $('#button-id-delete').attr('data-toggle', "modal");
+                $('#button-id-delete').attr('data-target', "#mySiteModal");
+            }
+
+            $('#button-id-cancel').on('click', function() {
+                document.location.href = redirectIndexUrl;
+            });
+
         });
     </script>
 

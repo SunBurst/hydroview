@@ -1,6 +1,6 @@
 from .models import Locations_by_site, Location_info_by_location
 
-class LocationsData(object):
+class LocationData(object):
 
     @classmethod
     def get_site_locations(cls, site_name):

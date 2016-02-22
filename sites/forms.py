@@ -2,7 +2,7 @@ from django import forms
 from pytz import all_timezones, timezone
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Button, Field, Fieldset, Layout, Submit
+from crispy_forms.layout import Button, ButtonHolder, Div, Field, Fieldset, Layout, Reset, Submit
 from crispy_forms.bootstrap import FormActions
 
 from settings.settings import TIME_ZONE
@@ -27,16 +27,39 @@ class ManageSiteForm(forms.Form):
 
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
+                Reset('reset', 'Reset', css_class="btn-default"),
                 Button('cancel', 'Cancel', css_class="btn-default"),
+                Button('delete', 'Delete', css_class="btn-danger pull-right")
             )
         )
 
 class ManageLocationForm(forms.Form):
-    site = forms.CharField(label='Site', required=True)
+    site = forms.CharField(label='Site', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=True)
     location = forms.CharField(label='Location', required=True)
-    latitude = forms.FloatField(label='Latitude', required=True)
-    longitude = forms.FloatField(label='Longitude', required=True)
-    description = forms.CharField(label='Description', widget=forms.Textarea, required=True)
+    latitude = forms.FloatField(label='Latitude', required=False)
+    longitude = forms.FloatField(label='Longitude', required=False)
+    description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(ManageLocationForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_id = 'manageLocationForm'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Field('site'),
+            Field('location'),
+            Field('latitude'),
+            Field('longitude'),
+            Field('description'),
+
+            FormActions(
+                Submit('save', 'Save', css_class="btn-primary"),
+                Reset('reset', 'Reset', css_class="btn-default"),
+                Button('cancel', 'Cancel', css_class="btn-default"),
+                Button('delete', 'Delete', css_class="btn-danger pull-right")
+            )
+        )
 
 class ManageSensorForm(forms.Form):
     location = forms.CharField(label='Location', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=True)
@@ -96,6 +119,7 @@ class ManageSensorForm(forms.Form):
             ),
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
+                Reset('reset', 'Reset', css_class="btn-default"),
                 Button('cancel', 'Cancel', css_class="btn-default"),
             )
         )

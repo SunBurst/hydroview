@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 
 from .charts import ChartData
 from .forms import ManageLocationForm, ManageSensorForm, ManageSiteForm
-from .locations import LocationsData
+from .locations import LocationData
 from .sensors import SensorData
 from .sites import SiteData
 from .models import Locations_by_site, Location_info_by_location, Sensors_by_location, Sensor_info_by_sensor, Sites, Site_info_by_site
@@ -40,31 +40,29 @@ def load_location(request):
     template_name = 'sites/location.html'
     params = request.GET
 
-    site_name = params.get('site_name', '')
-    location_name = params.get('location_name', '')
-
-    #location_info = Location_info_by_location.objects.filter(location=location_name)
-    location_info = LocationsData.get_location(location_name)
-
-    location_fill_form = dict
+    siteName = params.get('site_name', '')
+    locationName = params.get('location_name', '')
 
     context = {}
 
-    location = location_info[0]
-    location_fill_form = {
-                                'site' : site_name,
-                                'location' : location.get('location'),
-                                'description' : location.get('description'),
-                                'latitude' : location.get('latitude'),
-                                'longitude' : location.get('longitude')
-    }
+    locationDataList = LocationData.get_location(locationName)
+    locationData = locationDataList[0]
+
+    initSiteName = siteName
+    initLocationName = locationName
+    initLocationLat = locationData.get('latitude')
+    initLocationLong = locationData.get('longitude')
+    initLocationDesc = locationData.get('description')
+
+    initLocationForm = {'site' : initSiteName, 'location' : initLocationName, 'latitude' : initLocationLat, 'longitude' : initLocationLong, 'description' : initLocationDesc}
+
     context = {
-                    'site' : site_name,
-                    'location' : location.get('location'),
-                    'description' : location.get('description'),
-                    'latitude' : location.get('latitude'),
-                    'longitude' : location.get('longitude')
-        }
+                'site_name' : initSiteName,
+                'location_name' : initLocationName,
+                'longitude' : initLocationLong,
+                'latitude': initLocationLat,
+                'description' : initLocationDesc
+    }
     #for location in location_info:
     #    location_fill_form = {
     #                            'site' : site_name,
@@ -81,37 +79,36 @@ def load_location(request):
     #                'longitude' : location.longitude
     #    }
 
-    form = ManageLocationForm(request.POST or None, initial=location_fill_form)
+    form = ManageLocationForm(request.POST or None, initial=initLocationForm)
     context['form'] = form
 
-
     if form.is_valid():
-        site_name = form.cleaned_data['site']
-        new_location_name = form.cleaned_data['location']
-        new_location_description = form.cleaned_data['description']
-        new_location_latitude = form.cleaned_data['latitude']
-        new_location_longitude = form.cleaned_data['longitude']
+        #site_name = form.cleaned_data['site']
+        newLocationName = form.cleaned_data['location']
+        newLocationDesc = form.cleaned_data['description']
+        newLocationLat = form.cleaned_data['latitude']
+        newLocationLong = form.cleaned_data['longitude']
 
-        Locations_by_site(site=site_name, location=location_name).delete()
-        Location_info_by_location(location=location_name).delete()
+        Locations_by_site(site=initSiteName, location=initLocationName).delete()
+        Location_info_by_location(location=initLocationName).delete()
 
         Locations_by_site.create(
-            site=site_name,
-            location=new_location_name,
-            description=new_location_description,
-            latitude = new_location_latitude,
-            longitude = new_location_longitude
+            site=initSiteName,
+            location=newLocationName,
+            latitude = newLocationLat,
+            longitude = newLocationLong,
+            description=newLocationDesc
         )
 
         Location_info_by_location.create(
-            location=new_location_name,
-            description=new_location_description,
-            latitude = new_location_latitude,
-            longitude = new_location_longitude
+            location=newLocationName,
+            latitude = newLocationLat,
+            longitude = newLocationLong,
+            description=newLocationDesc
         )
 
         url = reverse('sites:load_location')
-        url += '?site_name=' + site_name + '&location_name=' + new_location_name
+        url += '?site_name=' + initSiteName + '&location_name=' + newLocationName
 
         return HttpResponseRedirect(url)
 
@@ -153,7 +150,7 @@ def load_locations_json(request):
     params = request.GET
     site_name = params.get('site_name', '')
 
-    locations_data = LocationsData.get_site_locations(site_name)
+    locations_data = LocationData.get_site_locations(site_name)
     return HttpResponse(json.dumps(locations_data), content_type='application/json')
 
 
@@ -166,8 +163,7 @@ def manage_site(request):
 
     params = request.GET
     site = params.get('site_name', '')
-
-    site_fill_form = dict
+    initSiteForm = dict
     template = 'sites/manage_site.html'
 
     if site:    #: Edit existing site
@@ -180,13 +176,13 @@ def manage_site(request):
         fill_site_lat = site_info_dict.get('latitude')
         fill_site_long = site_info_dict.get('longitude')
 
-        site_fill_form = {'site' : fill_site_name, 'description' : fill_site_desc, 'latitude' : fill_site_lat, 'longitude' : fill_site_long}
+        initSiteForm = {'site' : fill_site_name, 'description' : fill_site_desc, 'latitude' : fill_site_lat, 'longitude' : fill_site_long}
 
     else:   #: Add new site
 
-        site_fill_form = {}
+        initSiteForm = {}
 
-    form = ManageSiteForm(request.POST or None, initial=site_fill_form)
+    form = ManageSiteForm(request.POST or None, initial=initSiteForm)
 
     if form.is_valid():
         site_name = form.cleaned_data['site']
@@ -214,26 +210,51 @@ def manage_site(request):
         return HttpResponseRedirect(url)
 
     context = {
+        'site_name' : site,
         'form' : form
     }
 
     return render(request, template, context)
 
+def delete_site(request):
+
+    params = request.GET
+    siteName = params.get('site_name', '')
+
+    Sites(bucket=0, site=siteName).delete()
+    Site_info_by_site(site=siteName).delete()
+
+    url = reverse('sites:index')
+
+    return HttpResponseRedirect(url)
+
+
+
 def manage_location(request):
 
     params = request.GET
-    site = params.get('site_name', '')
-    location = params.get('location_name', '')
+    siteName = params.get('site_name', '')
+    locationName = params.get('location_name', '')
 
-    location_fill_form = dict
+    initLocationForm = dict
     template = 'sites/manage_location.html'
 
-    if location:    #: Edit existing location, not needed here since it's done in location.html.
-        pass
-    else:   #: Add new location
-        location_fill_form = {'site' : site}
+    if locationName:    #: Edit existing location
+        locationDataList = LocationData.get_location(locationName)
+        locationData = locationDataList[0]
 
-    form = ManageLocationForm(request.POST or None, initial=location_fill_form)
+        initLocationSite = siteName
+        initLocationName = locationName
+        initLocationLat = locationData.get('latitude')
+        initLocationLong = locationData.get('longitude')
+        initLocationDesc = locationData.get('description')
+
+        initLocationForm = {'site' : initLocationSite, 'location' : initLocationName, 'latitude' : initLocationLat, 'longitude' : initLocationLong, 'description' : initLocationDesc}
+
+    else:   #: Add new location
+        initLocationForm = {'site' : siteName}
+
+    form = ManageLocationForm(request.POST or None, initial=initLocationForm)
 
     if form.is_valid():
         site_name = form.cleaned_data['site']
@@ -243,7 +264,7 @@ def manage_location(request):
         location_longitude = form.cleaned_data['longitude']
 
         Locations_by_site.create(
-            site=site_name,
+            site=siteName,
             location=location_name,
             description=location_description,
             latitude = location_latitude,
@@ -257,13 +278,31 @@ def manage_location(request):
             longitude = location_longitude
         )
 
-        return HttpResponseRedirect('/sites/')
+        url = reverse('sites:load_location')
+        url += '?site_name=' + siteName + '&location_name=' + location_name
+
+        return HttpResponseRedirect(url)
 
     context = {
+        'site_name' : siteName,
+        'location_name' : locationName,
         'form' : form
     }
 
     return render(request, template, context)
+
+def delete_location(request):
+
+    params = request.GET
+    siteName = params.get('site_name', '')
+    locationName = params.get('location_name', '')
+
+    Locations_by_site(site=siteName, location=locationName).delete()
+    Location_info_by_location(location=locationName).delete()
+
+    url = reverse('sites:index')
+
+    return HttpResponseRedirect(url)
 
 def manage_sensor(request):
     params = request.GET

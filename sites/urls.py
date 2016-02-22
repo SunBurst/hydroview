@@ -29,9 +29,19 @@ urlpatterns = [
         name='manage_site',
     ),
     url(
-        regex=r'^manage_location/',
+        regex=r'^delete_site/',
+        view=views.delete_site,
+        name='delete_site',
+    ),
+    url(
+        regex=r'^manage_location/$',
         view=views.manage_location,
         name='manage_location',
+    ),
+    url(
+        regex=r'^delete_location/$',
+        view=views.delete_location,
+        name='delete_location',
     ),
     url(
         regex=r'^manage_sensor/$',
