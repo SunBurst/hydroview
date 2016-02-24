@@ -67,3 +67,6 @@ target/
 
 # config files
 cfg/*.INI
+
+# dat files
+sample_data/*.dat
