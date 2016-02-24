@@ -12,8 +12,8 @@ class SiteData(object):
 
             temp_site = {'site' : site.site,
                          'description' : site.description,
-                         'latitude' : site.latitude,
-                         'longitude' : site.longitude}
+                         'latitude' : site.position.get('latitude'),
+                         'longitude' : site.position.get('longitude')}
             sites_data.append(temp_site)
 
         return sites_data
@@ -28,8 +28,8 @@ class SiteData(object):
 
             temp_site = {'site' : site.site,
                          'description' : site.description,
-                         'latitude' : site.latitude,
-                         'longitude' : site.longitude}
+                         'latitude' : site.position.get('latitude'),
+                         'longitude' : site.position.get('longitude')}
             site_data.append(temp_site)
 
         return site_data

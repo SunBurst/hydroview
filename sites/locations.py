@@ -9,8 +9,10 @@ class LocationData(object):
         all_locations = Locations_by_site.objects.filter(site=site_name)
 
         for location in all_locations:
-            temp_location = {'site' : location.site,
-                             'location' : location.location}
+            temp_location = {
+                                'site' : location.site,
+                                'location' : location.location
+            }
             site_locations_data.append(temp_location)
 
         return site_locations_data
@@ -22,10 +24,12 @@ class LocationData(object):
         location_info = Location_info_by_location.objects.filter(location=location_name)
 
         for location in location_info:
-            temp_location = {'location' : location.location,
+            temp_location = {
+                                'location' : location.location,
                                 'description' : location.description,
-                                'latitude' : location.latitude,
-                                'longitude' : location.longitude}
+                                'latitude' : location.position.get('latitude'),
+                                'longitude' : location.position.get('longitude')
+            }
             location_data.append(temp_location)
 
         return location_data

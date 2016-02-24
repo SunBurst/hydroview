@@ -2,6 +2,7 @@ from .models import Sensors_by_location, Sensor_info_by_sensor
 
 class SensorData(object):
 
+
     @classmethod
     def get_sensor(cls, sensor_name):
 
@@ -17,6 +18,8 @@ class SensorData(object):
                                 'time_format' : temp_sensor.time_info['time_format'],
                                 'time_zone' : temp_sensor.time_info['time_zone'],
                                 'time_ids' : temp_sensor.time_info['time_ids'],
+                                'last_update' : temp_sensor.last_update,
+                                'next_update' : temp_sensor.next_update
             }
             sensor_data.append(temp_sensor_dict)
 

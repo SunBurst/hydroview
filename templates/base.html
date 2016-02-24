@@ -66,7 +66,7 @@
                     <ul class="dropdown-menu dropdown-settings">
                         <li><a href="{% url 'sites:manage_site' %}"><i class="fa fa-plus fa-fw"></i> Add New Site</a>
                         </li>
-                        <li><a href="#EditSiteModal" data-toggle="modal"><i class="fa fa-pencil fa-fw"></i> Edit Site</a>
+                        <li><a href="#editSiteModal" data-toggle="modal"><i class="fa fa-pencil fa-fw"></i> Edit Site</a>
                         </li>
                         <li class="divider"></li>
                         <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
@@ -107,12 +107,12 @@
         </div> <!-- /#page-wrapper -->
 
         <!-- Edit Site Modal -->
-        <div class="modal fade" id="EditSiteModal" tabindex="-1" role="dialog" aria-labelledby="EditSiteModalLabel" aria-hidden="true">
+        <div class="modal fade" id="editSiteModal" tabindex="-1" role="dialog" aria-labelledby="editSiteModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-sm">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="EditSiteModalLabel">Edit Site</h4>
+                        <h4 class="modal-title" id="editSiteModalLabel">Edit Site</h4>
                     </div>
                     <div class="modal-body">
                         <div class="btn-group">
@@ -158,47 +158,38 @@
         var $siteModalDropdown = $('#siteModalDropdown');
 
         $.getJSON(jsonAllSitesDataUrl, function(allSitesData) {
-            $.each(allSitesData, function(i, val) {
+            $.each(allSitesData, function(i, site) {
+                $sideMenu.append("<li id='" + site.site + "'>" + "<a href='#'>" + site.site + "<span class='" + "fa arrow" + "'</span>" + "</a></li>");
+                $sideMenu.append("<ul id='" + site.site + "-nav'" + " class='nav nav-second-level'></ul>");
+                $('#' + site.site + '-nav').append();
 
-                    $sideMenu.append("<li id='" + val.site + "'>" + "<a href='#'>" + val.site + "<span class='" + "fa arrow" + "'</span>" + "</a></li>");
-                    $sideMenu.append("<ul id='" + val.site + "-nav'" + " class='nav nav-second-level'></ul>");
-                    $('#' + val.site + '-nav').append();
+                var manageLocationUrl = "{% url "sites:manage_location" %}" + "?site_name=" + site.site;
 
-                    var manageLocationUrl = "{% url "sites:manage_location" %}" + "?site_name=" + val.site;
+                $('#' + site.site + '-nav').append('<li><a href=' + manageLocationUrl + '><i class="fa fa-plus fa-fw"></i> Add New Location</a></li>');
 
-                    $('#' + val.site + '-nav').append('<li><a href=' + manageLocationUrl + '><i class="fa fa-plus fa-fw"></i> Add New Location</a></li>');
+                jsonLocationDataUrl = jsonLocationsUrl + "?site_name=" + site.site;
 
-                    jsonLocationDataUrl = jsonLocationsUrl + "?site_name=" + val.site;
+                var manageSiteUrl = "{% url "sites:manage_site" %}" + "?site_name=" + site.site;
 
-                    var manageSiteUrl = "{% url "sites:manage_site" %}" + "?site_name=" + val.site;
-                    $siteModalDropdown.append('<li><a href=' + manageSiteUrl + '>' + val.site + '</a></li>');
+                $siteModalDropdown.append('<li><a href=' + manageSiteUrl + '>' + site.site + '</a></li>');
 
-
-
-                    $.getJSON(jsonLocationDataUrl, function(locationData) {
-
-                        $.each(locationData, function(i ,v) {
-
-                            if (val.site === v.site) {
-                                loadLocUrl = '{% url 'sites:load_location' %}' + "?site_name=" + val.site + "&location_name=" + v.location;
-                                $('#' + val.site + '-nav').append("<li id='" + v.location + "'>" + "<a href='" + loadLocUrl +"'><i class='fa fa-map-marker fa-fw'></i>" + " " + v.location + "</a></li>");
-
-                            }
-                        });
-
+                $.getJSON(jsonLocationDataUrl, function(locationData) {
+                    $.each(locationData, function(i ,location) {
+                        if (site.site === location.site) {
+                            loadLocUrl = '{% url 'sites:load_location' %}' + "?site_name=" + site.site + "&location_name=" + location.location;
+                            $('#' + site.site + '-nav').append("<li id='" + location.location + "'>" + "<a href='" + loadLocUrl +"'><i class='fa fa-map-marker fa-fw'></i>" + " " + location.location + "</a></li>");
+                        }
                     });
-
                 });
             });
-
         });
-    </script>
 
-    <script type="text/javascript">
         $(document.body).on('click', '.dropdown-modal li a', function (e) {
             var selText = $(this).text();
             $(this).parents('.btn-group').find('.dropdown-toggle').html(selText+' <span class="caret"></span>');
         });
+
+    });
     </script>
 
     {% block extrajs %}{% endblock %}

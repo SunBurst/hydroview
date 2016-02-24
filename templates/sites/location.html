@@ -19,7 +19,6 @@
 {% endblock %}
 
 {% block content %}
-
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-body">
@@ -109,13 +108,14 @@
                                     <tr>
                                         <th>Name</th>
                                         <th>Description</th>
+                                        <th>Last Update</th>
+                                        <th>Next Update</th>
                                         <th>File Path</th>
                                         <th>Line Number</th>
                                         <th>Time Format</th>
                                         <th>Time Zone</th>
                                         <th>Time Identifiers</th>
                                         <th>Parameters</th>
-                                        <th></th>
                                         <th></th>
                                         <th></th>
                                     </tr>
@@ -137,12 +137,12 @@
     <!-- /.col-lg-6 -->
 
     <!-- Modal -->
-    <div class="modal fade" id="myLocationModal" tabindex="-1" role="dialog" aria-labelledby="myLocationModalLabel" aria-hidden="true">
+    <div class="modal fade" id="deleteLocationModal" tabindex="-1" role="dialog" aria-labelledby="deleteLocationModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="myLocationModalLabel">Attention</h4>
+                    <h4 class="modal-title" id="deleteLocationModalLabel">Attention</h4>
                 </div>
                 <div class="modal-body">
                     Delete this location? This operation cannot be undone!
@@ -159,12 +159,12 @@
     <!-- /.modal -->
 
     <!-- Modal -->
-    <div class="modal fade" id="myDelSensorModal" tabindex="-1" role="dialog" aria-labelledby="myDelSensorModalLabel" aria-hidden="true">
+    <div class="modal fade" id="deleteSensorModal" tabindex="-1" role="dialog" aria-labelledby="deleteSensorModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="myDelSensorModalLabel">Attention</h4>
+                    <h4 class="modal-title" id="deleteSensorModalLabel">Attention</h4>
                 </div>
                 <div class="modal-body">
                     Delete this sensor? This operation cannot be undone!
@@ -231,8 +231,25 @@
 
         }
 
-        function initSensors(Url) {
 
+        function timeConverter(UNIX_timestamp){
+            if(UNIX_timestamp) {
+                var temp_date = new Date(UNIX_timestamp);
+                var year = temp_date.getFullYear();
+                var month = "0" + temp_date.getMonth();
+                var date = "0" + temp_date.getDate();
+                var hour = "0" + temp_date.getHours();
+                var min = "0" + temp_date.getMinutes();
+                var sec = "0" + temp_date.getSeconds();
+                var formattedTime = year + '-' + month.substr(-2) + '-' + date.substr(-2) + ' ' +  hour.substr(-2) + ':' + min.substr(-2) + ':' + sec.substr(-2);
+                return formattedTime;
+                }
+            else {
+                return "N/A";
+                }
+            }
+
+        function initSensors(Url) {
             $.getJSON(Url, function(allSensorsData) {
                 $.each(allSensorsData, function(i, sensor) {
 
@@ -250,6 +267,8 @@
                         '<tr>'
                             + '<td>' + sensor.sensor + '</td>'
                             + '<td>' + sensor.description + '</td>'
+                            + '<td>' + sensor.last_update + '</td>'
+                            + '<td>' + sensor.next_update + '</td>'
                             + '<td>' + sensor.file_path + '</td>'
                             + '<td>' + sensor.file_line_num + '</td>'
                             + '<td>' + sensor.time_format + '</td>'
@@ -257,7 +276,7 @@
                             + '<td>' + sensor.time_ids + '</td>'
                             + '<td>' + sensor.parameters + '</td>'
                             + '<td><a href="' + editSensorUrl + '"><i class="fa fa-gear fa-fw"></i></a></td>'
-                            + '<td><span class="deleteSensorSpan" value=' + sensor.sensor + ' data-toggle="modal" data-target="#myDelSensorModal"><i class="fa fa-trash-o fa-fw"></i></span></td>'
+                            + '<td><span class="deleteSensorSpan" value=' + sensor.sensor + ' data-toggle="modal" data-target="#deleteSensorModal"><i class="fa fa-trash-o fa-fw"></i></span></td>'
                         + '</tr>'
                     );
                 });
@@ -352,10 +371,10 @@
         $('#sensorsTableBody').on('click', '.deleteSensorSpan', function() {
             var targetSensor = $(this).attr('value');
             var delSensorUrl = "{% url 'sites:delete_sensor' %}?site_name=" + siteName + "&location_name=" + locationName + "&sensor_name=" + targetSensor;
-            $('#myDelSensorModal').find('a').attr('href', delSensorUrl);
+            $('#deleteSensorModal').find('a').attr('href', delSensorUrl);
         });
         $('#button-id-delete').attr('data-toggle', "modal");
-        $('#button-id-delete').attr('data-target', "#myLocationModal");
+        $('#button-id-delete').attr('data-target', "#deleteLocationModal");
 
     initMap();
     initSensors(jsonAllSensorsDataUrl);

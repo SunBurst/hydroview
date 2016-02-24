@@ -7,27 +7,23 @@ class Sites(models.Model):
     bucket = columns.Integer(primary_key=True, default=0)
     site = columns.Text(primary_key=True, clustering_order="ASC")
     description = columns.Text()
-    latitude = columns.Float()
-    longitude = columns.Float()
+    position = columns.Map(columns.Text, columns.Float)
 
 class Site_info_by_site(models.Model):
     site = columns.Text(primary_key=True)
     description = columns.Text()
-    latitude = columns.Float()
-    longitude = columns.Float()
+    position = columns.Map(columns.Text, columns.Float)
 
 class Locations_by_site(models.Model):
     site = columns.Text(primary_key=True)
     location = columns.Text(primary_key=True, clustering_order="ASC")
     description = columns.Text()
-    latitude = columns.Float()
-    longitude = columns.Float()
+    position = columns.Map(columns.Text, columns.Float)
 
 class Location_info_by_location(models.Model):
     location = columns.Text(primary_key=True)
     description = columns.Text()
-    latitude = columns.Float()
-    longitude = columns.Float()
+    position = columns.Map(columns.Text, columns.Float)
 
 class Sensors_by_location(models.Model):
     location = columns.Text(primary_key=True)
@@ -42,6 +38,8 @@ class Sensor_info_by_sensor(models.Model):
     file_path = columns.Text()
     file_line_num = columns.Integer()
     time_info = columns.Map(columns.Text, columns.Text)
+    last_update = columns.DateTime()
+    next_update = columns.DateTime()
 
 class Parameters_by_sensor(models.Model):
     sensor = columns.Text(primary_key=True, partition_key=True)
