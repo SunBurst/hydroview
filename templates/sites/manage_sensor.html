@@ -43,6 +43,15 @@
                 }
             });
 
+        $('#id_update_is_active').on('click', function() {
+                if ($(this).is(":checked")) {
+                    $('#div_id_update_interval').show();
+                }
+                else {
+                    $('#div_id_update_interval').hide();
+                }
+            });
+
         $('#button-id-cancel').on('click', function() {
             document.location.href = redirectUrl;
         });

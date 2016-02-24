@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import HttpResponse, redirect, render
 from django.core.urlresolvers import reverse
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from .charts import ChartData
 from .forms import ManageLocationForm, ManageSensorForm, ManageSiteForm
@@ -287,6 +287,7 @@ def manage_sensor(request):
     sensor_name = params.get('sensor_name', '')
 
     init_sensor_form = dict
+    init_sensor_last_update = None
     template = 'sites/manage_sensor.html'
 
     if sensor_name:    #: Edit existing sensor
@@ -299,7 +300,7 @@ def manage_sensor(request):
         init_sensor_num = sensor_num
         init_sensor_name = sensor_data.get('sensor')
         init_sensor_description = sensor_data.get('description')
-        #init_sensor_last_update = sensor_data.get('last_update')
+        init_sensor_last_update = sensor_data.get('last_update')
         init_sensor_next_update = sensor_data.get('next_update')
         init_sensor_file_path = sensor_data.get('file_path')
         init_sensor_file_line_num = sensor_data.get('file_line_num')
@@ -310,8 +311,9 @@ def manage_sensor(request):
         init_sensor_time_ids = sensor_data.get('time_ids')
 
         init_sensor_update_interval = None
+        init_sensor_update_is_active = False
         if init_sensor_next_update:
-            #temp_update_interval_datetime = datetime.fromtimestamp(init_sensor_next_update/1e3)
+            init_sensor_update_is_active = True
             init_sensor_update_interval = datetime.time(init_sensor_next_update)
 
 
@@ -320,6 +322,7 @@ def manage_sensor(request):
                             'sensor_num' : init_sensor_num,
                             'sensor' : init_sensor_name,
                             'description' : init_sensor_description,
+                            'update_is_active' : init_sensor_update_is_active,
                             'update_interval' : init_sensor_update_interval,
                             'file_path' : init_sensor_file_path,
                             'file_line_num' : init_sensor_file_line_num,
@@ -335,6 +338,10 @@ def manage_sensor(request):
     form = ManageSensorForm(request.POST or None, initial=init_sensor_form)
 
     if form.is_valid():
+        if sensor_name:
+            Sensors_by_location(location=location_name, sensor=sensor_name).delete()
+            Sensor_info_by_sensor(sensor=sensor_name).delete()
+
         sensor_num = form.cleaned_data['sensor_num']
         sensor_name = form.cleaned_data['sensor']
         sensor_description = form.cleaned_data['description']
@@ -365,7 +372,7 @@ def manage_sensor(request):
             file_line_num=sensor_file_line_num,
             parameters=sensor_params,
             time_info=sensor_time_info,
-            last_update=None,
+            last_update=init_sensor_last_update,
             next_update=sensor_next_update
         )
 

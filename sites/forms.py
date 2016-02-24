@@ -85,6 +85,7 @@ class ManageSensorForm(forms.Form):
     sensor_num = forms.IntegerField(label='Sensor Number', required=True)
     sensor = forms.CharField(label='Sensor Name', required=True)
     description = forms.CharField(label='Description', widget=forms.Textarea, required=True)
+    update_is_active = forms.BooleanField(label='Automatic Update is Active', initial=False, required=False)
     update_interval = forms.TimeField(label='Update Every Day At', required=False)
     file_path = forms.CharField(label='File Path', required=True)
     file_line_num = forms.IntegerField(label='Last Inserted Line Number', required=True)
@@ -116,6 +117,7 @@ class ManageSensorForm(forms.Form):
             ),
             Fieldset(
                 'Update Routine',
+                Field('update_is_active'),
                 Field('update_interval')
             ),
             Fieldset(
@@ -150,9 +152,9 @@ class ManageSensorForm(forms.Form):
         return timeIds
 
     def get_next_update(self):
-
+        is_active = self.cleaned_data['update_is_active']
         time = self.cleaned_data['update_interval']
-        if(time):
+        if(is_active and time):
             hour = time.hour
             minute = time.minute
             second = time.second
