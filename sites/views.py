@@ -12,6 +12,7 @@ from .locations import LocationData
 from .sensors import SensorData
 from .sites import SiteData
 from .models import Locations_by_site, Location_info_by_location, Sensors_by_location, Sensor_info_by_sensor, Sites, Site_info_by_site
+from .management.commands import run_update
 
 
 ###########################################################################
@@ -376,6 +377,9 @@ def manage_sensor(request):
             next_update=sensor_next_update
         )
 
+        if sensor_next_update:
+            run_update.check_sensor_update(sensor_name)
+
         url = reverse('sites:load_location')
         url += '?site_name=' + site_name + '&location_name=' + location_name
 
@@ -414,25 +418,14 @@ def chart_data_json(request):
     params = request.GET
 
     days = params.get('days', 0)
-    name = params.get('name', '')
+    sensor_name = params.get('sensor_name')
+    parameter = params.get('parameter')
+    qc_level = params.get('qc_level')
+    qc_level = int(qc_level)
+    days=int(days)
+    data = ChartData.get_parameter_data_by_day(sensor_name, parameter, qc_level, days)
 
-    if name == 'humidity_by_day':
-        data = ChartData.get_humidity_data_by_day(days=int(days))
-            #user=request.user) #days=int(days))
-    #elif name == 'avg_by_day':
-    #    data['chart_data'] = ChartData.get_avg_by_day(
-    #        user=request.user, days=int(days))
-    #elif name == 'level_breakdown':
-    #    data['chart_data'] = ChartData.get_level_breakdown(
-    #        user=request.user, days=int(days))
-    #elif name == 'count_by_category':
-    #    data['chart_data'] = ChartData.get_count_by_category(
-    #        user=request.user, days=int(days))
-    #print(json.dumps(data))
     return HttpResponse(json.dumps(data), content_type='application/json')
-
-    ###### HEEEEEY -> <div id="chart_panel" class="panel-body"
-        #style="width:100%;height:314px"></div>
 
 
 

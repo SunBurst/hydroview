@@ -65,6 +65,24 @@
                         <h4>Charts</h4>
                         <div class="panel panel-default">
                             <div class="panel-heading">
+                                <i class="fa fa-bar-chart-o fa-fw"></i> Max PAR Chart
+                                    <div class="pull-right">
+                                        <div class="btn-group">
+                                            <select id="maxParByDaySelect" class="form-control input-sm">
+                                                <option value=7>Last 7 Days</option>
+                                                <option value=30>Last 30 Days</option>
+                                                <option value=365>Last 365 Days</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                            </div>
+                            <!-- /.panel-heading -->
+                            <div id="chart_panel_max_par" class="panel-body" style="width:100%;height:343px"></div>
+                            <!-- /.panel-body -->
+                        </div>
+                        <!-- /.panel -->
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
                                 <i class="fa fa-bar-chart-o fa-fw"></i> Humidity Chart
                                     <div class="pull-right">
                                         <div class="btn-group">
@@ -77,7 +95,7 @@
                                     </div>
                             </div>
                             <!-- /.panel-heading -->
-                            <div id="chart_panel" class="panel-body" style="width:100%;height:343px"></div>
+                            <div id="chart_panel_humidity" class="panel-body" style="width:100%;height:343px"></div>
                             <!-- /.panel-body -->
                         </div>
                         <!-- /.panel -->
@@ -282,7 +300,7 @@
             });
         }
 
-        function initCharts() {
+        function initCharts(sensor_name) {
             var jsonUrl = '{% url 'sites:chart_data_json' %}'
 
             Highcharts.setOptions({
@@ -291,10 +309,54 @@
                 }
             });
 
-             // Humidity by day chart
-             var humidityByDayOptions = {
+            var maxParByDayOptions = {
                 chart: {
-                    renderTo: 'chart_panel',
+                    renderTo: 'chart_panel_max_par',
+                    type: 'spline',
+                    zoomType: 'x'
+                },
+                title: {
+                    text: 'Daily Max PAR'
+                },
+                subtitle: {
+                    text: null
+                },
+                xAxis: {
+                    title: {
+                        text: null
+                    },
+                    type: 'datetime'
+                },
+                yAxis: {
+                    title: {
+                        text: 'PAR'
+                    },
+                    labels: {
+                        formatter: function () {
+                            return this.value;
+                        }
+                    }
+                },
+                tooltip: {
+                    crosshairs: true,
+                    shared: true
+                },
+                plotOptions: {
+                    spline: {
+                        marker: {
+                            radius: 4,
+                            lineColor: '#666666',
+                            lineWidth: 1
+                        }
+                    }
+                },
+                series: []
+            };
+
+
+            var humidityByDayOptions = {
+                chart: {
+                    renderTo: 'chart_panel_humidity',
                     type: 'spline',
                     zoomType: 'x'
                 },
@@ -335,24 +397,39 @@
                 },
                 series: []
             };
+
             var days = 7
-            var chartDataUrl = jsonUrl + "?name=humidity_by_day" + "&days=" + days; //+ "&days=7";
-                function loadChart(chartDataUrl, days) {
-                $.getJSON(chartDataUrl,
-                    function(list) {
-                        humidityByDayOptions.subtitle = {text: 'Last ' + days + ' Days'}
-                        humidityByDayOptions.series = list
-                        var chart = new Highcharts.Chart(humidityByDayOptions);
+            var chartMaxParDataUrl = jsonUrl + "?sensor_name=" + sensor_name +"&parameter=max_par" + "&qc_level=0" + "&days=" + days;
+                function loadMaxParChart(chartMaxParDataUrl, days) {
+                    $.getJSON(chartMaxParDataUrl, function(list) {
+                            maxParByDayOptions.subtitle = {text: 'Last ' + days + ' Days'}
+                            maxParByDayOptions.series = list
+                            var chart = new Highcharts.Chart(maxParByDayOptions);
+                    });
+
+                }
+            var chartHumDataUrl = jsonUrl + "?sensor_name=" + sensor_name +"&parameter=humidity" + "&qc_level=0" + "&days=" + days;
+                function loadHumChart(chartHumDataUrl, days) {
+                    $.getJSON(chartHumDataUrl, function(list) {
+                            humidityByDayOptions.subtitle = {text: 'Last ' + days + ' Days'}
+                            humidityByDayOptions.series = list
+                            var chart = new Highcharts.Chart(humidityByDayOptions);
                     });
 
                 }
 
             $('#humidityByDaySelect').change(function(){
                 var days = $('#humidityByDaySelect').val();
-                var chartDataUrl = jsonUrl + '?name=humidity_by_day&days=' + days;
-                loadChart(chartDataUrl, days);
+                var chartHumDataUrl = jsonUrl + "?sensor_name=" + sensor_name +"&parameter=humidity" + "&qc_level=0" + "&days=" + days;
+                loadHumChart(chartHumDataUrl, days);
             });
-            loadChart(chartDataUrl, days);
+            $('#maxParByDaySelect').change(function(){
+                var days = $('#maxParByDaySelect').val();
+                var chartMaxParDataUrl = jsonUrl + "?sensor_name=" + sensor_name +"&parameter=max_par" + "&qc_level=0" + "&days=" + days;
+                loadMaxParChart(chartMaxParDataUrl, days);
+            });
+            loadHumChart(chartMaxParDataUrl, days);
+            loadMaxParChart(chartMaxParDataUrl, days);
         }
 
         $('#sensorsTableBody').on('click', '.confirmation', function () {
@@ -377,7 +454,8 @@
 
     initMap();
     initSensors(jsonAllSensorsDataUrl);
-    initCharts();
+    var sensortest = 'Malma Island Daily';
+    initCharts(sensortest);
 
     });
 
