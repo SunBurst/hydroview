@@ -7,8 +7,8 @@
 {% block extracss %}
     <style>
         .carousel{
-            width: 400px;
-            height: 300px;
+            width: 700px;
+            height: 328px;
             margin: 0 auto;
         }
     </style>
@@ -53,6 +53,11 @@
             var $sitesInner = $('#sitesInner');
 
             $.getJSON(jsonAllSitesDataUrl, function(allSitesData) {
+
+                if(allSitesData[0] == null) {
+                    $('#sitesCarousel').hide();
+                    $('.col-lg-12').append('<p>No sites configured.</p>')
+                }
                 $.each(allSitesData, function(i, site) {
                     if (i == 0) {
                         $sitesIndicators.append('<li data-target="#sitesCarousel" data-slide-to="' + i + '" class="active"></li>');
@@ -61,7 +66,7 @@
                     }
                     else {
                         $sitesIndicators.append('<li data-target="#sitesCarousel" data-slide-to="' + i + '"></li>');
-                        $sitesInner.append('<div class="item"><img src="{% static 'Erken_nordsidan.jpg' %}" alt=' + site.site + '</img><div class="container"><div class="carousel-caption"><h1>' + site.site + '</h1><p>' + site.description + '</p></div></div></div>');
+                        $sitesInner.append('<div class="item"><img src="{% static 'Malaren.jpg' %}" alt=' + site.site + '</img><div class="container"><div class="carousel-caption"><h1>' + site.site + '</h1><p>' + site.description + '</p></div></div></div>');
                     }
                 });
             });

@@ -69,7 +69,11 @@ def split_campbell_file(sensor_name, file_path, time_zone, time_ids, parameters,
             for row in readings_list:
                 num_new_readings += 1
                 temp_params_dict[parameter].append(row)
-                f_out.write("%s\n" % (row))
+                sens_name = row[0]
+                param_name = row[1]
+                time_str = str(row[2])
+                value = row[3]
+                f_out.write("%s %s %s %s\n" % (sens_name, param_name, time_str, value))
 
     print('Finished splitting file "%s".' % file)
     print("Sorting sites in order to optimize database insertion..")
@@ -136,14 +140,16 @@ def check_sensor_update(sensor_name):
     else:
         return
 
-def prepare_sensor_update(sensor_name, update_time):
+if __name__=='__main__':
+    check_sensor_update('Malma Island Daily')
+#def prepare_sensor_update(sensor_name, update_time):
 
-    while True:
-        now = dt.datetime.now()
-        target = update_time
-        print(target)
-        if target < now:
-            check_sensor_update(sensor_name)
-        else:
-            time.sleep((target-now).total_seconds())
+    #while True:
+    #    now = dt.datetime.now()
+    #    target = update_time
+    #    print(target)
+    #    if target < now:
+    #        check_sensor_update(sensor_name)
+    #    else:
+    #        time.sleep((target-now).total_seconds())
 

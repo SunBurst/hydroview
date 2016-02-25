@@ -399,7 +399,7 @@
             };
 
             var days = 7
-            var chartMaxParDataUrl = jsonUrl + "?sensor_name=" + sensor_name +"&parameter=max_par" + "&qc_level=0" + "&days=" + days;
+            var chartMaxParDataUrl = jsonUrl + "?sensor_name=" + sensor_name +"&parameter=Max PAR" + "&qc_level=0" + "&days=" + days;
                 function loadMaxParChart(chartMaxParDataUrl, days) {
                     $.getJSON(chartMaxParDataUrl, function(list) {
                             maxParByDayOptions.subtitle = {text: 'Last ' + days + ' Days'}
@@ -408,7 +408,7 @@
                     });
 
                 }
-            var chartHumDataUrl = jsonUrl + "?sensor_name=" + sensor_name +"&parameter=humidity" + "&qc_level=0" + "&days=" + days;
+            var chartHumDataUrl = jsonUrl + "?sensor_name=" + sensor_name +"&parameter=Humidity" + "&qc_level=0" + "&days=" + days;
                 function loadHumChart(chartHumDataUrl, days) {
                     $.getJSON(chartHumDataUrl, function(list) {
                             humidityByDayOptions.subtitle = {text: 'Last ' + days + ' Days'}
@@ -420,15 +420,15 @@
 
             $('#humidityByDaySelect').change(function(){
                 var days = $('#humidityByDaySelect').val();
-                var chartHumDataUrl = jsonUrl + "?sensor_name=" + sensor_name +"&parameter=humidity" + "&qc_level=0" + "&days=" + days;
+                var chartHumDataUrl = jsonUrl + "?sensor_name=" + sensor_name +"&parameter=Humidity" + "&qc_level=0" + "&days=" + days;
                 loadHumChart(chartHumDataUrl, days);
             });
             $('#maxParByDaySelect').change(function(){
                 var days = $('#maxParByDaySelect').val();
-                var chartMaxParDataUrl = jsonUrl + "?sensor_name=" + sensor_name +"&parameter=max_par" + "&qc_level=0" + "&days=" + days;
+                var chartMaxParDataUrl = jsonUrl + "?sensor_name=" + sensor_name +"&parameter=Max PAR" + "&qc_level=0" + "&days=" + days;
                 loadMaxParChart(chartMaxParDataUrl, days);
             });
-            loadHumChart(chartMaxParDataUrl, days);
+            loadHumChart(chartHumDataUrl, days);
             loadMaxParChart(chartMaxParDataUrl, days);
         }
 

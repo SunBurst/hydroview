@@ -1,6 +1,7 @@
 import calendar
 import configparser
 from collections import defaultdict
+from sites.models import Qc_level_1_by_sensor, Qc_level_2_by_sensor
 
 import utils.dbmanager as db
 
@@ -62,11 +63,15 @@ def run_min_max(query_params, min_max_thresholds):
 def qc_min_max_on_sensor(from_ts_utc, to_ts_utc, sensor_name)
     """
     """
-    qc_params = [key for key in config_parser_qc.get('QC_MIN_THRESHOLDS')]
-    qc_mins = [float(val) for key, val in config_parser_qc.get('QC_MIN_THRESHOLDS').items()]
-    qc_maxes = [float(val) for key, val in config_parser_qc.get('QC_MAX_THRESHOLDS').items()]	
-    qc_values = [[qc_mins[x],qc_maxes[x]] for x in range(len(qc_mins))]
-    qc_thresholds = dict(zip(qc_params,qc_values))            
+    #qc_params = [key for key in config_parser_qc.get('QC_MIN_THRESHOLDS')]
+    #qc_mins = [float(val) for key, val in config_parser_qc.get('QC_MIN_THRESHOLDS').items()]
+    #qc_maxes = [float(val) for key, val in config_parser_qc.get('QC_MAX_THRESHOLDS').items()]
+
+    #qc_values = [[qc_mins[x],qc_maxes[x]] for x in range(len(qc_mins))]
+    temp_info = Qc_level_1_by_sensor.objects.get(sensor=sensor_name)
+    temp_dict = temp_info[0]
+
+    qc_thresholds = dict(zip(qc_params,qc_values))
     query_min_max_params = []
 
     for param in params:
