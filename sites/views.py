@@ -9,9 +9,9 @@ from datetime import datetime, timedelta
 from .charts import ChartData
 from .forms import ManageLocationForm, ManageSensorForm, ManageSiteForm
 from .locations import LocationData
-from .sensors import SensorData
+from .logs import LogData
 from .sites import SiteData
-from .models import Locations_by_site, Location_info_by_location, Sensors_by_location, Sensor_info_by_sensor, Sites, Site_info_by_site
+#from .models import Locations_by_site, Location_info_by_location, Sensors_by_location, Sensor_info_by_sensor, Sites, Site_info_by_site
 from .management.commands import run_update
 
 
@@ -117,12 +117,12 @@ def load_sensors_json(request):
 
     params = request.GET
     location_name = params.get('location_name', '')
-    sensors_data = SensorData.get_sensors_by_location(location_name)
+    sensors_data = LogData.get_sensors_by_location(location_name)
     location_sensors_data = []
 
     for sensor in sensors_data:
         sensor_name = sensor.get('sensor')
-        sensor_info = SensorData.get_sensor(sensor_name)
+        sensor_info = LogData.get_sensor(sensor_name)
         temp_sensor_dict = sensor_info[0]
         temp_last_update = date_handler(temp_sensor_dict.get('last_update'))
         temp_next_update = date_handler(temp_sensor_dict.get('next_update'))
@@ -136,7 +136,7 @@ def load_locations_json(request):
 
     params = request.GET
     site_name = params.get('site_name', '')
-    locations_data = LocationData.get_site_locations(site_name)
+    locations_data = LocationData.get_locations(site_name)
 
     return HttpResponse(json.dumps(locations_data), content_type='application/json')
 
@@ -293,8 +293,8 @@ def manage_sensor(request):
 
     if sensor_name:    #: Edit existing sensor
 
-        sensor_num = SensorData.get_sensor_num(location_name, sensor_name)
-        sensor_data_list = SensorData.get_sensor(sensor_name)
+        sensor_num = LogData.get_sensor_num(location_name, sensor_name)
+        sensor_data_list = LogData.get_sensor(sensor_name)
         sensor_data = sensor_data_list[0]
 
         init_sensor_location = location_name

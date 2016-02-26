@@ -4,7 +4,7 @@ from cassandra.cqlengine import connection
 from cassandra.cqlengine.management import sync_table
 
 from sites.locations import LocationData
-from sites.sensors import SensorData
+from sites.logs import LogData
 from sites.sites import SiteData
 import utils.raw_queries as raw_queries
 from . import raw_data_handler

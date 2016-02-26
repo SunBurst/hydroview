@@ -1,35 +1,45 @@
 from .models import Locations_by_site, Location_info_by_location
 
 class LocationData(object):
+    """Helper class for getting location related data from the Cassandra database. """
 
     @classmethod
-    def get_site_locations(cls, site_name):
+    def get_all_locations(cls, site_id):
+        """
+        Return all locations belonging to a specific site or an empty list if not found.
 
-        site_locations_data = []
-        all_locations = Locations_by_site.objects.filter(site=site_name)
-
-        for location in all_locations:
-            temp_location = {
-                                'site' : location.site,
-                                'location' : location.location
+        Keyword arguments:
+        site_id -- site identifier (UUID)
+        """
+        locations_data = []
+        all_locations_query = Locations_by_site.objects.filter(site_id=site_id)
+        for row in all_locations_query:
+            location = {
+                'location_name' : row.location_name,
+                'location_id' : row.location_id,
+                'description' : row.description,
+                'latitude' : row.position.latitude,
+                'longitude' : row.position.longitude
             }
-            site_locations_data.append(temp_location)
-
-        return site_locations_data
+            locations_data.append(location)
+        return locations_data
 
     @classmethod
-    def get_location(cls, location_name):
+    def get_location(cls, location_id):
+        """
+        Return location or an empty list if not found.
 
+        Keyword arguments:
+        location_id -- location identifier (UUID)
+        """
         location_data = []
-        location_info = Location_info_by_location.objects.filter(location=location_name)
-
-        for location in location_info:
-            temp_location = {
-                                'location' : location.location,
-                                'description' : location.description,
-                                'latitude' : location.position.get('latitude'),
-                                'longitude' : location.position.get('longitude')
+        location_query = Location_info_by_location.objects.filter(location_id=location_id)
+        for row in location_query:
+            location = {
+                'location_name' : row.location_name,
+                'description' : row.description,
+                'latitude' : row.position.latitude,
+                'longitude' : row.position.longitude
             }
-            location_data.append(temp_location)
-
+            location_data.append(location)
         return location_data

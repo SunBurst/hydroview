@@ -1,6 +1,6 @@
 import utils.timemanager as timemanager
 
-from .models import Parameters_by_sensor
+#from .models import Parameters_by_sensor
 
 class ChartData(object):
 

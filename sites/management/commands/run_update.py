@@ -5,8 +5,8 @@ from operator import itemgetter
 
 from cassandra.cqlengine.management import sync_table
 
-from sites.models import Parameters_by_sensor, Sensor_info_by_sensor
-from sites.sensors import SensorData
+#from sites.models import Parameters_by_sensor, Sensor_info_by_sensor
+from sites.logs import LogData
 from utils import timemanager
 
 def split_campbell_file(sensor_name, file_path, time_zone, time_ids, parameters, last_line_num=None, load_data=None):
@@ -132,7 +132,7 @@ def run_sensor_update(sensor_name, sensor_info):
 def check_sensor_update(sensor_name):
 
     sync_table(Sensor_info_by_sensor)
-    sensor_data = SensorData.get_sensor(sensor_name)
+    sensor_data = LogData.get_sensor(sensor_name)
     sensor_info = sensor_data[0]
 
     if(sensor_info.get('next_update')):

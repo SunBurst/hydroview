@@ -50,7 +50,6 @@ DJANGO_APPS = (
 )
 
 LOCAL_APPS = (
-    #'qc',
     'sites',
 )
  

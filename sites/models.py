@@ -5,72 +5,130 @@ from cassandra.cqlengine import models
 
 class Sites(models.Model):
     bucket = columns.Integer(primary_key=True, default=0)
-    site = columns.Text(primary_key=True, clustering_order="ASC")
-    description = columns.Text()
-    position = columns.Map(columns.Text, columns.Float)
+    site_id = columns.UUID(primary_key=True)
+    site_name = columns.Text(primary_key=True, clustering_order="ASC")
+    description = columns.Text(default=None)
+    position = columns.Map(columns.Text, columns.Float, default=None)
 
 class Site_info_by_site(models.Model):
-    site = columns.Text(primary_key=True)
-    description = columns.Text()
-    position = columns.Map(columns.Text, columns.Float)
+    site_id = columns.UUID(primary_key=True)
+    site_name = columns.Text()
+    description = columns.Text(default=None)
+    position = columns.Map(columns.Text, columns.Float, default=None)
 
 class Locations_by_site(models.Model):
-    site = columns.Text(primary_key=True)
-    location = columns.Text(primary_key=True, clustering_order="ASC")
-    description = columns.Text()
-    position = columns.Map(columns.Text, columns.Float)
+    site_id = columns.UUID(primary_key=True)
+    location_name = columns.Text(primary_key=True, clustering_order="ASC")
+    location_id = columns.UUID()
+    description = columns.Text(default=None)
+    position = columns.Map(columns.Text, columns.Float, default=None)
 
 class Location_info_by_location(models.Model):
-    location = columns.Text(primary_key=True)
+    location_id = columns.UUID(primary_key=True)
+    location_name = columns.Text
     description = columns.Text()
     position = columns.Map(columns.Text, columns.Float)
 
-class Sensors_by_location(models.Model):
-    location = columns.Text(primary_key=True)
-    sensor = columns.Text(primary_key=True, clustering_order="ASC")
-    sensor_num = columns.Integer()
+class Logs_by_location(models.Model):
+    location = columns.UUID(primary_key=True)
+    log_name = columns.Text(primary_key=True, clustering_order="ASC")
+    log_id = columns.UUID()
     description = columns.Text()
 
-class Sensor_info_by_sensor(models.Model):
-    sensor = columns.Text(primary_key=True)
-    description = columns.Text()
-    parameters = columns.List(columns.Text)
+class Log_file_info_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True)
     file_path = columns.Text()
-    file_line_num = columns.Integer()
-    time_info = columns.Map(columns.Text, columns.Text)
+    file_line_num = columns.Integer(default=0)
+
+class Log_info_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True)
+    log_name = columns.Text()
+    description = columns.Text()
+
+class Log_parameters_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True)
+    parameters = columns.List(columns.Text)
+    reading_types = columns.Map(columns.Text, columns.Text) #: I.e. ignore, time, parameter, profile, status
+
+class Log_update_info_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True)
     last_update = columns.DateTime()
     next_update = columns.DateTime()
 
-class Parameters_by_sensor(models.Model):
-    sensor = columns.Text(primary_key=True, partition_key=True)
+class Parameters_readings_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True, partition_key=True)
     qc_level = columns.Integer(primary_key=True, partition_key=True)
     parameter = columns.Text(primary_key=True, partition_key=True)
     time = columns.DateTime(primary_key=True, clustering_order="DESC")
     value = columns.Float()
 
-class Profiles_by_sensor(models.Model):
-    sensor = columns.Text(primary_key=True, partition_key=True)
+class Profiles_readings_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True, partition_key=True)
     qc_level = columns.Integer(primary_key=True, partition_key=True)
+    profile = columns.Text(primary_key=True, partition_key=True)
     time = columns.DateTime(primary_key=True, clustering_order="DESC")
-    profile = columns.Map(columns.Text, columns.Float)
+    profile_values = columns.Map(columns.Text, columns.Float)
 
-class Qc_info_by_sensor(models.Model):
-    sensor = columns.Text(primary_key=True)
+class Status_parameter_readings_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True, partition_key=True)
+    qc_level = columns.Integer(primary_key=True, partition_key=True)
+    parameter = columns.Text(primary_key=True, partition_key=True)
+    time = columns.DateTime(primary_key=True, clustering_order="DESC")
+    value = columns.Float()
+
+class Quality_controls(models.Model):
+    bucket = columns.Integer(primary_key=True, default=0)
     qc_level = columns.Integer(primary_key=True, clustering_order="ASC")
-    name = columns.Text()
-    parameters = columns.List(columns.Text)
-    replacement_value = columns.Float()
+    qc_name = columns.Text()
+    qc_description = columns.Text()
 
-class Qc_level_1_by_sensor(models.Model):
-    sensor = columns.Text(primary_key=True)
-    time_interval = columns.Integer()
+class Quality_control_info_by_quality_control(models.Model):
+    qc_level = columns.Integer(primary_key=True)
+    qc_name = columns.Text()
+    qc_description = columns.Text()
+    qc_replacement_value = columns.Float()
 
-class Qc_level_2_by_sensor(models.Model):
-    sensor = columns.Text(primary_key=True, partition_key=True)
-    month_first_day = columns.DateTime(primary_key=True, partition_key=True)
-    min_values = columns.Map(columns.Text, columns.Float)
-    max_values = columns.Map(columns.Text, columns.Float)
+class Quality_control_level_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True, partition_key=True)
+    qc_level = columns.Integer(primary_key=True, clustering_order="ASC")
+    qc_name = columns.Text()
+    qc_replacement_value = columns.Float()
 
-class Qc_level_3_by_sensor(models.Model):
-    sensor = columns.Text(primary_key=True)
-    window_size = columns.Map(columns.Text, columns.Integer)
+class Quality_control_info_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True, partition_key=True)
+    qc_level = columns.Integer(primary_key=True, partition_key=True)
+    month_first_day = columns.DateTime(primary_key=True, clustering_order="DESC", default=0) #: Set to epoch for level 1
+    qc_parameters = columns.List(columns.Text)  # Used for all levels. Indicates which parameters to check
+    qc_minute_interval = columns.Integer()  # Used for level 1
+    qc_parameters_min_values = columns.Map(columns.Text, columns.Float) # Used for level 2, 4
+    qc_parameters_max_values = columns.Map(columns.Text, columns.Float) # Used for level 2, 4
+    qc_window = columns.Map(columns.Text, columns.Integer) # Used for level 3, 4
+    qc_replacement_value = columns.Float() # static
+
+class Log_quality_control_info_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True)
+    qc_level = columns.Integer(primary_key=True, clustering_order="ASC")
+    last_quality_control = columns.DateTime()
+    next_quality_control = columns.DateTime()
+
+class Logger_types(models.Model):
+    bucket = columns.Integer(primary_key=True, default=0)
+    type_name = columns.Text(primary_key=True, clustering_order="ASC")
+    type_description = columns.Text()
+
+class Logger_type_by_logger_type(models.Model):
+    type_name = columns.Text(primary_key=True)
+    type_description = columns.Text()
+    time_formats = columns.Map(columns.Text, columns.Text)
+
+class Logger_time_format_by_logger_type(models.Model):
+    type_name = columns.Text(primary_key=True, partition_key=True)
+    time_format = columns.Text(primary_key=True, partition_key=True)
+    time_ids = columns.Map(columns.Text, columns.Text)
+
+class Log_time_info_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True)
+    type_name = columns.Text()
+    time_format = columns.Text()
+    time_ids = columns.Map(columns.Text, columns.Text)
+    time_zone = columns.Text()
