@@ -12,9 +12,9 @@ class SiteData(object):
             site = {
                 'site_id' : row.site_id,
                 'site_name' : row.site_name,
-                'description' : row.description,
-                'latitude' : row.position.latitude,
-                'longitude' : row.position.longitude
+                'site_description' : row.site_description,
+                'site_latitude' : row.position.site_latitude,
+                'site_longitude' : row.position.site_longitude
             }
             sites_data.append(site)
         return sites_data
@@ -32,9 +32,9 @@ class SiteData(object):
         for row in site_query:
             site = {
                 'site_name' : row.site_name,
-                'description' : row.description,
-                'latitude' : row.position.latitude,
-                'longitude' : row.position.longitude
+                'site_description' : row.description,
+                'site_latitude' : row.position.latitude,
+                'site_longitude' : row.position.longitude
             }
             site_data.append(site)
         return site_data

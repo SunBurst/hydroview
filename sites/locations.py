@@ -17,9 +17,9 @@ class LocationData(object):
             location = {
                 'location_name' : row.location_name,
                 'location_id' : row.location_id,
-                'description' : row.description,
-                'latitude' : row.position.latitude,
-                'longitude' : row.position.longitude
+                'location_description' : row.location_description,
+                'location_latitude' : row.position.location_latitude,
+                'location_longitude' : row.position.location_longitude
             }
             locations_data.append(location)
         return locations_data
@@ -37,9 +37,9 @@ class LocationData(object):
         for row in location_query:
             location = {
                 'location_name' : row.location_name,
-                'description' : row.description,
-                'latitude' : row.position.latitude,
-                'longitude' : row.position.longitude
+                'location_description' : row.location_description,
+                'location_latitude' : row.position.location_latitude,
+                'location_longitude' : row.position.location_longitude
             }
             location_data.append(location)
         return location_data
