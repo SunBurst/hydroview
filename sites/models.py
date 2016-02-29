@@ -35,15 +35,15 @@ class Logs_by_location(models.Model):
     log_id = columns.UUID()
     log_description = columns.Text()
 
-class Log_file_info_by_log(models.Model):
-    log_id = columns.UUID(primary_key=True)
-    log_file_path = columns.Text()
-    log_file_line_num = columns.Integer(default=0)
-
 class Log_info_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
     log_name = columns.Text()
     log_description = columns.Text()
+
+class Log_file_info_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True)
+    log_file_path = columns.Text()
+    log_file_line_num = columns.Integer(default=0)
 
 class Log_parameters_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)

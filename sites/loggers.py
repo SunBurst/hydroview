@@ -64,7 +64,6 @@ class LoggerData(object):
         log_time_info_data_query = Log_time_info_by_log.objects.filter(log_id=log_id)
         for row in log_time_info_data_query:
             log = {
-                'logger_time_ids' : row.logger_time_ids,
                 'logger_type_name' : row.logger_type_name,
                 'logger_time_format' : row.logger_time_format,
                 'logger_time_ids' : row.logger_time_ids,
