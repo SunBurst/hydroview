@@ -3,8 +3,6 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf import settings
 from django.conf.urls import include, patterns, url
 
-#from sites.views import IndexView
-
 urlpatterns = [
     #url(r'^$', IndexView.as_view(), name='index'),
     url(r'^sites/', include('sites.urls', namespace="sites")),

@@ -25,9 +25,9 @@ class Locations_by_site(models.Model):
 
 class Location_info_by_location(models.Model):
     location_id = columns.UUID(primary_key=True)
-    location_name = columns.Text
-    location_description = columns.Text()
-    location_position = columns.Map(columns.Text, columns.Float)
+    location_name = columns.Text()
+    location_description = columns.Text(default=None)
+    location_position = columns.Map(columns.Text, columns.Float, default=None)
 
 class Logs_by_location(models.Model):
     location_id = columns.UUID(primary_key=True)

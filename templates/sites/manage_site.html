@@ -5,70 +5,59 @@
 {% block heading %}<h1 class="page-header"></h1>{% endblock %}
 
 {% block content %}
-
-    <div class="row">
-        <div class="col-lg-6">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    Site Info
-                </div>
-                <div class="panel-body">
-                    {% crispy form %}
-                </div>
-                <!-- /.panel-body -->
-            </div>
-            <!-- /.panel-body -->
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="panel panel-default">
+        <div class="panel-heading">Site Info</div>
+        <div class="panel-body">{% crispy form %}
         </div>
-        <!-- /.col-lg-12 -->
+        <!-- /.panel-body -->
+      </div>
+      <!-- /.panel-body -->
     </div>
-    <!-- /.row -->
+    <!-- /.col-lg-12 -->
+  </div>
+  <!-- /.row -->
 
-    <!-- Modal -->
-    <div class="modal fade" id="deleteSiteModal" tabindex="-1" role="dialog" aria-labelledby="deleteSiteModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="deleteSiteModalLabel">Attention</h4>
-                </div>
-                <div class="modal-body">
-                    Delete this site? This operation cannot be undone!
-                </div>
-                <div class="modal-footer">
-                    <a href="{% url 'sites:delete_site' %}?site_name={{ site_name }}" class = "btn btn-default" role = "button">OK</a>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-            <!-- /.modal-content -->
+  <!-- Modal -->
+  <div class="modal fade" id="id-deleteSiteModal" tabindex="-1" role="dialog" aria-labelledby="id-deleteSiteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="id-deleteSiteModalLabel">Attention</h4>
         </div>
-        <!-- /.modal-dialog -->
+        <div class="modal-body">Delete this site? This operation cannot be undone!</div>
+        <div class="modal-footer">
+          <a href="{% url 'sites:delete_site' %}?site_id={{ site_id }}" class="btn btn-default" role="button">OK</a>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+      <!-- /.modal-content -->
     </div>
-    <!-- /.modal -->
-
+    <!-- /.modal-dialog -->
+  </div>
+  <!-- /.modal -->
 {% endblock %}
 
 {% block extrajs %}
+  <script type="text/javascript">
+    $(document).ready(function () {
+        var redirectToIndexUrl = '{% url 'sites:index' %}';
+        var siteName = '{{ site_name }}';
 
-    <script type="text/javascript">
-        $(document).ready(function() {
-            var redirectIndexUrl = '{% url 'sites:index' %}';
-            var siteName = "{{ site_name }}";
-
-            if (!siteName) {
-                $('#button-id-delete').hide();
-                $('.page-header').text("Add New Site");
-            }
-            else {
-                $('.page-header').text("Manage Site: " + siteName);
-                $('#button-id-delete').attr('data-toggle', "modal");
-                $('#button-id-delete').attr('data-target', "#deleteSiteModal");
-            }
-
-            $('#button-id-cancel').on('click', function() {
-                document.location.href = redirectIndexUrl;
-            });
-
+        if (!siteName) {
+            $('#id-deleteBtn').hide();
+            $('.page-header').text("Add New Site");
+        }
+        else {
+            $('.page-header').text("Manage Site: " + siteName);
+            $('#id-deleteBtn').attr('data-toggle', "modal");
+            $('#id-deleteBtn').attr('data-target', "#id-deleteSiteModal");
+        }
+        $('#id-cancelBtn').on('click', function () {
+            document.location.href = redirectToIndexUrl;
         });
-    </script>
-
+    });
+  </script>
 {% endblock %}

@@ -6,179 +6,179 @@
 
 <head>
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
 
-    <title>HydroView | {% block title %}{% endblock %}</title>
+  <title>HydroView | {% block title %}{% endblock %}</title>
 
-    <!-- Bootstrap Core CSS -->
-    <link href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+  <!-- Bootstrap Core CSS -->
+  <link href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+  <!-- MetisMenu CSS -->
+  <link href="{% static 'metisMenu/dist/metisMenu.min.css' %}" rel="stylesheet">
+  <!-- Timeline CSS -->
+  <link href="{% static 'startbootstrap-sb-admin-2/dist/css/timeline.css' %}" rel="stylesheet" type="text/css">
+  <!-- Custom CSS -->
+  <link href="{% static 'startbootstrap-sb-admin-2/dist/css/sb-admin-2.css' %}" rel="stylesheet" type="text/css">
+  <!-- Custom Fonts -->
+  <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
 
-    <!-- MetisMenu CSS -->
-    <link href="{% static 'metisMenu/dist/metisMenu.min.css' %}" rel="stylesheet">
+  {% block extracss %}{% endblock %}
 
-    <!-- Timeline CSS -->
-    <link href="{% static 'startbootstrap-sb-admin-2/dist/css/timeline.css' %}" rel="stylesheet" type="text/css">
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
 
-    <!-- Custom CSS -->
-    <link href="{% static 'startbootstrap-sb-admin-2/dist/css/sb-admin-2.css' %}" rel="stylesheet" type="text/css">
+  </head>
 
-    <!-- Custom Fonts -->
-    <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
+  <body>
 
-    {% block extracss %} {% endblock %}
+  <div id="wrapper">
 
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
 
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/sites/">HydroView</a>
+      </div>
+      <!-- /.navbar-header -->
 
-</head>
+      <ul class="nav navbar-top-links navbar-right">
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+            <i class="fa fa-globe fa-fw"></i>  <i class="fa fa-caret-down"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-sites">
+            <li><a href="{% url 'sites:manage_site' %}"><i class="fa fa-plus fa-fw"></i> Add New Site</a></li>
+            <li><a href="#id-editSiteModal" data-toggle="modal"><i class="fa fa-pencil fa-fw"></i> Edit Site</a></li>
+            <li class="divider"></li>
+            <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a></li>
+          </ul>
+        <!-- /.dropdown-sites -->
+        </li>
+        <!-- /.dropdown -->
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+            <i class="fa fa-th-list fa-fw"></i>  <i class="fa fa-caret-down"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-loggers">
+            <li class="divider"></li>
+            <li><a href="{% url 'sites:manage_logger_type' %}"><i class="fa fa-plus fa-fw"></i> Add New Logger Type</a></li>
+            <li><a href="#id-editLoggerModal" data-toggle="modal"><i class="fa fa-pencil fa-fw"></i> Edit Logger Type</a></li>
+            <li class="divider"></li>
+            <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a></li>
+          </ul>
+        <!-- /.dropdown-loggers -->
+        </li>
+        <!-- /.dropdown -->
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+            <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-user">
+            <li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i> Logout</a></li>
+          </ul>
+          <!-- /.dropdown-user -->
+        </li>
+        <!-- /.dropdown -->
+      </ul>
+      <!-- /.navbar-top-links -->
 
-<body>
-
-    <div id="wrapper">
-
-        <!-- Navigation -->
-        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="/sites/">HydroView</a>
-            </div>
-            <!-- /.navbar-header -->
-
-            <ul class="nav navbar-top-links navbar-right">
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                        <i class="fa fa-gear fa-fw"></i>  <i class="fa fa-caret-down"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-settings">
-                        <li><a href="{% url 'sites:manage_site' %}"><i class="fa fa-plus fa-fw"></i> Add New Site</a>
-                        </li>
-                        <li><a href="#editSiteModal" data-toggle="modal"><i class="fa fa-pencil fa-fw"></i> Edit Site</a>
-                        </li>
-                        <li class="divider"></li>
-                        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
-                        </li>
-                    </ul>
-                    <!-- /.dropdown-settings -->
-                </li>
-                <!-- /.dropdown -->
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                        <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-user">
-                        <li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
-                        </li>
-                    </ul>
-                    <!-- /.dropdown-user -->
-                </li>
-                <!-- /.dropdown -->
-            </ul>
-            <!-- /.navbar-top-links -->
-
-            <div class="navbar-default sidebar" role="navigation">
-                <div class="sidebar-nav navbar-collapse">
-                    <ul class="nav" id="side-menu"></ul>
-                </div>
-                <!-- /.sidebar-collapse -->
-            </div>
-            <!-- /.navbar-static-side -->
-
-        </nav>
-
-        <div id="page-wrapper">
-            <div class="row">
-                {% block heading %}{% endblock %}
-            </div> <!-- /.row -->
-                {% block content %}{% endblock %}
-        </div> <!-- /#page-wrapper -->
-
-        <!-- Edit Site Modal -->
-        <div class="modal fade" id="editSiteModal" tabindex="-1" role="dialog" aria-labelledby="editSiteModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-sm">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="editSiteModalLabel">Edit Site</h4>
-                    </div>
-                    <div class="modal-body">
-                        <div class="btn-group">
-                            <i class="dropdown-arrow dropdown-arrow"></i>
-                            <a class="btn dropdown-toggle btn-select" data-toggle="dropdown" href="#">Choose Site <span class="caret"></span></a>
-                            <ul id="siteModalDropdown" class="dropdown-menu dropdown-modal"></ul>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" id="btnCloseSiteModal" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-                <!-- /.modal-content -->
-            </div>
-            <!-- /.modal-dialog -->
+      <div class="navbar-default sidebar" role="navigation">
+        <div class="sidebar-nav navbar-collapse">
+          <ul class="nav" id="side-menu"></ul>
         </div>
-        <!-- /.modal -->
+        <!-- /.sidebar-collapse -->
+      </div>
+      <!-- /.navbar-static-side -->
 
-    </div> <!-- /#wrapper -->
+    </nav>
 
-    <!-- jQuery -->
-    <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
+    <!-- #pageWrapper -->
+    <div id="page-wrapper">
+      <div class="row">
+        {% block heading %}{% endblock %}
+      </div>
+      <!-- /.row -->
+      {% block content %}{% endblock %}
+    </div>
+    <!-- /#page-wrapper -->
 
-    <!-- Bootstrap Core JavaScript -->
-    <script src="{% static 'bootstrap/dist/js/bootstrap.min.js' %}"></script>
+    <!-- #id-editSiteModal -->
+    <div class="modal fade" id="id-editSiteModal" tabindex="-1" role="dialog" aria-labelledby="id-editSiteModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="id-editSiteModalLabel">Edit Site</h4>
+          </div>
+          <div class="modal-body">
+            <div class="btn-group">
+               <i class="dropdown-arrow dropdown-arrow"></i>
+               <a class="btn dropdown-toggle btn-select" data-toggle="dropdown" href="#">Choose Site <span class="caret"></span></a>
+               <ul id="id-editSiteModalDropdown" class="dropdown-menu dropdown-modal"></ul>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" id="id-btnCloseSiteModal" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
+    <!-- /#id-editSiteModal -->
 
-    <!-- Metis Menu Plugin JavaScript -->
-    <script src="{% static 'metisMenu/dist/metisMenu.min.js' %}"></script>
+  </div>
+  <!-- /#wrapper -->
 
-    <!-- Custom Theme JavaScript -->
-    <script src="{% static 'startbootstrap-sb-admin-2/dist/js/sb-admin-2.js' %}"></script>
+  <!-- jQuery -->
+  <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
+  <!-- Bootstrap Core JavaScript -->
+  <script src="{% static 'bootstrap/dist/js/bootstrap.min.js' %}"></script>
+  <!-- Metis Menu Plugin JavaScript -->
+  <script src="{% static 'metisMenu/dist/metisMenu.min.js' %}"></script>
+  <!-- Custom Theme JavaScript -->
+  <script src="{% static 'startbootstrap-sb-admin-2/dist/js/sb-admin-2.js' %}"></script>
+  <!-- Add Configured Sites JavaScript -->
+  <script type="text/javascript">
+    $(document).ready(function () {
 
-    <!-- Add Configured Sites JavaScript -->
-    <script type="text/javascript">
-    $(document).ready(function() {
-
-        var jsonSitesUrl = '{% url 'sites:load_sites_json' %}';
-        var jsonLocationsUrl = '{% url 'sites:load_locations_json' %}';
-
+        var jsonSitesUrl = '{% url 'sites:load_all_sites_json' %}' + '?json_request=' + true;
+        var jsonSiteLocationsUrl = '{% url 'sites:load_site_locations_json' %}' + '?json_request=' + true;
         var jsonAllSitesDataUrl = jsonSitesUrl;
-
         var $sideMenu = $('#side-menu');
-        var $siteModalDropdown = $('#siteModalDropdown');
+        var $editSiteModalDropdown = $('#id-editSiteModalDropdown');
 
-        $.getJSON(jsonAllSitesDataUrl, function(allSitesData) {
-            $.each(allSitesData, function(i, site) {
-                $sideMenu.append("<li id='" + site.site + "'>" + "<a href='#'>" + site.site + "<span class='" + "fa arrow" + "'</span>" + "</a></li>");
-                $sideMenu.append("<ul id='" + site.site + "-nav'" + " class='nav nav-second-level'></ul>");
-                $('#' + site.site + '-nav').append();
+        $.getJSON(jsonAllSitesDataUrl, function (allSitesData) {
+            $.each(allSitesData, function (i, site) {
+            $sideMenu.append('<li id="id-' + site.site_id + '"><a href="#"><i class="fa fa-globe fa-fw"></i>' + ' ' + site.site_name + '<span class="fa arrow"</span></a></li>');
+            $sideMenu.append('<ul id="id-' + site.site_id + '-nav"' + ' class="nav nav-second-level"></ul>');
+            $('#id-' + site.site_id + '-nav').append();
 
-                var manageLocationUrl = "{% url "sites:manage_location" %}" + "?site_name=" + site.site;
+            var manageLocationUrl = '{% url 'sites:manage_location' %}' + '?site_id=' + site.site_id + '&site_name=' + site.site_name;
+            $('#id-' + site.site_id + '-nav').append('<li><a href=' + manageLocationUrl + '><i class="fa fa-plus fa-fw"></i> Add New Location</a></li>');
 
-                $('#' + site.site + '-nav').append('<li><a href=' + manageLocationUrl + '><i class="fa fa-plus fa-fw"></i> Add New Location</a></li>');
+            jsonSiteLocationsDataUrl = jsonSiteLocationsUrl + '&site_id=' + site.site_id;
 
-                jsonLocationDataUrl = jsonLocationsUrl + "?site_name=" + site.site;
+            var manageSiteUrl = '{% url 'sites:manage_site' %}' + '?site_id=' + site.site_id + '&site_name=' + site.site_name;
+            $editSiteModalDropdown.append('<li><a href=' + manageSiteUrl + '>' + site.site_name + '</a></li>');
 
-                var manageSiteUrl = "{% url "sites:manage_site" %}" + "?site_name=" + site.site;
-
-                $siteModalDropdown.append('<li><a href=' + manageSiteUrl + '>' + site.site + '</a></li>');
-
-                $.getJSON(jsonLocationDataUrl, function(locationData) {
-                    $.each(locationData, function(i ,location) {
-                        if (site.site === location.site) {
-                            loadLocUrl = '{% url 'sites:load_location' %}' + "?site_name=" + site.site + "&location_name=" + location.location;
-                            $('#' + site.site + '-nav').append("<li id='" + location.location + "'>" + "<a href='" + loadLocUrl +"'><i class='fa fa-map-marker fa-fw'></i>" + " " + location.location + "</a></li>");
-                        }
+                $.getJSON(jsonSiteLocationsDataUrl, function (locationData) {
+                    $.each(locationData, function (i, location) {
+                            loadLocationUrl = '{% url 'sites:load_location' %}' + '?site_id=' + site.site_id + '&location_id=' + location.location_id;
+                            $('#id-' + site.site_id + '-nav').append('<li id="id-' + location.location_id + '"><a href="' + loadLocationUrl +'"><i class="fa fa-map-marker fa-fw"></i>' + ' ' + location.location_name + '</a></li>');
                     });
                 });
             });
@@ -190,10 +190,10 @@
         });
 
     });
-    </script>
+  </script>
 
-    {% block extrajs %}{% endblock %}
+  {% block extrajs %}{% endblock %}
 
-</body>
+  </body>
 
 </html>

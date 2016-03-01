@@ -9,20 +9,30 @@ urlpatterns = [
         name='load_location',
     ),
     url(
-        regex=r'^load_sites_json/$',
-        view=views.load_sites_json,
-        name='load_sites_json',
+        regex=r'^load_all_sites_json/$',
+        view=views.load_all_sites_json,
+        name='load_all_sites_json',
     ),
     url(
-        regex=r'^load_locations_json/$',
-        view=views.load_locations_json,
-        name='load_locations_json',
+        regex=r'^load_site_locations_json/$',
+        view=views.load_site_locations_json,
+        name='load_site_locations_json',
     ),
     url(
         regex=r'^load_sensors_json/$',
         view=views.load_sensors_json,
         name='load_sensors_json',
     ),
+    url(
+        regex=r'^manage_logger_type/',
+        view=views.manage_logger_type,
+        name='manage_logger_type',
+    ),
+    #url(
+    #    regex=r'^delete_logger_type/',
+    #    view=views.delete_logger_type,
+   #     name='delete_logger_type',
+    #),
     url(
         regex=r'^manage_site/',
         view=views.manage_site,

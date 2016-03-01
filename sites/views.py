@@ -1,18 +1,22 @@
 import json
-from django.contrib.auth.decorators import login_required
+import uuid
+#from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, Http404
-from django.shortcuts import HttpResponse, redirect, render
+from django.shortcuts import get_object_or_404, HttpResponse, redirect, render
 from django.core.urlresolvers import reverse
 
 from datetime import datetime, timedelta
 
 from .charts import ChartData
-from .forms import ManageLocationForm, ManageSensorForm, ManageSiteForm
+from .forms import ManageLocationForm, ManageLoggerTypeForm, ManageSensorForm, ManageSiteForm
 from .locations import LocationData
+from .loggers import LoggerData
 from .logs import LogData
 from .sites import SiteData
-#from .models import Locations_by_site, Location_info_by_location, Sensors_by_location, Sensor_info_by_sensor, Sites, Site_info_by_site
+from .models import Locations_by_site, Location_info_by_location, Logger_types, Logger_type_by_logger_type, \
+    Logger_time_format_by_logger_type, Sites, Site_info_by_site
 from .management.commands import run_update
+from utils.tools import MiscTools
 
 
 ###########################################################################
@@ -21,30 +25,13 @@ from .management.commands import run_update
 
 def index(request):
     template_name = 'sites/index.html'
-    #sites_data = SiteData.get_all_sites()
-    #print(sites_data)
-    #monitored_sites = []
     context = {}
-    #context = {'monitored_sites' : []}
-    #for site in sites_data:
-    #    current_site = {
-    #                'site' : site['site'],
-     #               'description' : site['description'],
-     #               'latitude' : site['latitude'],
-     #               'longitude' : site['longitude']
-    #        }
-     #   monitored_sites.append(current_site)
-    #context['monitored_sites'] = monitored_sites
-
     return render(request, template_name, context)
 
 def load_location(request):
-
     params = request.GET
-
     site_name = params.get('site_name', '')
     location_name = params.get('location_name', '')
-
     template = 'sites/location.html'
 
     context = {}
@@ -108,10 +95,19 @@ def load_location(request):
 def date_handler(dt):
     return dt.isoformat() if hasattr(dt, 'isoformat') else dt
 
-def load_sites_json(request):
-
-    sites_data = SiteData.get_all_sites()
+def load_all_sites_json(request):
+    params = request.GET
+    json_request = params.get('json_request', '')
+    sites_data = SiteData.get_all_sites(json_request)
     return HttpResponse(json.dumps(sites_data), content_type='application/json')
+
+def load_site_locations_json(request):
+    params = request.GET
+    location_name = params.get('location_name')
+    json_request = params.get('json_request', '')
+    site_id = params.get('site_id', '')
+    locations_data = LocationData.get_all_locations(site_id, location_name, json_request)
+    return HttpResponse(json.dumps(locations_data), content_type='application/json')
 
 def load_sensors_json(request):
 
@@ -132,35 +128,88 @@ def load_sensors_json(request):
 
     return HttpResponse(json.dumps(location_sensors_data), content_type='application/json')
 
-def load_locations_json(request):
-
-    params = request.GET
-    site_name = params.get('site_name', '')
-    locations_data = LocationData.get_locations(site_name)
-
-    return HttpResponse(json.dumps(locations_data), content_type='application/json')
-
 ###########################################################################
 #######################    API FOR MANAGING FORMS    ######################
 ###########################################################################
 
-def manage_site(request):
-
+def manage_logger_type(request):
     params = request.GET
+    logger_type_name = params.get('logger_type_name', '')
+    init_logger_type_form = dict
+    template = 'sites/manage_logger_type.html'
+
+    if logger_type_name:    #: Edit existing logger type
+        logger_type_data = LoggerData.get_logger(logger_type_name)
+        try:
+            logger_type_data = logger_type_data[0]
+        except IndexError:
+            print("Index error!")
+        init_logger_type_name = logger_type_data.get('logger_type_name')
+        init_logger_description = logger_type_data.get('logger_type_description')
+
+        init_logger_type_form = {
+            'logger_type_name' : init_logger_type_name,
+            'logger_type_description' : init_logger_description,
+        }
+    else:   #: Add new logger type
+        init_logger_type_form = {}
+
+    form = ManageLoggerTypeForm(request.POST or None, initial=init_logger_type_form)
+
+    if form.is_valid():
+        logger_type_name = form.cleaned_data['logger_type_name']
+        logger_type_description = form.cleaned_data['logger_type_description']
+
+        #Logger_types.create(
+        #    bucket=0,
+        #    logger_type_name=logger_type_name,
+        #    logger_type_name_description=logger_type_description
+        #)
+        #Logger_type_by_logger_type.create(
+        #    logger_type_name=logger_type_name,
+        #    logger_type_description=logger_type_description,
+        #    logger_time_formats=logger_time_formats
+        #)
+        #Logger_time_format_by_logger_type.create(
+        #    logger_type_name=logger_type_name,
+        #    logger_time_format=logger_time_format,
+        #    logger_time_ids=logger_time_ids
+        #)
+        url = reverse('sites:index')
+
+        return HttpResponseRedirect(url)
+
+    context = {
+        'logger_type_name' : logger_type_name,
+        'form' : form
+    }
+
+    return render(request, template, context)
+
+def manage_site(request):
+    params = request.GET
+    site_id = params.get('site_id', '')
     site_name = params.get('site_name', '')
     init_site_form = dict
     template = 'sites/manage_site.html'
 
-    if site_name:    #: Edit existing site
-        site_data_list = SiteData.get_site(site_name)
-        site_data = site_data_list[0]
+    if site_id:    #: Edit existing site
+        site_data = SiteData.get_site(site_id)
+        try:
+            site_data = site_data[0]
+        except IndexError:
+            print("Index error!")
+        init_site_name = site_data.get('site_name')
+        init_site_description = site_data.get('site_description')
+        init_site_latitude = site_data.get('site_latitude')
+        init_site_longitude = site_data.get('site_longitude')
 
-        init_site_name = site_data.get('site')
-        init_site_description = site_data.get('description')
-        init_site_latitude = site_data.get('latitude')
-        init_site_longitude = site_data.get('longitude')
-
-        init_site_form = {'site' : init_site_name, 'description' : init_site_description, 'latitude' : init_site_latitude, 'longitude' : init_site_longitude}
+        init_site_form = {
+            'site_name' : init_site_name,
+            'site_description' : init_site_description,
+            'site_latitude' : init_site_latitude,
+            'site_longitude' : init_site_longitude
+        }
 
     else:   #: Add new site
         init_site_form = {}
@@ -168,21 +217,28 @@ def manage_site(request):
     form = ManageSiteForm(request.POST or None, initial=init_site_form)
 
     if form.is_valid():
-        site_name = form.cleaned_data['site']
-        site_description = form.cleaned_data['description']
+        site_name = form.cleaned_data['site_name']
+        site_description = form.cleaned_data['site_description']
         site_position = form.clean_gps_coordinates()
+
+        if not site_id:
+            site_id = uuid.uuid4()
+        else:
+            Sites(bucket=0, site_id=site_id).delete()
+            Site_info_by_site(site_id=site_id).delete()
 
         Sites.create(
             bucket=0,
-            site=site_name,
-            description=site_description,
-            position = site_position
+            site_id=site_id,
+            site_name=site_name,
+            site_description=site_description,
+            site_position = site_position
         )
-
         Site_info_by_site.create(
-            site=site_name,
-            description=site_description,
-            position = site_position
+            site_id=site_id,
+            site_name=site_name,
+            site_description=site_description,
+            site_position = site_position
         )
 
         url = reverse('sites:index')
@@ -190,6 +246,7 @@ def manage_site(request):
         return HttpResponseRedirect(url)
 
     context = {
+        'site_id' : site_id,
         'site_name' : site_name,
         'form' : form
     }
@@ -197,64 +254,90 @@ def manage_site(request):
     return render(request, template, context)
 
 def delete_site(request):
-
     params = request.GET
-    site_name = params.get('site_name', '')
-
-    Sites(bucket=0, site=site_name).delete()
-    Site_info_by_site(site=site_name).delete()
+    site_id = params.get('site_id', '')
+    try:
+        Sites(bucket=0, site_id=site_id).delete()
+        Site_info_by_site(site_id=site_id).delete()
+    except:
+        print("Couldn't delete site!")
 
     url = reverse('sites:index')
-
     return HttpResponseRedirect(url)
 
 def manage_location(request):
-
     params = request.GET
+    site_id = params.get('site_id', '')
     site_name = params.get('site_name', '')
+    location_id = params.get('location_id', '')
     location_name = params.get('location_name', '')
-
     init_location_form = dict
     template = 'sites/manage_location.html'
 
-    if location_name:    #: Edit existing location
-        location_data_list = LocationData.get_location(location_name)
-        location_data = location_data_list[0]
+    if location_id:    #: Edit existing location
+        location_data = LocationData.get_location(location_id)
+        try:
+            location_data = location_data[0]
+        except IndexError:
+            print("Index error!")
 
-        init_location_site = site_name
-        init_location_name = location_name
-        init_location_latitude = location_data.get('latitude')
-        init_location_longitude = location_data.get('longitude')
-        init_location_description = location_data.get('description')
+        init_location_site_name = location_data.get('site_name')
+        init_location_name = location_data.get('location_name')
+        init_location_latitude = location_data.get('location_latitude')
+        init_location_longitude = location_data.get('location_longitude')
+        init_location_description = location_data.get('location_description')
 
-        init_location_form = {'site' : init_location_site, 'location' : init_location_name, 'latitude' : init_location_latitude, 'longitude' : init_location_longitude, 'description' : init_location_description}
+        init_location_form = {
+            'site_name' : init_location_site_name,
+            'location_name' : init_location_name,
+            'location_latitude' : init_location_latitude,
+            'location_longitude' : init_location_longitude,
+            'location_description' : init_location_description
+        }
 
     else:   #: Add new location
-        init_location_form = {'site' : site_name}
+        try:
+            target_site = SiteData.get_site(site_id)[0]
+            site_name = target_site.get('site_name')
+            init_location_form = {'site_name' : site_name}
+        except IndexError:
+            print("Index error!")
 
     form = ManageLocationForm(request.POST or None, initial=init_location_form)
 
     if form.is_valid():
-        site_name = form.cleaned_data['site']
-        location_name = form.cleaned_data['location']
-        location_description = form.cleaned_data['description']
+        location_name = form.cleaned_data['location_name']
+        location_description = form.cleaned_data['location_description']
         location_position = form.clean_gps_coordinates()
 
-        Locations_by_site.create(
-            site=site_name,
-            location=location_name,
-            description=location_description,
-            position=location_position
-        )
+        temp_location_name = location_name
+        temp_site_location = LocationData.get_all_locations(site_id, temp_location_name)
+        if not temp_site_location:
 
-        Location_info_by_location.create(
-            location=location_name,
-            description=location_description,
-            position=location_position
-        )
+            if not location_id:
+                location_id = uuid.uuid4()
+            else:
+                Locations_by_site(site_id=site_id, location_name=location_name).delete()
+                Location_info_by_location(location_id=location_id).delete()
+
+            Locations_by_site.create(
+                site_id=site_id,
+                location_name=location_name,
+                location_id=location_id,
+                location_description=location_description,
+                location_position=location_position
+            )
+            Location_info_by_location.create(
+                location_id=location_id,
+                location_name=location_name,
+                location_description=location_description,
+                location_position=location_position
+            )
 
         url = reverse('sites:load_location')
-        url += '?site_name=' + site_name + '&location_name=' + location_name
+        url += '?site_id=' + MiscTools.uuid_to_str(site_id)
+        if location_id:
+            url += '&location_id=' + MiscTools.uuid_to_str(location_id)
 
         return HttpResponseRedirect(url)
 

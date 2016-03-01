@@ -3,65 +3,103 @@ from django import forms
 from pytz import all_timezones
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Button, Field, Fieldset, Layout, Reset, Submit
+from crispy_forms.layout import Button, Div, Field, Fieldset, Layout, Reset, Submit
 from crispy_forms.bootstrap import FormActions
 
 from settings.settings import TIME_ZONE
 
+MAX_TIME_FORMATS = 5
+
+class ManageLoggerTypeForm(forms.Form):
+    logger_type_name = forms.CharField(label='Logger Type', required=True)
+    logger_type_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(ManageLoggerTypeForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_id = 'id-manageLoggerTypeForm'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Fieldset(
+                'Basic Info',
+                Field('logger_type_name'),
+                Field('logger_type_description'),
+            ),
+            Fieldset(
+                'Supported Time Formats',
+            ),
+            FormActions(
+                Submit('save', 'Save', css_class="btn-primary"),
+                Reset('reset', 'Reset', css_class="btn-default"),
+                Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default"),
+                Button('delete', 'Delete', css_id="id-deleteBtn", css_class="btn-danger pull-right")
+            )
+        )
+        for i in range(0, MAX_TIME_FORMATS):
+            self.fields['logger_time_format_%s' % i] = forms.CharField(
+                label='Time Format %s' % (i+1),
+                required=False
+            )
+            self.helper.layout[1].append(
+                Field('logger_time_format_%s' % i)
+            )
+
+
 class ManageSiteForm(forms.Form):
-    site = forms.CharField(label='Site', required=True)
-    latitude = forms.FloatField(label='Latitude', required=False)
-    longitude = forms.FloatField(label='Longitude', required=False)
-    description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
+    site_name = forms.CharField(label='Site', required=True)
+    site_latitude = forms.FloatField(label='Latitude (WGS 84)', required=False)
+    site_longitude = forms.FloatField(label='Longitude (WGS 84)', required=False)
+    site_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
 
     def __init__(self, *args, **kwargs):
         super(ManageSiteForm, self).__init__(*args, **kwargs)
 
         self.helper = FormHelper()
-        self.helper.form_id = 'manageSiteForm'
+        self.helper.form_id = 'id-manageSiteForm'
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
-            Field('site'),
-            Field('latitude'),
-            Field('longitude'),
-            Field('description'),
+            Field('site_name'),
+            Field('site_latitude'),
+            Field('site_longitude'),
+            Field('site_description'),
 
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
                 Reset('reset', 'Reset', css_class="btn-default"),
-                Button('cancel', 'Cancel', css_class="btn-default"),
-                Button('delete', 'Delete', css_class="btn-danger pull-right")
+                Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default"),
+                Button('delete', 'Delete', css_id="id-deleteBtn", css_class="btn-danger pull-right")
             )
         )
 
     def clean_gps_coordinates(self):
         position = None
-        site_latitude = self.cleaned_data['latitude']
-        site_longitude = self.cleaned_data['longitude']
+        site_latitude = self.cleaned_data['site_latitude']
+        site_longitude = self.cleaned_data['site_longitude']
         if (site_latitude and site_longitude):
-            position = {'latitude' : site_latitude,
-                        'longitude' : site_longitude}
+            position = {'site_latitude' : site_latitude,
+                        'site_longitude' : site_longitude}
         return position
 
 class ManageLocationForm(forms.Form):
-    site = forms.CharField(label='Site', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=True)
-    location = forms.CharField(label='Location', required=True)
-    latitude = forms.FloatField(label='Latitude', required=False)
-    longitude = forms.FloatField(label='Longitude', required=False)
-    description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
+    site_name = forms.CharField(label='Site', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=True)
+    location_name = forms.CharField(label='Location', required=True)
+    location_latitude = forms.FloatField(label='Latitude (WGS 84)', required=False)
+    location_longitude = forms.FloatField(label='Longitude (WGS 84)', required=False)
+    location_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
 
     def __init__(self, *args, **kwargs):
         super(ManageLocationForm, self).__init__(*args, **kwargs)
 
         self.helper = FormHelper()
-        self.helper.form_id = 'manageLocationForm'
+        self.helper.form_id = 'id-manageLocationForm'
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
-            Field('site'),
-            Field('location'),
-            Field('latitude'),
-            Field('longitude'),
-            Field('description'),
+            Field('site_name'),
+            Field('location_name'),
+            Field('location_latitude'),
+            Field('location_longitude'),
+            Field('location_description'),
 
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
@@ -73,11 +111,11 @@ class ManageLocationForm(forms.Form):
 
     def clean_gps_coordinates(self):
         position = None
-        location_latitude = self.cleaned_data['latitude']
-        location_longitude = self.cleaned_data['longitude']
+        location_latitude = self.cleaned_data['location_latitude']
+        location_longitude = self.cleaned_data['location_longitude']
         if (location_latitude and location_longitude):
-            position = {'latitude' : location_latitude,
-                        'longitude' : location_longitude}
+            position = {'location_latitude' : location_latitude,
+                        'location_longitude' : location_longitude}
         return position
 
 class ManageSensorForm(forms.Form):
