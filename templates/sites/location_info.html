@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% load staticfiles %}
+
+{% load crispy_forms_tags %}
+
+{% block title %} {{ site_name }}/{{ location_name }} {% endblock %}
+
+{% block heading %}<h1 class="page-header">{{ site_name }}/{{ location_name }}</h1>{% endblock %}
+
+{% block content %}
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs">
+                    <li class="active">
+                        <a href="#info" data-toggle="tab">Info</a>
+                    </li>
+                    <li>
+                        <a href="#editLocation" data-toggle="tab"><i class="fa fa-pencil fa-fw"></i></a>
+                    </li>
+                </ul>
+                <!-- /.Nav tabs -->
+                <!-- Tab panes -->
+                <div class="tab-content">
+                    <div class="tab-pane fade in active" id="info">
+                        <div id="map_container" class="col-md-6">
+                            <h4>Position</h4>
+                            <div id="map_canvas">
+                            </div>
+                        </div>
+                        <div id="locationInfo" class="col-md-6">
+                            <h4>Location Info</h4>
+                            <ul id="basicInfo" class="list-unstyled">
+                                <li><strong>Site:</strong> {{ site_name }}</li>
+                                <li><strong>Location:</strong> {{ location_name }}</li>
+                                <li><strong>GPS (WGS 84):</strong> {{ location_latitude }}, {{ longitude_longitude }}</li>
+                            </ul>
+                            <dl>
+                                <dt>Description</dt>
+                                <dd>{{ location_description }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                <!-- Tab panes -->
+            </div>
+            <!-- /.panel-body -->
+        </div>
+        <!-- /.panel -->
+    </div>
+    <!-- /.col-lg-6 -->
+
+    <!-- Modal -->
+    <div class="modal fade" id="deleteLocationModal" tabindex="-1" role="dialog" aria-labelledby="deleteLocationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="deleteLocationModalLabel">Attention</h4>
+                </div>
+                <div class="modal-body">
+                    Delete this location? This operation cannot be undone!
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'sites:delete_location' %}?site_name={{ site_name }}&location_name={{ location_name }}" class = "btn btn-default" role = "button">OK</a>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+
+{% endblock %}
+
+{% block extrajs %}
+
+    <!--Google Maps API-->
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDnycWatbGyK6ldFqErjFtko1yeMclNUOA&amp;sensor=true"></script>
+
+    <!-- Highcharts JavaScript -->
+    <script src="{{ STATIC_URL }}Highcharts-4.1.10/js/highcharts.js"></script>
+    <script src="{{ STATIC_URL }}Highcharts-4.1.10/js/modules/exporting.js"></script>
+
+    <script type="text/javascript">
+    $(document).ready( function () {
+
+        var siteName = "{{ site_name }}";
+        var locationName = "{{ location_name }}";
+
+        function initMap () {
+
+            var locationLat = "{{ location_latitude }}";
+            var locationLong = "{{ location_longitude }}";
+
+                if (locationLat && locationLong) {
+                    var latlng = new google.maps.LatLng(locationLat, locationLong);
+                    var myOptions = {
+                        zoom: 13,
+                        center: latlng,
+                        mapTypeId: google.maps.MapTypeId.TERRAIN
+                    };
+                    map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+                    var marker = new google.maps.Marker({
+                        position: latlng,
+                        map: map,
+                        title: '{{ location_name }}' + ' (locationLat, locationLong)'
+                    });
+                    google.maps.event.trigger(map, 'resize');
+                }
+        }
+
+
+        $('a[href="#info"]').on('shown', function (e) {
+            google.maps.event.trigger(map, 'resize');
+            });
+            $("#map_canvas").css("width", 400).css("height", 400);
+
+    initMap();
+
+    });
+
+    </script>
+
+{% endblock %}

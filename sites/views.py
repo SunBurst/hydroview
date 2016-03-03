@@ -28,65 +28,34 @@ def index(request):
     context = {}
     return render(request, template_name, context)
 
-def load_location(request):
+def location_info(request):
     params = request.GET
-    site_name = params.get('site_name', '')
-    location_name = params.get('location_name', '')
-    template = 'sites/location.html'
+    site_id = params.get('site_id', '')
+    location_id = params.get('location_id', '')
 
-    context = {}
+    site_data = SiteData.get_site(site_id)
+    location_data = LocationData.get_location(location_id)
+    try:
+        site_data = site_data[0]
+        location_data = location_data[0]
+    except IndexError:
+        print("Index error!")
 
-    location_data_list = LocationData.get_location(location_name)
-    location_data = location_data_list[0]
+    site_name = site_data.get('site_name')
+    location_name = location_data.get('location_name')
+    location_description = location_data.get('location_description')
+    location_latitude = location_data.get('location_latitude')
+    location_longitude = location_data.get('location_longitude')
 
-    init_site_name = site_name
-    init_location_name = location_name
-    init_location_description = location_data.get('description')
-    init_location_latitude = location_data.get('latitude')
-    init_location_longitude = location_data.get('longitude')
-
-    initLocationForm = {'site' : init_site_name, 'location' : init_location_name, 'description' : init_location_description, 'latitude' : init_location_latitude, 'longitude' : init_location_longitude}
-
+    template = 'sites/location_info.html'
     context = {
-                'site_name' : init_site_name,
-                'location_name' : init_location_name,
-                'description' : init_location_description,
-                'longitude' : init_location_longitude,
-                'latitude': init_location_latitude
+        'site_name' : site_name,
+        'location_name' : location_name,
+        'location_description': location_description,
+        'location_latitude' : location_latitude,
+        'location_longitude' : location_longitude
     }
-
-    form = ManageLocationForm(request.POST or None, initial=initLocationForm)
-    context['form'] = form
-
-    if form.is_valid():
-        location_name = form.cleaned_data['location']
-        location_description = form.cleaned_data['description']
-        location_position = form.clean_gps_coordinates()
-
-        Locations_by_site(site=init_site_name, location=init_location_name).delete()
-        Location_info_by_location(location=init_location_name).delete()
-
-        Locations_by_site.create(
-            site=site_name,
-            location=location_name,
-            description=location_description,
-            position=location_position
-        )
-
-        Location_info_by_location.create(
-            location=location_name,
-            description=location_description,
-            position=location_position
-        )
-
-        url = reverse('sites:load_location')
-        url += '?site_name=' + init_site_name + '&location_name=' + location_name
-
-        return HttpResponseRedirect(url)
-
     return render(request, template, context)
-
-
 
 ###########################################################################
 #####################    API FOR RETURNING JSON DATA    ###################
@@ -128,24 +97,30 @@ def load_sensors_json(request):
 
     return HttpResponse(json.dumps(location_sensors_data), content_type='application/json')
 
+def load_all_logger_types_json(request):
+    params = request.GET
+    logger_types_data = LoggerData.get_all_loggers()
+    return HttpResponse(json.dumps(logger_types_data), content_type='application/json')
+
 ###########################################################################
 #######################    API FOR MANAGING FORMS    ######################
 ###########################################################################
 
 def manage_logger_type(request):
     params = request.GET
-    logger_type_name = params.get('logger_type_name', '')
+    init_logger_type_name = params.get('logger_type_name', '')
     init_logger_type_form = dict
+    init_logger_time_formats = []
     template = 'sites/manage_logger_type.html'
 
-    if logger_type_name:    #: Edit existing logger type
-        logger_type_data = LoggerData.get_logger(logger_type_name)
+    if init_logger_type_name:    #: Edit existing logger type
+        logger_type_data = LoggerData.get_logger(init_logger_type_name)
         try:
             logger_type_data = logger_type_data[0]
         except IndexError:
             print("Index error!")
-        init_logger_type_name = logger_type_data.get('logger_type_name')
         init_logger_description = logger_type_data.get('logger_type_description')
+        init_logger_time_formats = logger_type_data.get('logger_time_formats')
 
         init_logger_type_form = {
             'logger_type_name' : init_logger_type_name,
@@ -154,37 +129,62 @@ def manage_logger_type(request):
     else:   #: Add new logger type
         init_logger_type_form = {}
 
-    form = ManageLoggerTypeForm(request.POST or None, initial=init_logger_type_form)
+    form = ManageLoggerTypeForm(request.POST or None, initial=init_logger_type_form, init_logger_time_formats=init_logger_time_formats)
 
     if form.is_valid():
         logger_type_name = form.cleaned_data['logger_type_name']
         logger_type_description = form.cleaned_data['logger_type_description']
+        logger_time_formats_ids = form.clean_time_formats()
+        logger_time_formats = list(logger_time_formats_ids.keys())
 
-        #Logger_types.create(
-        #    bucket=0,
-        #    logger_type_name=logger_type_name,
-        #    logger_type_name_description=logger_type_description
-        #)
-        #Logger_type_by_logger_type.create(
-        #    logger_type_name=logger_type_name,
-        #    logger_type_description=logger_type_description,
-        #    logger_time_formats=logger_time_formats
-        #)
-        #Logger_time_format_by_logger_type.create(
-        #    logger_type_name=logger_type_name,
-        #    logger_time_format=logger_time_format,
-        #    logger_time_ids=logger_time_ids
-        #)
+        if init_logger_type_name:
+            try:
+                Logger_types(bucket=0, logger_type_name=init_logger_type_name).delete()
+                Logger_type_by_logger_type(logger_type_name=init_logger_type_name).delete()
+                Logger_time_format_by_logger_type(logger_type_name=init_logger_type_name).delete()
+            except:
+                print("Delete query failed!")
+
+        Logger_types.create(
+            bucket=0,
+            logger_type_name=logger_type_name,
+            logger_type_description=logger_type_description
+        )
+        Logger_type_by_logger_type.create(
+            logger_type_name=logger_type_name,
+            logger_type_description=logger_type_description,
+            logger_time_formats=logger_time_formats
+        )
+        for time_fmt, time_ids in logger_time_formats_ids.items():
+            Logger_time_format_by_logger_type.create(
+                logger_type_name=logger_type_name,
+                logger_time_format=time_fmt,
+                logger_time_ids=time_ids
+            )
         url = reverse('sites:index')
 
         return HttpResponseRedirect(url)
 
     context = {
-        'logger_type_name' : logger_type_name,
+        'logger_type_name' : init_logger_type_name,
         'form' : form
     }
 
     return render(request, template, context)
+
+def delete_logger_type(request):
+    params = request.GET
+    logger_type_name = params.get('logger_type_name', '')
+    try:
+        Logger_types(bucket=0, logger_type_name=logger_type_name).delete()
+        Logger_type_by_logger_type(logger_type_name=logger_type_name).delete()
+        Logger_time_format_by_logger_type(logger_type_name=logger_type_name).delete()
+    except:
+        print("Delete query failed!")
+
+    url = reverse('sites:index')
+
+    return HttpResponseRedirect(url)
 
 def manage_site(request):
     params = request.GET
@@ -334,7 +334,7 @@ def manage_location(request):
                 location_position=location_position
             )
 
-        url = reverse('sites:load_location')
+        url = reverse('sites:location_info')
         url += '?site_id=' + MiscTools.uuid_to_str(site_id)
         if location_id:
             url += '&location_id=' + MiscTools.uuid_to_str(location_id)

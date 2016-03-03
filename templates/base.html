@@ -43,6 +43,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
 
+      <!-- navbar-header -->
       <div class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
           <span class="sr-only">Toggle navigation</span>
@@ -54,30 +55,29 @@
       </div>
       <!-- /.navbar-header -->
 
+      <!-- navbar-top-links -->
       <ul class="nav navbar-top-links navbar-right">
+        <!-- dropdown-sites -->
         <li class="dropdown">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">
             <i class="fa fa-globe fa-fw"></i>  <i class="fa fa-caret-down"></i>
           </a>
           <ul class="dropdown-menu dropdown-sites">
+            <li class="dropdown-header">Installed Sites</li>
+            <li id="id-sitesDropdown" class="divider"></li>
             <li><a href="{% url 'sites:manage_site' %}"><i class="fa fa-plus fa-fw"></i> Add New Site</a></li>
-            <li><a href="#id-editSiteModal" data-toggle="modal"><i class="fa fa-pencil fa-fw"></i> Edit Site</a></li>
-            <li class="divider"></li>
-            <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a></li>
           </ul>
         <!-- /.dropdown-sites -->
         </li>
-        <!-- /.dropdown -->
+        <!-- /.dropdown-loggers -->
         <li class="dropdown">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-            <i class="fa fa-th-list fa-fw"></i>  <i class="fa fa-caret-down"></i>
+            <i class="fa fa-sitemap fa-fw"></i>  <i class="fa fa-caret-down"></i>
           </a>
           <ul class="dropdown-menu dropdown-loggers">
-            <li class="divider"></li>
+            <li class="dropdown-header">Installed Logger Types</li>
+            <li id="id-loggersDropdown" class="divider"></li>
             <li><a href="{% url 'sites:manage_logger_type' %}"><i class="fa fa-plus fa-fw"></i> Add New Logger Type</a></li>
-            <li><a href="#id-editLoggerModal" data-toggle="modal"><i class="fa fa-pencil fa-fw"></i> Edit Logger Type</a></li>
-            <li class="divider"></li>
-            <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a></li>
           </ul>
         <!-- /.dropdown-loggers -->
         </li>
@@ -115,31 +115,6 @@
     </div>
     <!-- /#page-wrapper -->
 
-    <!-- #id-editSiteModal -->
-    <div class="modal fade" id="id-editSiteModal" tabindex="-1" role="dialog" aria-labelledby="id-editSiteModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4 class="modal-title" id="id-editSiteModalLabel">Edit Site</h4>
-          </div>
-          <div class="modal-body">
-            <div class="btn-group">
-               <i class="dropdown-arrow dropdown-arrow"></i>
-               <a class="btn dropdown-toggle btn-select" data-toggle="dropdown" href="#">Choose Site <span class="caret"></span></a>
-               <ul id="id-editSiteModalDropdown" class="dropdown-menu dropdown-modal"></ul>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" id="id-btnCloseSiteModal" data-dismiss="modal">Close</button>
-          </div>
-        </div>
-        <!-- /.modal-content -->
-      </div>
-      <!-- /.modal-dialog -->
-    </div>
-    <!-- /#id-editSiteModal -->
-
   </div>
   <!-- /#wrapper -->
 
@@ -159,36 +134,54 @@
         var jsonSiteLocationsUrl = '{% url 'sites:load_site_locations_json' %}' + '?json_request=' + true;
         var jsonAllSitesDataUrl = jsonSitesUrl;
         var $sideMenu = $('#side-menu');
-        var $editSiteModalDropdown = $('#id-editSiteModalDropdown');
 
         $.getJSON(jsonAllSitesDataUrl, function (allSitesData) {
             $.each(allSitesData, function (i, site) {
-            $sideMenu.append('<li id="id-' + site.site_id + '"><a href="#"><i class="fa fa-globe fa-fw"></i>' + ' ' + site.site_name + '<span class="fa arrow"</span></a></li>');
-            $sideMenu.append('<ul id="id-' + site.site_id + '-nav"' + ' class="nav nav-second-level"></ul>');
-            $('#id-' + site.site_id + '-nav').append();
-
-            var manageLocationUrl = '{% url 'sites:manage_location' %}' + '?site_id=' + site.site_id + '&site_name=' + site.site_name;
-            $('#id-' + site.site_id + '-nav').append('<li><a href=' + manageLocationUrl + '><i class="fa fa-plus fa-fw"></i> Add New Location</a></li>');
-
-            jsonSiteLocationsDataUrl = jsonSiteLocationsUrl + '&site_id=' + site.site_id;
-
-            var manageSiteUrl = '{% url 'sites:manage_site' %}' + '?site_id=' + site.site_id + '&site_name=' + site.site_name;
-            $editSiteModalDropdown.append('<li><a href=' + manageSiteUrl + '>' + site.site_name + '</a></li>');
+                $sideMenu.append(
+                    '<li id="id-' + site.site_id + '">'
+                        + '<a href="#">'
+                            + '<i class="fa fa-globe fa-fw"></i>' + ' ' + site.site_name
+                            + '<span class="fa arrow"></span>'
+                        + '</a>'
+                        + '<ul id="id-' + site.site_id + '-nav"' + ' class="nav nav-second-level collapse in"></ul>'
+                    + '</li>'
+                );
+                var manageLocationUrl = '{% url 'sites:manage_location' %}' + '?site_id=' + site.site_id + '&site_name=' + site.site_name;
+                $('#id-' + site.site_id + '-nav').append('<li><a href=' + manageLocationUrl + '><i class="fa fa-plus fa-fw"></i> Add New Location</a></li>');
+                jsonSiteLocationsDataUrl = jsonSiteLocationsUrl + '&site_id=' + site.site_id;
+                var manageSiteUrl = '{% url 'sites:manage_site' %}' + '?site_id=' + site.site_id + '&site_name=' + site.site_name;
+                $('#id-sitesDropdown').before('<li><a href=' + manageSiteUrl + '><i class="fa fa-pencil fa-fw"></i>' + ' ' + site.site_name + '</a></li>');
 
                 $.getJSON(jsonSiteLocationsDataUrl, function (locationData) {
                     $.each(locationData, function (i, location) {
-                            loadLocationUrl = '{% url 'sites:load_location' %}' + '?site_id=' + site.site_id + '&location_id=' + location.location_id;
-                            $('#id-' + site.site_id + '-nav').append('<li id="id-' + location.location_id + '"><a href="' + loadLocationUrl +'"><i class="fa fa-map-marker fa-fw"></i>' + ' ' + location.location_name + '</a></li>');
+                        loadLocationUrl = '{% url 'sites:location_info' %}';
+                        loadLocationUrl += '?site_id=' + site.site_id + '&location_id=' + location.location_id;
+                        $('#id-' + site.site_id + '-nav').append(
+                            '<li id="id-' + location.location_id + '">'
+                                + '<a href="#">'
+                                    + '<i class="fa fa-map-marker fa-fw"></i>' + ' ' + location.location_name
+                                    + '<span class="fa arrow"></span>'
+                                + '</a>'
+                                + '<ul class="nav nav-third-level collapse in">'
+                                    + '<li><a href="' + loadLocationUrl + '"><i class="fa fa-dashboard fa-fw"></i> Status</a></li>'
+                                    + '<li><a href="#"><i class="fa fa-table fa-fw"></i> Data</a></li>'
+                                    + '<li><a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> Charts</a></li>'
+                                    + '<li><a href="#"><i class="fa fa-list fa-fw"></i> Logs</a></li>'
+                                    + '<li><a href="#"><i class="fa fa-pencil fa-fw"></i> Manage Location</a></li>'
+                                + '</ul>'
+                            + '</li>'
+                        );
                     });
                 });
             });
         });
-
-        $(document.body).on('click', '.dropdown-modal li a', function (e) {
-            var selText = $(this).text();
-            $(this).parents('.btn-group').find('.dropdown-toggle').html(selText+' <span class="caret"></span>');
+        var jsonLoggerTypesUrl = '{% url 'sites:load_all_logger_types_json' %}';
+        $.getJSON(jsonLoggerTypesUrl, function (allLoggerTypesData) {
+            $.each(allLoggerTypesData, function (i, loggerType) {
+                var manageLoggerTypeUrl = '{% url 'sites:manage_logger_type' %}' + '?logger_type_name=' + loggerType.logger_type_name;
+                $('#id-loggersDropdown').before('<li><a href=' + manageLoggerTypeUrl + '><i class="fa fa-pencil fa-fw"></i>' + ' ' + loggerType.logger_type_name + '</a></li>');
+            });
         });
-
     });
   </script>
 

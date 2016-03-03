@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from django import forms
 from pytz import all_timezones
+from collections import OrderedDict
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Button, Div, Field, Fieldset, Layout, Reset, Submit
@@ -8,15 +9,21 @@ from crispy_forms.bootstrap import FormActions
 
 from settings.settings import TIME_ZONE
 
-MAX_TIME_FORMATS = 5
+
+LOGGER_TIME_FORMATS = OrderedDict(
+    [
+        ('Timestamp', ['Timestamp']),
+        ('Campbell-Legacy', ['Year','Julian Day','HourMinute'])
+    ]
+)
 
 class ManageLoggerTypeForm(forms.Form):
     logger_type_name = forms.CharField(label='Logger Type', required=True)
     logger_type_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
 
     def __init__(self, *args, **kwargs):
+        init_logger_time_formats = kwargs.pop('init_logger_time_formats')
         super(ManageLoggerTypeForm, self).__init__(*args, **kwargs)
-
         self.helper = FormHelper()
         self.helper.form_id = 'id-manageLoggerTypeForm'
         self.helper.form_method = 'post'
@@ -27,7 +34,7 @@ class ManageLoggerTypeForm(forms.Form):
                 Field('logger_type_description'),
             ),
             Fieldset(
-                'Supported Time Formats',
+                'Logger Type Time Formats',
             ),
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
@@ -36,15 +43,27 @@ class ManageLoggerTypeForm(forms.Form):
                 Button('delete', 'Delete', css_id="id-deleteBtn", css_class="btn-danger pull-right")
             )
         )
-        for i in range(0, MAX_TIME_FORMATS):
-            self.fields['logger_time_format_%s' % i] = forms.CharField(
-                label='Time Format %s' % (i+1),
+
+        for time_fmt, time_fmt_placeholder in LOGGER_TIME_FORMATS.items():
+            init_bool_val = False
+            if time_fmt in init_logger_time_formats:
+                init_bool_val = True
+            self.fields[time_fmt] = forms.BooleanField(
+                label=time_fmt,
+                initial=init_bool_val,
                 required=False
             )
             self.helper.layout[1].append(
-                Field('logger_time_format_%s' % i)
+                Field(time_fmt)
             )
 
+    def clean_time_formats(self):
+        cleaned_time_fmts = {}
+        for name, value in self.cleaned_data.items():
+            if name in LOGGER_TIME_FORMATS.keys():
+                if value:
+                    cleaned_time_fmts[name] = LOGGER_TIME_FORMATS.get(name)
+        return cleaned_time_fmts
 
 class ManageSiteForm(forms.Form):
     site_name = forms.CharField(label='Site', required=True)

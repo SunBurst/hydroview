@@ -25,13 +25,14 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-          <h4 class="modal-title" id="id-deleteSiteModalLabel">Attention</h4>
+          <h4 class="modal-title" id="id-deleteSiteModalLabel"><i class="fa fa-warning fa-fw"></i> Attention</h4>
         </div>
         <div class="modal-body">Delete this site? This operation cannot be undone!</div>
         <div class="modal-footer">
           <a href="{% url 'sites:delete_site' %}?site_id={{ site_id }}" class="btn btn-default" role="button">OK</a>
           <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
         </div>
+        <!-- /.modal-footer -->
       </div>
       <!-- /.modal-content -->
     </div>

@@ -4,9 +4,9 @@ from . import views
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(
-        regex=r'^load_location/$',
-        view=views.load_location,
-        name='load_location',
+        regex=r'^location_info/$',
+        view=views.location_info,
+        name='location_info',
     ),
     url(
         regex=r'^load_all_sites_json/$',
@@ -24,15 +24,20 @@ urlpatterns = [
         name='load_sensors_json',
     ),
     url(
-        regex=r'^manage_logger_type/',
+        regex=r'^load_all_logger_types_json/$',
+        view=views.load_all_logger_types_json,
+        name='load_all_logger_types_json',
+    ),
+    url(
+        regex=r'^manage_logger_type/$',
         view=views.manage_logger_type,
         name='manage_logger_type',
     ),
-    #url(
-    #    regex=r'^delete_logger_type/',
-    #    view=views.delete_logger_type,
-   #     name='delete_logger_type',
-    #),
+    url(
+        regex=r'^delete_logger_type/',
+        view=views.delete_logger_type,
+        name='delete_logger_type',
+    ),
     url(
         regex=r'^manage_site/',
         view=views.manage_site,

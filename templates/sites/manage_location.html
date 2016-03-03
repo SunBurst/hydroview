@@ -53,7 +53,7 @@
 
     <script type="text/javascript">
         $(document).ready(function() {
-            var redirectUrl = '{% url 'sites:load_location' %}';
+            var redirectUrl = '{% url 'sites:location_info' %}';
             redirectUrl += "?site_name={{ site_name }}";
             var locationName = "{{ location_name }}";
 

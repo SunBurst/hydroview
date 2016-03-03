@@ -119,16 +119,16 @@ class Logger_types(models.Model):
 class Logger_type_by_logger_type(models.Model):
     logger_type_name = columns.Text(primary_key=True)
     logger_type_description = columns.Text()
-    logger_time_formats = columns.Map(columns.Text, columns.Text)
+    logger_time_formats = columns.List(columns.Text)
 
 class Logger_time_format_by_logger_type(models.Model):
     logger_type_name = columns.Text(primary_key=True, partition_key=True)
-    logger_time_format = columns.Text(primary_key=True, partition_key=True)
-    logger_time_ids = columns.Map(columns.Text, columns.Text)
+    logger_time_format = columns.Text(primary_key=True, clustering_order="ASC")
+    logger_time_ids = columns.List(columns.Text)
 
 class Log_time_info_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
     logger_type_name = columns.Text()
     logger_time_format = columns.Text()
-    logger_time_ids = columns.Map(columns.Text, columns.Text)
+    logger_time_ids = columns.List(columns.Text)
     log_time_zone = columns.Text()
