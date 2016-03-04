@@ -64,6 +64,11 @@ urlpatterns = [
         name='delete_site',
     ),
     url(
+        regex=r'^location_logs/$',
+        view=views.location_logs,
+        name='location_logs',
+    ),
+    url(
         regex=r'^manage_location/$',
         view=views.manage_location,
         name='manage_location',

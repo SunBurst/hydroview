@@ -27,7 +27,7 @@ class QCData(object):
         qc_level -- qc identifier (int)
         """
         qc_data = []
-        qc_query = Quality_control_info_by_quality_control.objects.filter(site_id=qc_level)
+        qc_query = Quality_control_info_by_quality_control.objects.filter(qc_level=qc_level)
         for row in qc_query:
             qc = {
                 'qc_name' : row.qc_name,

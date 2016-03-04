@@ -2,7 +2,7 @@
 
 {% load crispy_forms_tags %}
 
-{% block title %} {{ qc_level }}:{{ qc_name }} {% endblock %}
+{% block title %} {{ qc_level }} : {{ qc_name }} {% endblock %}
 
 {% block heading %}<h1 class="page-header"></h1>{% endblock %}
 
@@ -47,14 +47,15 @@
     $(document).ready(function () {
         var redirectToIndexUrl = '{% url 'sites:index' %}';
         var qualityControlLevel = '{{ qc_level }}';
+        var qualityControlName = '{{ qc_name }}';
         if (!qualityControlLevel) {
             $('#id-deleteBtn').hide();
             $('.page-header').text("Add New Quality Control");
         }
         else {
-            $('.page-header').text("Manage Quality Control: " + qualityControlLevel);
+            $('.page-header').text("Manage Quality Control: " + qualityControlLevel + " - " + qualityControlName);
             $('#id-deleteBtn').attr('data-toggle', "modal");
-            $('#id-deleteBtn').attr('data-target', "#id-deleteLoggerTypeModal");
+            $('#id-deleteBtn').attr('data-target', "#id-deleteQualityControlModal");
         }
         $('#id-cancelBtn').on('click', function () {
             document.location.href = redirectToIndexUrl;

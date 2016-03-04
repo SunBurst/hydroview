@@ -16,12 +16,16 @@
 
   <!-- Bootstrap Core CSS -->
   <link href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+
   <!-- MetisMenu CSS -->
   <link href="{% static 'metisMenu/dist/metisMenu.min.css' %}" rel="stylesheet">
+
   <!-- Timeline CSS -->
   <link href="{% static 'startbootstrap-sb-admin-2/dist/css/timeline.css' %}" rel="stylesheet" type="text/css">
+
   <!-- Custom CSS -->
   <link href="{% static 'startbootstrap-sb-admin-2/dist/css/sb-admin-2.css' %}" rel="stylesheet" type="text/css">
+
   <!-- Custom Fonts -->
   <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
 
@@ -137,83 +141,105 @@
 
   <!-- jQuery -->
   <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
+
   <!-- Bootstrap Core JavaScript -->
   <script src="{% static 'bootstrap/dist/js/bootstrap.min.js' %}"></script>
+
   <!-- Metis Menu Plugin JavaScript -->
   <script src="{% static 'metisMenu/dist/metisMenu.min.js' %}"></script>
+
   <!-- Custom Theme JavaScript -->
   <script src="{% static 'startbootstrap-sb-admin-2/dist/js/sb-admin-2.js' %}"></script>
+
   <!-- Add Configured Sites JavaScript -->
   <script type="text/javascript">
-    $(document).ready(function () {
+  $(document).ready(function () {
 
-        var jsonSitesUrl = '{% url 'sites:load_all_sites_json' %}' + '?json_request=' + true;
-        var jsonSiteLocationsUrl = '{% url 'sites:load_site_locations_json' %}' + '?json_request=' + true;
-        var jsonAllSitesDataUrl = jsonSitesUrl;
-        var $sideMenu = $('#side-menu');
+      var jsonSitesUrl = '{% url 'sites:load_all_sites_json' %}' + '?json_request=' + true;
+      var jsonSiteLocationsUrl = '{% url 'sites:load_site_locations_json' %}' + '?json_request=' + true;
+      var jsonAllSitesDataUrl = jsonSitesUrl;
+      var $sideMenu = $('#side-menu');
 
-        $.getJSON(jsonAllSitesDataUrl, function (allSitesData) {
-            $.each(allSitesData, function (i, site) {
-                $sideMenu.append(
-                    '<li id="id-' + site.site_id + '">'
-                        + '<a href="#">'
-                            + '<i class="fa fa-globe fa-fw"></i>' + ' ' + site.site_name
-                            + '<span class="fa arrow"></span>'
-                        + '</a>'
-                        + '<ul id="id-' + site.site_id + '-nav"' + ' class="nav nav-second-level collapse in"></ul>'
-                    + '</li>'
-                );
-                var manageLocationUrl = '{% url 'sites:manage_location' %}' + '?site_id=' + site.site_id + '&site_name=' + site.site_name;
-                $('#id-' + site.site_id + '-nav').append('<li><a href=' + manageLocationUrl + '><i class="fa fa-plus fa-fw"></i> Add New Location</a></li>');
-                jsonSiteLocationsDataUrl = jsonSiteLocationsUrl + '&site_id=' + site.site_id;
-                var manageSiteUrl = '{% url 'sites:manage_site' %}' + '?site_id=' + site.site_id + '&site_name=' + site.site_name;
-                $('#id-sitesDropdown').before('<li><a href=' + manageSiteUrl + '><i class="fa fa-pencil fa-fw"></i>' + ' ' + site.site_name + '</a></li>');
+      $.getJSON(jsonAllSitesDataUrl, function (allSitesData) {
+          $.each(allSitesData, function (i, site) {
+              $sideMenu.append(
+                  '<li id="id-' + site.site_id + '">'
+                      + '<a href="#">'
+                          + '<i class="fa fa-globe fa-fw"></i>' + ' ' + site.site_name
+                          + '<span class="fa arrow"></span>'
+                      + '</a>'
+                      + '<ul id="id-' + site.site_id + '-nav"' + ' class="nav nav-second-level collapse in"></ul>'
+                  + '</li>'
+              );
+              var manageLocationUrl = '{% url 'sites:manage_location' %}' + '?site_id=' + site.site_id + '&site_name=' + site.site_name;
+              $('#id-' + site.site_id + '-nav').append('<li><a href=' + manageLocationUrl + '><i class="fa fa-plus fa-fw"></i> Add New Location</a></li>');
+              jsonSiteLocationsDataUrl = jsonSiteLocationsUrl + '&site_id=' + site.site_id;
+              var manageSiteUrl = '{% url 'sites:manage_site' %}' + '?site_id=' + site.site_id + '&site_name=' + site.site_name;
+              $('#id-sitesDropdown').before('<li><a href=' + manageSiteUrl + '><i class="fa fa-pencil fa-fw"></i>' + ' ' + site.site_name + '</a></li>');
 
-                $.getJSON(jsonSiteLocationsDataUrl, function (locationData) {
-                    $.each(locationData, function (i, location) {
-                        loadLocationUrl = '{% url 'sites:location_info' %}';
-                        loadLocationUrl += '?site_id=' + site.site_id + '&location_id=' + location.location_id;
-                        $('#id-' + site.site_id + '-nav').append(
-                            '<li id="id-' + location.location_id + '">'
-                                + '<a href="#">'
-                                    + '<i class="fa fa-map-marker fa-fw"></i>' + ' ' + location.location_name
-                                    + '<span class="fa arrow"></span>'
-                                + '</a>'
-                                + '<ul class="nav nav-third-level collapse in">'
-                                    + '<li><a href="' + loadLocationUrl + '"><i class="fa fa-dashboard fa-fw"></i> Status</a></li>'
-                                    + '<li><a href="#"><i class="fa fa-table fa-fw"></i> Data</a></li>'
-                                    + '<li><a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> Charts</a></li>'
-                                    + '<li><a href="#"><i class="fa fa-list fa-fw"></i> Logs</a></li>'
-                                    + '<li><a href="#"><i class="fa fa-pencil fa-fw"></i> Manage Location</a></li>'
-                                + '</ul>'
-                            + '</li>'
-                        );
-                    });
-                });
-            });
-        });
-        var jsonLoggerTypesUrl = '{% url 'sites:load_all_logger_types_json' %}';
-        $.getJSON(jsonLoggerTypesUrl, function (allLoggerTypesData) {
-            $.each(allLoggerTypesData, function (i, loggerType) {
-                var manageLoggerTypeUrl = '{% url 'sites:manage_logger_type' %}' + '?logger_type_name=' + loggerType.logger_type_name;
-                $('#id-loggersDropdown').before('<li><a href=' + manageLoggerTypeUrl + '><i class="fa fa-pencil fa-fw"></i>' + ' ' + loggerType.logger_type_name + '</a></li>');
-            });
-        });
-        var jsonQualityControlsUrl = '{% url 'sites:load_all_quality_controls_json' %}';
-        $.getJSON(jsonQualityControlsUrl, function (allQualityControlsData) {
-            $.each(allQualityControlsData, function (i, QC) {
-                var manageQualityControlUrl = '{% url 'sites:manage_quality_control' %}'
-                manageQualityControlUrl += '?qc_level=' + QC.qc_level + '&qc_name=' QC.qc_name;
-                $('#id-qualityControlsDropdown').before(
-                    '<li>'
-                        + '<a href=' + manageQualityControlUrl + '>'
-                            + '<i class="fa fa-pencil fa-fw"></i>' + ' ' + QC.qc_level + ': ' + QC.qc_name
-                        + '</a>'
-                    + '</li>'
-                );
-            });
-        });
-    });
+              $.getJSON(jsonSiteLocationsDataUrl, function (locationData) {
+                  $.each(locationData, function (i, location) {
+                      loadLocationUrl = '{% url 'sites:location_info' %}'
+                          + '?site_id=' + site.site_id + '&location_id=' + location.location_id;
+                      loadLocationLogsUrl = '{% url 'sites:location_logs' %}'
+                          + '?site_name=' + site.site_name + '&location_id=' + location.location_id
+                          + '&location_name=' + location.location_name;
+                      $('#id-' + site.site_id + '-nav').append(
+                          '<li id="id-' + location.location_id + '">'
+                              + '<a href="#">'
+                                  + '<i class="fa fa-map-marker fa-fw"></i>' + ' ' + location.location_name
+                                  + '<span class="fa arrow"></span>'
+                              + '</a>'
+                              + '<ul class="nav nav-third-level collapse in">'
+                                  + '<li>'
+                                      + '<a href="' + loadLocationUrl + '">'
+                                          + '<i class="fa fa-dashboard fa-fw"></i> Status'
+                                      + '</a>'
+                                  + '</li>'
+                                  + '<li><a href="#"><i class="fa fa-table fa-fw"></i> Data</a></li>'
+                                  + '<li><a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> Charts</a></li>'
+                                  + '<li>'
+                                      + '<a href="' + loadLocationLogsUrl + '">'
+                                          + '<i class="fa fa-list fa-fw"></i> Logs'
+                                      + '</a>'
+                                  + '</li>'
+                                  + '<li><a href="#"><i class="fa fa-pencil fa-fw"></i> Manage Location</a></li>'
+                              + '</ul>'
+                          + '</li>'
+                      );
+                  });
+              });
+          });
+      });
+      var jsonLoggerTypesUrl = '{% url 'sites:load_all_logger_types_json' %}';
+      $.getJSON(jsonLoggerTypesUrl, function (allLoggerTypesData) {
+          $.each(allLoggerTypesData, function (i, loggerType) {
+              var manageLoggerTypeUrl = '{% url 'sites:manage_logger_type' %}';
+              manageLoggerTypeUrl += '?logger_type_name=' + loggerType.logger_type_name;
+              $('#id-loggersDropdown').before(
+                  '<li>'
+                      + '<a href=' + manageLoggerTypeUrl + '>'
+                          + '<i class="fa fa-pencil fa-fw"></i>' + ' ' + loggerType.logger_type_name
+                      + '</a>'
+                  + '</li>'
+              );
+          });
+      });
+      var jsonQualityControlsUrl = '{% url 'sites:load_all_quality_controls_json' %}';
+      $.getJSON(jsonQualityControlsUrl, function (allQualityControlsData) {
+          $.each(allQualityControlsData, function (i, QC) {
+              var manageQualityControlUrl = '{% url 'sites:manage_quality_control' %}';
+              manageQualityControlUrl += '?qc_level=' + QC.qc_level + '&qc_name=' + QC.qc_name;
+              $('#id-qualityControlsDropdown').before(
+                  '<li>'
+                      + '<a href=' + manageQualityControlUrl + '>'
+                          + '<i class="fa fa-pencil fa-fw"></i>' + ' ' + QC.qc_level + ': ' + QC.qc_name
+                      + '</a>'
+                  + '</li>'
+              );
+          });
+      });
+  });
   </script>
 
   {% block extrajs %}{% endblock %}

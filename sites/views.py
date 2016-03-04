@@ -59,6 +59,19 @@ def location_info(request):
     }
     return render(request, template, context)
 
+def location_logs(request):
+    params = request.GET
+    site_name = params.get('site_name', '')
+    location_id = params.get('location_id', '')
+    location_name = params.get('location_name', '')
+    template = 'sites/location_logs.html'
+    context = {
+        'site_name' : site_name,
+        'location_id' : location_id,
+        'location_name' : location_name
+    }
+    return render(request, template, context)
+
 ###########################################################################
 #####################    API FOR RETURNING JSON DATA    ###################
 ###########################################################################
@@ -196,7 +209,7 @@ def manage_quality_control(request):
     init_qc_level = params.get('qc_level', '')
     init_qc_name = params.get('qc_name', '')
     init_qc_form = dict
-    template = 'sites/manage_logger_type.html'
+    template = 'sites/manage_quality_control.html'
 
     if init_qc_level:    #: Edit existing quality control
         quality_control_data = QCData.get_qc(init_qc_level)
