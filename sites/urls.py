@@ -29,6 +29,11 @@ urlpatterns = [
         name='load_all_logger_types_json',
     ),
     url(
+        regex=r'^load_all_quality_controls_json/$',
+        view=views.load_all_quality_controls_json,
+        name='load_all_quality_controls_json',
+    ),
+    url(
         regex=r'^manage_logger_type/$',
         view=views.manage_logger_type,
         name='manage_logger_type',
@@ -37,6 +42,16 @@ urlpatterns = [
         regex=r'^delete_logger_type/',
         view=views.delete_logger_type,
         name='delete_logger_type',
+    ),
+    url(
+        regex=r'^manage_quality_control/$',
+        view=views.manage_quality_control,
+        name='manage_quality_control',
+    ),
+    url(
+        regex=r'^delete_quality_control/$',
+        view=views.delete_quality_control,
+        name='delete_quality_control',
     ),
     url(
         regex=r'^manage_site/',

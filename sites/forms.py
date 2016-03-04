@@ -65,6 +65,8 @@ class ManageLoggerTypeForm(forms.Form):
                     cleaned_time_fmts[name] = LOGGER_TIME_FORMATS.get(name)
         return cleaned_time_fmts
 
+class ManageQCForm(forms.Form):
+
 class ManageSiteForm(forms.Form):
     site_name = forms.CharField(label='Site', required=True)
     site_latitude = forms.FloatField(label='Latitude (WGS 84)', required=False)

@@ -57,6 +57,7 @@
 
       <!-- navbar-top-links -->
       <ul class="nav navbar-top-links navbar-right">
+
         <!-- dropdown-sites -->
         <li class="dropdown">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -69,7 +70,21 @@
           </ul>
         <!-- /.dropdown-sites -->
         </li>
-        <!-- /.dropdown-loggers -->
+        <!-- /.dropdown -->
+        <!-- /dropdown-qcs -->
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+            <i class="fa fa-check-circle fa-fw"></i>  <i class="fa fa-caret-down"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-loggers">
+            <li class="dropdown-header">Installed QC:s</li>
+            <li id="id-qualityControlsDropdown" class="divider"></li>
+            <li><a href="{% url 'sites:manage_quality_control' %}"><i class="fa fa-plus fa-fw"></i> Add New QC</a></li>
+          </ul>
+        <!-- /.dropdown-qcs -->
+        </li>
+        <!-- /.dropdown -->
+        <!-- /dropdown-loggers -->
         <li class="dropdown">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">
             <i class="fa fa-sitemap fa-fw"></i>  <i class="fa fa-caret-down"></i>
@@ -82,6 +97,7 @@
         <!-- /.dropdown-loggers -->
         </li>
         <!-- /.dropdown -->
+        <!-- /dropdown-users -->
         <li class="dropdown">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">
             <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
@@ -92,6 +108,7 @@
           <!-- /.dropdown-user -->
         </li>
         <!-- /.dropdown -->
+
       </ul>
       <!-- /.navbar-top-links -->
 
@@ -180,6 +197,20 @@
             $.each(allLoggerTypesData, function (i, loggerType) {
                 var manageLoggerTypeUrl = '{% url 'sites:manage_logger_type' %}' + '?logger_type_name=' + loggerType.logger_type_name;
                 $('#id-loggersDropdown').before('<li><a href=' + manageLoggerTypeUrl + '><i class="fa fa-pencil fa-fw"></i>' + ' ' + loggerType.logger_type_name + '</a></li>');
+            });
+        });
+        var jsonQualityControlsUrl = '{% url 'sites:load_all_quality_controls_json' %}';
+        $.getJSON(jsonQualityControlsUrl, function (allQualityControlsData) {
+            $.each(allQualityControlsData, function (i, QC) {
+                var manageQualityControlUrl = '{% url 'sites:manage_quality_control' %}'
+                manageQualityControlUrl += '?qc_level=' + QC.qc_level + '&qc_name=' QC.qc_name;
+                $('#id-qualityControlsDropdown').before(
+                    '<li>'
+                        + '<a href=' + manageQualityControlUrl + '>'
+                            + '<i class="fa fa-pencil fa-fw"></i>' + ' ' + QC.qc_level + ': ' + QC.qc_name
+                        + '</a>'
+                    + '</li>'
+                );
             });
         });
     });

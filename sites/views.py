@@ -8,13 +8,15 @@ from django.core.urlresolvers import reverse
 from datetime import datetime, timedelta
 
 from .charts import ChartData
-from .forms import ManageLocationForm, ManageLoggerTypeForm, ManageSensorForm, ManageSiteForm
+from .forms import ManageLocationForm, ManageLoggerTypeForm, ManageQCForm, ManageSensorForm, ManageSiteForm
 from .locations import LocationData
 from .loggers import LoggerData
 from .logs import LogData
+from .qcs import QCData
 from .sites import SiteData
 from .models import Locations_by_site, Location_info_by_location, Logger_types, Logger_type_by_logger_type, \
-    Logger_time_format_by_logger_type, Sites, Site_info_by_site
+    Logger_time_format_by_logger_type, Quality_controls, Quality_control_info_by_quality_control, \
+    Sites, Site_info_by_site
 from .management.commands import run_update
 from utils.tools import MiscTools
 
@@ -98,9 +100,12 @@ def load_sensors_json(request):
     return HttpResponse(json.dumps(location_sensors_data), content_type='application/json')
 
 def load_all_logger_types_json(request):
-    params = request.GET
     logger_types_data = LoggerData.get_all_loggers()
     return HttpResponse(json.dumps(logger_types_data), content_type='application/json')
+
+def load_all_quality_controls_json(request):
+    quality_controls_data = QCData.get_all_qcs()
+    return HttpResponse(json.dumps(quality_controls_data), content_type='application/json')
 
 ###########################################################################
 #######################    API FOR MANAGING FORMS    ######################
@@ -179,6 +184,84 @@ def delete_logger_type(request):
         Logger_types(bucket=0, logger_type_name=logger_type_name).delete()
         Logger_type_by_logger_type(logger_type_name=logger_type_name).delete()
         Logger_time_format_by_logger_type(logger_type_name=logger_type_name).delete()
+    except:
+        print("Delete query failed!")
+
+    url = reverse('sites:index')
+
+    return HttpResponseRedirect(url)
+
+def manage_quality_control(request):
+    params = request.GET
+    init_qc_level = params.get('qc_level', '')
+    init_qc_name = params.get('qc_name', '')
+    init_qc_form = dict
+    template = 'sites/manage_logger_type.html'
+
+    if init_qc_level:    #: Edit existing quality control
+        quality_control_data = QCData.get_qc(init_qc_level)
+        try:
+            quality_control_data = quality_control_data[0]
+        except IndexError:
+            print("Index error!")
+        init_qc_name = quality_control_data.get('qc_name')
+        init_qc_description = quality_control_data.get('qc_description')
+        init_qc_replacement_value = quality_control_data.get('qc_replacement_value')
+
+        init_qc_form = {
+            'qc_level' : init_qc_level,
+            'qc_name' : init_qc_name,
+            'qc_description' : init_qc_description,
+            'qc_replacement_value' : init_qc_replacement_value
+        }
+    else:   #: Add new quality control
+        init_qc_form = {}
+
+    form = ManageQCForm(request.POST or None, initial=init_qc_form)
+
+    if form.is_valid():
+        qc_level = form.cleaned_data['qc_level']
+        qc_name = form.cleaned_data['qc_name']
+        qc_description = form.cleaned_data['qc_description']
+        qc_replacement_value = form.cleaned_data['qc_replacement_value']
+
+        if init_qc_level:
+            try:
+                Quality_controls(bucket=0, qc_level=init_qc_level).delete()
+                Quality_control_info_by_quality_control(qc_level=init_qc_level).delete()
+            except:
+                print("Delete query failed!")
+
+        Quality_controls.create(
+            bucket=0,
+            qc_level=qc_level,
+            qc_name=qc_name,
+            qc_description=qc_description,
+        )
+        Quality_control_info_by_quality_control.create(
+            qc_level=qc_level,
+            qc_name=qc_name,
+            qc_description=qc_description,
+            qc_replacement_value=qc_replacement_value
+        )
+        url = reverse('sites:index')
+
+        return HttpResponseRedirect(url)
+
+    context = {
+        'qc_level' : init_qc_level,
+        'qc_name' : init_qc_name,
+        'form' : form
+    }
+
+    return render(request, template, context)
+
+def delete_quality_control(request):
+    params = request.GET
+    qc_level = params.get('qc_level', '')
+    try:
+        Quality_controls(bucket=0, qc_level=qc_level).delete()
+        Quality_control_info_by_quality_control(qc_level=qc_level).delete()
     except:
         print("Delete query failed!")
 
