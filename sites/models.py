@@ -86,7 +86,6 @@ class Quality_control_info_by_quality_control(models.Model):
     qc_level = columns.Integer(primary_key=True)
     qc_name = columns.Text()
     qc_description = columns.Text()
-    qc_replacement_value = columns.Float()
 
 class Quality_control_level_info_by_log(models.Model):
     log_id = columns.UUID(primary_key=True, partition_key=True)

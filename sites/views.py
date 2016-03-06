@@ -8,15 +8,15 @@ from django.core.urlresolvers import reverse
 from datetime import datetime, timedelta
 
 from .charts import ChartData
-from .forms import ManageLocationForm, ManageLoggerTypeForm, ManageQCForm, ManageSensorForm, ManageSiteForm
+from .forms import ManageLocationForm, ManageLogForm, ManageLoggerTypeForm, ManageQCForm, ManageSiteForm
 from .locations import LocationData
 from .loggers import LoggerData
 from .logs import LogData
 from .qcs import QCData
 from .sites import SiteData
 from .models import Locations_by_site, Location_info_by_location, Logger_types, Logger_type_by_logger_type, \
-    Logger_time_format_by_logger_type, Quality_controls, Quality_control_info_by_quality_control, \
-    Sites, Site_info_by_site
+    Logger_time_format_by_logger_type, Logs_by_location, Log_info_by_log, Quality_controls, \
+    Quality_control_info_by_quality_control, Sites, Site_info_by_site
 from .management.commands import run_update
 from utils.tools import MiscTools
 
@@ -219,13 +219,11 @@ def manage_quality_control(request):
             print("Index error!")
         init_qc_name = quality_control_data.get('qc_name')
         init_qc_description = quality_control_data.get('qc_description')
-        init_qc_replacement_value = quality_control_data.get('qc_replacement_value')
 
         init_qc_form = {
             'qc_level' : init_qc_level,
             'qc_name' : init_qc_name,
             'qc_description' : init_qc_description,
-            'qc_replacement_value' : init_qc_replacement_value
         }
     else:   #: Add new quality control
         init_qc_form = {}
@@ -236,7 +234,6 @@ def manage_quality_control(request):
         qc_level = form.cleaned_data['qc_level']
         qc_name = form.cleaned_data['qc_name']
         qc_description = form.cleaned_data['qc_description']
-        qc_replacement_value = form.cleaned_data['qc_replacement_value']
 
         if init_qc_level:
             try:
@@ -249,13 +246,12 @@ def manage_quality_control(request):
             bucket=0,
             qc_level=qc_level,
             qc_name=qc_name,
-            qc_description=qc_description,
+            qc_description=qc_description
         )
         Quality_control_info_by_quality_control.create(
             qc_level=qc_level,
             qc_name=qc_name,
-            qc_description=qc_description,
-            qc_replacement_value=qc_replacement_value
+            qc_description=qc_description
         )
         url = reverse('sites:index')
 
@@ -458,16 +454,95 @@ def delete_location(request):
 
     return HttpResponseRedirect(url)
 
-def manage_sensor(request):
-
+def manage_log(request):
     params = request.GET
-
     site_name = params.get('site_name', '')
+    location_id = params.get('location_id', '')
     location_name = params.get('location_name', '')
-    sensor_name = params.get('sensor_name', '')
+    log_id = params.get('log_id', '')
+    init_log_form = dict
+    template = 'sites/manage_log.html'
 
-    init_sensor_form = dict
-    init_sensor_last_update = None
+    if log_id:    #: Edit existing log
+        log_data = LogData.get_log(log_id)
+        try:
+            log_data = log_data[0]
+        except IndexError:
+            print("Index error!")
+        init_log_location_id = location_id
+        init_log_name = log_data.get('log_name')
+        init_log_description = log_data.get('log_description')
+        init_log_form = {
+            'location_name' : location_name,
+            'log_name' : init_log_name,
+            'log_description' : init_log_description
+        }
+
+    else:   #: Add new log
+        init_log_form = {'location_name' : location_name}
+
+    form = ManageLogForm(request.POST or None, initial=init_log_form)
+
+    if form.is_valid():
+        log_name = form.cleaned_data['log_name']
+        log_description = form.cleaned_data['log_description']
+        temp_log_name = log_name
+        temp_location_log = LogData.get_all_logs(location_id, temp_log_name)
+        if not temp_location_log:
+
+            if not log_id:
+                log_id = uuid.uuid4()
+            else:
+                Logs_by_location(location_id=location_id, log_name=log_name).delete()
+                Log_info_by_log(log_id=log_id).delete()
+
+            Logs_by_location.create(
+                location_id=location_id,
+                log_name=log_name,
+                log_id=log_id,
+                log_description=log_description
+            )
+            Log_info_by_log.create(
+                log_id=log_id,
+                log_name=log_name,
+                log_description=log_description
+            )
+
+        url = reverse('sites:location_logs')
+        url += '?site_name=' + site_name
+        url += '&location_id=' + MiscTools.uuid_to_str(location_id)
+        url += '&location_name=' + location_name
+
+        return HttpResponseRedirect(url)
+
+    context = {
+        'site_name' : site_name,
+        'location_name' : location_name,
+        'form' : form
+    }
+
+    return render(request, template, context)
+
+def delete_log(request):
+    params = request.GET
+    location_id = params.get('location_id', '')
+    log_id = params.get('log_id', '')
+    log_name = params.get('log_name', '')
+    try:
+        Logs_by_location(location_id=location_id, log_name=log_name).delete()
+        Log_info_by_log(log_id=log_id).delete()
+    except:
+        print("Couldn't delete log!")
+    url = reverse('sites:location_logs')
+    return HttpResponseRedirect(url)
+
+def manage_log1(request):
+    params = request.GET
+    site_id = params.get('site_id', '')
+    location_id = params.get('location_id', '')
+    log_id = params.get('log_id', '')
+    init_log_form = dict
+    #init_sensor_last_update = None
     template = 'sites/manage_sensor.html'
 
     if sensor_name:    #: Edit existing sensor

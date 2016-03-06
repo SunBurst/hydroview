@@ -31,8 +31,7 @@ class QCData(object):
         for row in qc_query:
             qc = {
                 'qc_name' : row.qc_name,
-                'qc_description' : row.qc_description,
-                'qc_replacement_value' : row.qc_replacement_value,
+                'qc_description' : row.qc_description
             }
             qc_data.append(qc)
         return qc_data

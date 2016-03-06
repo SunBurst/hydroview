@@ -69,7 +69,6 @@ class ManageQCForm(forms.Form):
     qc_level = forms.IntegerField(label='Quality Control Level', required=True)
     qc_name = forms.CharField(label='Quality Control Name', required=True)
     qc_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
-    qc_replacement_value = forms.IntegerField(label='Replacement Value', required=True)
 
     def __init__(self, *args, **kwargs):
         super(ManageQCForm, self).__init__(*args, **kwargs)
@@ -82,7 +81,6 @@ class ManageQCForm(forms.Form):
                 Field('qc_level'),
                 Field('qc_name'),
                 Field('qc_description'),
-                Field('qc_replacement_value'),
             ),
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
@@ -163,6 +161,31 @@ class ManageLocationForm(forms.Form):
             position = {'location_latitude' : location_latitude,
                         'location_longitude' : location_longitude}
         return position
+
+class ManageLogForm(forms.Form):
+    location_name = forms.CharField(
+        label='Location', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=True
+    )
+    log_name = forms.CharField(label='Log', required=True)
+    log_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(ManageLogForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_id = 'id-manageLogForm'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Field('location_name'),
+            Field('log_name'),
+            Field('log_description'),
+
+            FormActions(
+                Submit('save', 'Save', css_class="btn-primary"),
+                Reset('reset', 'Reset', css_class="btn-default"),
+                Button('cancel', 'Cancel', css_class="btn-default"),
+                Button('delete', 'Delete', css_class="btn-danger pull-right")
+            )
+        )
 
 class ManageSensorForm(forms.Form):
     location = forms.CharField(label='Location', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=True)

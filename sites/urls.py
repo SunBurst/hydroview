@@ -79,14 +79,14 @@ urlpatterns = [
         name='delete_location',
     ),
     url(
-        regex=r'^manage_sensor/$',
-        view=views.manage_sensor,
-        name='manage_sensor',
+        regex=r'^manage_log/$',
+        view=views.manage_log,
+        name='manage_log',
     ),
     url(
-        regex=r'^delete_sensor/$',
-        view=views.delete_sensor,
-        name='delete_sensor',
+        regex=r'^delete_log/$',
+        view=views.delete_log,
+        name='delete_log',
     ),
     url(
         regex=r'^chart_data_json/$',

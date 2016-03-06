@@ -5,15 +5,19 @@ class LogData(object):
     """Helper class for getting log related data from the Cassandra database. """
 
     @classmethod
-    def get_all_logs(cls, location_id):
+    def get_all_logs(cls, location_id, log_name=None):
         """
-        Return all logs belonging to a specific location or an empty list if not found.
+        Return all logs belonging to a specific location, or the log with a specific name (if given).
+        Return an empty list if not found.
 
         Keyword arguments:
         location_id -- location identifier (UUID)
+        log_name -- name of location (str)
         """
         logs_data = []
         all_logs_query = Logs_by_location.objects.filter(location_id=location_id)
+        if log_name:
+            all_logs_query.filter(log_name=log_name)
         for row in all_logs_query:
             log = {
                 'log_name' : row.log_name,
