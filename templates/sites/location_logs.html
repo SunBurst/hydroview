@@ -15,13 +15,11 @@
 {% block heading %}<h1 class="page-header">{{ site_name }}/{{ location_name }}</h1>{% endblock %}
 
 {% block content %}
-  <div class="col-lg-12">
-    <div class="panel panel-default">
-      <a href="{% url 'sites:manage_log' %}?site_name={{ site_name }}&location_id={{ location_id }}&location_name={{ location_name }}">
-        <i class="fa fa-plus fa-fw"></i> Add New Log</a>
+    <div id="id-logsPage" class="col-lg-12">
+        <div id="id-logsPanel" class="panel panel-default">
+        </div>
     </div>
-  </div>
-  <!-- /.col-lg-6 -->
+    <!-- /.col-lg-6 -->
 {% endblock %}
 
 {% block extrajs %}
@@ -30,13 +28,123 @@
     <script src="{{ STATIC_URL }}DataTables-1.10.11/media/js/dataTables.bootstrap.min.js"></script>
     <script src="{{ STATIC_URL }}Responsive-2.0.2/js/dataTables.responsive.js"></script>
     <script type="text/javascript">
-    $(document).ready(function() {
-        $('#dataTables-example').DataTable({
-                responsive: true
-        });
-        $('#dataTables-example1').DataTable({
-                responsive: true
-        });
+    $(document).ready(function () {
+        var siteName = '{{ site_name }}';
+        var locationId = '{{ location_id }}';
+        var locationName = '{{ location_name }}';
+        var jsonLocationLogsUrl = '{% url 'sites:load_location_logs_json' %}' + '?json_request=' + true;
+        var jsonSiteLocationsDataUrl = jsonLocationLogsUrl + '&location_id=' + locationId;
+        var manageLogBaseUrl = '{% url 'sites:manage_log' %}'
+            + '?site_name=' + siteName + '&location_id=' + locationId + '&location_name=' + locationName;
+        var $logsPanel = $('#id-logsPanel');
+
+        function initLogPanels () {
+            $.getJSON(jsonSiteLocationsDataUrl, function (allLocationLogsData) {
+                $.each(allLocationLogsData, function (i, log) {
+                    var logId = log.log_id;
+                    var logName = log.log_name;
+                    var logDescription = log.log_description;
+                    var manageLogUrl = manageLogBaseUrl + '&log_id=' + logId + '&log_name=' + logName;
+
+                    $logsPanel.append(
+                        '<div class="panel-heading">'
+                            + '<h4 class="panel-title">'
+                                + '<a data-toggle="collapse" data-parent="#accordion" href="#id-' + logId + '-panel">' + log.log_name
+                                + '</a>'
+                                + '<a href="' + manageLogUrl + '"><i class="fa fa-pencil fa-fw pull-right"></i></a>'
+                            + '</h4>'
+                        + '</div>'
+                    );
+                    $logsPanel.append(
+                        '<div id="id-' + logId + '-panel" class="panel-collapse collapse in">'
+                        + '</div>'
+                    );
+                    $('#id-' + logId + '-panel').append(
+                        '<div class="panel-body"><h4>Basic Info</h4>'
+                            + '<div class="table-responsive table-bordered">'
+                                + '<table class="table">'
+                                    + '<thead>'
+                                        + '<tr>'
+                                            + '<th>ID</th>'
+                                            + '<th>Name</th>'
+                                            + '<th>Description</th>'
+                                        + '</tr>'
+                                    + '</thead>'
+                                    + '<tbody>'
+                                        + '<tr>'
+                                            + '<td>' + logId + '</td>'
+                                            + '<td>' + logName + '</td>'
+                                            + '<td>' + logDescription + '</td>'
+                                        + '</tr>'
+                                    + '</tbody>'
+			                    + '</table>'
+                            + '</div>'
+                        + '</div>'
+                    );
+
+                    var jsonLogUpdateInfoUrl = '{% url 'sites:load_log_update_info_json' %}' + '?json_request=' + true
+                        + '&log_id=' + logId;
+                    $.getJSON(jsonLogUpdateInfoUrl, function (LogUpdateInfoData) {
+                        $.each(LogUpdateInfoData, function (j, log_update_info) {
+                            var lastUpdate = log_update_info.log_last_update;
+                            var nextUpdate = log_update_info.log_next_update;
+                            var filePath = log_update_info.log_file_path;
+                            var statusIcon = '<i class="fa fa-circle fa-fw" style="color:orange"></i>';
+                            if (nextUpdate) {
+                                statusIcon = '<i class="fa fa-circle fa-fw" style="color:green"></i>';
+                            }
+                            else {
+                                nextUpdate = "-";
+                            }
+                            if(!lastUpdate) {
+                                lastUpdate = "-";
+                            }
+                            if(!filePath) {
+                                filePath = "-";
+                            }
+                            $('#id-' + logId + '-panel').append(
+                                '<div class="panel-body"><h4>Update Info</h4>'
+                                    + '<div class="table-responsive table-bordered">'
+                                        + '<table class="table">'
+                                            + '<thead>'
+                                                + '<tr>'
+                                                    + '<th>Status</th>'
+                                                    + '<th>File Path</th>'
+                                                    + '<th>Line Number</th>'
+                                                    + '<th>Last Update</th>'
+                                                    + '<th>Next Update</th>'
+                                                + '</tr>'
+                                            + '</thead>'
+                                            + '<tbody>'
+                                                + '<tr>'
+                                                    + '<td>' + statusIcon + '</td>'
+                                                    + '<td>' + filePath + '</td>'
+                                                    + '<td>' + log_update_info.log_file_line_num + '</td>'
+                                                    + '<td>' + lastUpdate + '</td>'
+                                                    + '<td>' + nextUpdate + '</td>'
+                                                + '</tr>'
+                                            + '</tbody>'
+                                        + '</table>'
+                                    + '</div>'
+                                + '</div>'
+                            );
+                        });
+                    });
+
+                });
+            });
+        }
+
+        function initAddLogLink () {
+            $('#id-logsPage').append(
+                '<a href="' + manageLogBaseUrl + '">'
+                    + '<i class="fa fa-plus fa-fw"></i> Add New Log'
+                + '</a>'
+            );
+        }
+
+        initLogPanels();
+        initAddLogLink();
     });
     </script>
 {% endblock %}

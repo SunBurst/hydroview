@@ -33,16 +33,16 @@ class Logs_by_location(models.Model):
     location_id = columns.UUID(primary_key=True)
     log_name = columns.Text(primary_key=True, clustering_order="ASC")
     log_id = columns.UUID()
-    log_description = columns.Text()
+    log_description = columns.Text(default=None)
 
 class Log_info_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
     log_name = columns.Text()
-    log_description = columns.Text()
+    log_description = columns.Text(default=None)
 
 class Log_file_info_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
-    log_file_path = columns.Text()
+    log_file_path = columns.Text(default=None)
     log_file_line_num = columns.Integer(default=0)
 
 class Log_parameters_by_log(models.Model):
@@ -52,8 +52,8 @@ class Log_parameters_by_log(models.Model):
 
 class Log_update_schedule_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
-    log_last_update = columns.DateTime()
-    log_next_update = columns.DateTime()
+    log_last_update = columns.DateTime(default=None)
+    log_next_update = columns.DateTime(default=None)
 
 class Parameters_readings_by_log(models.Model):
     log_id = columns.UUID(primary_key=True, partition_key=True)

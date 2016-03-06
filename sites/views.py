@@ -15,8 +15,8 @@ from .logs import LogData
 from .qcs import QCData
 from .sites import SiteData
 from .models import Locations_by_site, Location_info_by_location, Logger_types, Logger_type_by_logger_type, \
-    Logger_time_format_by_logger_type, Logs_by_location, Log_info_by_log, Quality_controls, \
-    Quality_control_info_by_quality_control, Sites, Site_info_by_site
+    Logger_time_format_by_logger_type, Logs_by_location, Log_info_by_log, Log_file_info_by_log, \
+    Log_update_schedule_by_log, Quality_controls, Quality_control_info_by_quality_control, Sites, Site_info_by_site
 from .management.commands import run_update
 from utils.tools import MiscTools
 
@@ -76,9 +76,6 @@ def location_logs(request):
 #####################    API FOR RETURNING JSON DATA    ###################
 ###########################################################################
 
-def date_handler(dt):
-    return dt.isoformat() if hasattr(dt, 'isoformat') else dt
-
 def load_all_sites_json(request):
     params = request.GET
     json_request = params.get('json_request', '')
@@ -87,30 +84,37 @@ def load_all_sites_json(request):
 
 def load_site_locations_json(request):
     params = request.GET
+    site_id = params.get('site_id', '')
     location_name = params.get('location_name')
     json_request = params.get('json_request', '')
-    site_id = params.get('site_id', '')
     locations_data = LocationData.get_all_locations(site_id, location_name, json_request)
     return HttpResponse(json.dumps(locations_data), content_type='application/json')
 
-def load_sensors_json(request):
-
+def load_location_logs_json(request):
     params = request.GET
-    location_name = params.get('location_name', '')
-    sensors_data = LogData.get_sensors_by_location(location_name)
-    location_sensors_data = []
+    location_id = params.get('location_id', '')
+    log_name = params.get('log_name', '')
+    json_request = params.get('json_request', '')
+    logs_data = LogData.get_all_logs(location_id, log_name, json_request)
 
-    for sensor in sensors_data:
-        sensor_name = sensor.get('sensor')
-        sensor_info = LogData.get_sensor(sensor_name)
-        temp_sensor_dict = sensor_info[0]
-        temp_last_update = date_handler(temp_sensor_dict.get('last_update'))
-        temp_next_update = date_handler(temp_sensor_dict.get('next_update'))
-        temp_sensor_dict['last_update'] = temp_last_update
-        temp_sensor_dict['next_update'] = temp_next_update
-        location_sensors_data.append(temp_sensor_dict)
+    #for sensor in sensors_data:
+    #    sensor_name = sensor.get('sensor')
+    #    sensor_info = LogData.get_sensor(sensor_name)
+    #    temp_sensor_dict = sensor_info[0]
+    #    temp_last_update = date_handler(temp_sensor_dict.get('last_update'))
+    #    temp_next_update = date_handler(temp_sensor_dict.get('next_update'))
+    #    temp_sensor_dict['last_update'] = temp_last_update
+    #    temp_sensor_dict['next_update'] = temp_next_update
+    #    location_sensors_data.append(temp_sensor_dict)
 
-    return HttpResponse(json.dumps(location_sensors_data), content_type='application/json')
+    return HttpResponse(json.dumps(logs_data), content_type='application/json')
+
+def load_log_update_info_json(request):
+    params = request.GET
+    log_id = params.get('log_id', '')
+    json_request = params.get('json_request', '')
+    log_file_info_data = LogData.get_log_update_info(log_id, json_request)
+    return HttpResponse(json.dumps(log_file_info_data), content_type='application/json')
 
 def load_all_logger_types_json(request):
     logger_types_data = LoggerData.get_all_loggers()
@@ -373,14 +377,13 @@ def manage_location(request):
         except IndexError:
             print("Index error!")
 
-        init_location_site_name = location_data.get('site_name')
         init_location_name = location_data.get('location_name')
         init_location_latitude = location_data.get('location_latitude')
         init_location_longitude = location_data.get('location_longitude')
         init_location_description = location_data.get('location_description')
 
         init_location_form = {
-            'site_name' : init_location_site_name,
+            'site_name' : site_name,
             'location_name' : init_location_name,
             'location_latitude' : init_location_latitude,
             'location_longitude' : init_location_longitude,
@@ -434,7 +437,9 @@ def manage_location(request):
         return HttpResponseRedirect(url)
 
     context = {
+        'site_id' : site_id,
         'site_name' : site_name,
+        'location_id' : location_id,
         'location_name' : location_name,
         'form' : form
     }
@@ -442,16 +447,16 @@ def manage_location(request):
     return render(request, template, context)
 
 def delete_location(request):
-
     params = request.GET
-    site_name = params.get('site_name', '')
+    site_id = params.get('site_id', '')
+    location_id = params.get('location_id', '')
     location_name = params.get('location_name', '')
-
-    Locations_by_site(site=site_name, location=location_name).delete()
-    Location_info_by_location(location=location_name).delete()
-
+    try:
+        Locations_by_site(site_id=site_id, location_name=location_name).delete()
+        Location_info_by_location(location_id=location_id).delete()
+    except:
+        print("Couldn't delete location!")
     url = reverse('sites:index')
-
     return HttpResponseRedirect(url)
 
 def manage_log(request):
@@ -460,6 +465,7 @@ def manage_log(request):
     location_id = params.get('location_id', '')
     location_name = params.get('location_name', '')
     log_id = params.get('log_id', '')
+    log_name = params.get('log_name', '')
     init_log_form = dict
     template = 'sites/manage_log.html'
 
@@ -469,7 +475,6 @@ def manage_log(request):
             log_data = log_data[0]
         except IndexError:
             print("Index error!")
-        init_log_location_id = location_id
         init_log_name = log_data.get('log_name')
         init_log_description = log_data.get('log_description')
         init_log_form = {
@@ -488,14 +493,28 @@ def manage_log(request):
         log_description = form.cleaned_data['log_description']
         temp_log_name = log_name
         temp_location_log = LogData.get_all_logs(location_id, temp_log_name)
+        log_file_path = None
+        log_file_line_num = 0
+        log_last_update = None
+        log_next_update = None
         if not temp_location_log:
 
             if not log_id:
                 log_id = uuid.uuid4()
             else:
+                try:
+                    log_update_info_data = LogData.get_log_update_info(log_id)
+                    log_update_info_data = log_update_info_data[0]
+                    log_file_path = log_update_info_data.get('log_file_path')
+                    log_file_line_num = log_update_info_data.get('log_file_line_num', 0)
+                    log_last_update = log_update_info_data.get('log_last_update')
+                    log_next_update = log_update_info_data.get('log_next_update')
+                except IndexError:
+                    print("Index error!")
                 Logs_by_location(location_id=location_id, log_name=log_name).delete()
                 Log_info_by_log(log_id=log_id).delete()
-
+                Log_file_info_by_log(log_id=log_id).delete()
+                Log_update_schedule_by_log(log_id=log_id).delete()
             Logs_by_location.create(
                 location_id=location_id,
                 log_name=log_name,
@@ -507,7 +526,16 @@ def manage_log(request):
                 log_name=log_name,
                 log_description=log_description
             )
-
+            Log_file_info_by_log.create(
+                log_id=log_id,
+                log_file_path=log_file_path,
+                log_file_line_num=log_file_line_num
+            )
+            Log_update_schedule_by_log.create(
+                log_id=log_id,
+                log_last_update=log_last_update,
+                log_next_update=log_next_update
+            )
         url = reverse('sites:location_logs')
         url += '?site_name=' + site_name
         url += '&location_id=' + MiscTools.uuid_to_str(location_id)
@@ -517,7 +545,10 @@ def manage_log(request):
 
     context = {
         'site_name' : site_name,
+        'location_id' : location_id,
         'location_name' : location_name,
+        'log_id' : log_id,
+        'log_name' : log_name,
         'form' : form
     }
 
@@ -525,15 +556,22 @@ def manage_log(request):
 
 def delete_log(request):
     params = request.GET
+    site_name = params.get('site_name', '')
     location_id = params.get('location_id', '')
+    location_name = params.get('location_name', '')
     log_id = params.get('log_id', '')
     log_name = params.get('log_name', '')
+    print(location_id, type(location_id), log_name, log_id, type(log_id))
     try:
         Logs_by_location(location_id=location_id, log_name=log_name).delete()
         Log_info_by_log(log_id=log_id).delete()
     except:
         print("Couldn't delete log!")
     url = reverse('sites:location_logs')
+    url += '?site_name=' + site_name
+    url += '&location_id=' + MiscTools.uuid_to_str(location_id)
+    url += '&location_name=' + location_name
+
     return HttpResponseRedirect(url)
 
 def manage_log1(request):

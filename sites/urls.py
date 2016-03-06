@@ -19,9 +19,14 @@ urlpatterns = [
         name='load_site_locations_json',
     ),
     url(
-        regex=r'^load_sensors_json/$',
-        view=views.load_sensors_json,
-        name='load_sensors_json',
+        regex=r'^load_location_logs_json/$',
+        view=views.load_location_logs_json,
+        name='load_location_logs_json',
+    ),
+    url(
+        regex=r'^load_log_update_info_json/$',
+        view=views.load_log_update_info_json,
+        name='load_log_update_info_json',
     ),
     url(
         regex=r'^load_all_logger_types_json/$',

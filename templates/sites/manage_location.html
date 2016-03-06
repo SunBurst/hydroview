@@ -2,22 +2,14 @@
 
 {% load crispy_forms_tags %}
 
-{% block title %} {{ site_name }}/{{ location_name }} {% endblock %}
-
 {% block heading %}<h1 class="page-header"></h1>{% endblock %}
 
 {% block content %}
-
     <div class="row">
         <div class="col-lg-6">
             <div class="panel panel-default">
-                <div class="panel-heading">
-                    Location Info
-                </div>
-                <div class="panel-body">
-                    {% crispy form %}
-                </div>
-                <!-- /.panel-body -->
+                <div class="panel-heading">Location Info</div>
+                <div class="panel-body">{% crispy form %}</div>
             </div>
             <!-- /.panel-body -->
         </div>
@@ -26,52 +18,45 @@
     <!-- /.row -->
 
     <!-- Modal -->
-    <div class="modal fade" id="myLocationModal" tabindex="-1" role="dialog" aria-labelledby="myLocationModalLabel" aria-hidden="true">
+    <div class="modal fade" id="id-deleteLocationModal" tabindex="-1" role="dialog" aria-labelledby="id-deleteLocationModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="myLocationModalLabel">Attention</h4>
+                    <h4 class="modal-title" id="id-deleteLocationModalLabel"><i class="fa fa-warning fa-fw"></i> Attention</h4>
                 </div>
-                <div class="modal-body">
-                    Delete this location? This operation cannot be undone!
-                </div>
+                <div class="modal-body">Delete this location? This operation cannot be undone!</div>
                 <div class="modal-footer">
-                    <a href="{% url 'sites:delete_location' %}?site_name={{ site_name }}&location_name={{ location_name }}" class = "btn btn-default" role = "button">OK</a>
+                    <a href="{% url 'sites:delete_location' %}?site_id={{ site_id }}&location_id={{ location_id }}&location_name={{ location_name }}" class="btn btn-default" role="button">OK</a>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
+                <!-- /.modal-footer -->
             </div>
             <!-- /.modal-content -->
         </div>
         <!-- /.modal-dialog -->
     </div>
     <!-- /.modal -->
-
 {% endblock %}
 
 {% block extrajs %}
-
     <script type="text/javascript">
-        $(document).ready(function() {
-            var redirectUrl = '{% url 'sites:location_info' %}';
-            redirectUrl += "?site_name={{ site_name }}";
-            var locationName = "{{ location_name }}";
+    $(document).ready(function () {
+        var redirectToIndexUrl = '{% url 'sites:index' %}';
+        var locationName = '{{ location_name }}';
 
-            if (!locationName) {
-                $('#button-id-delete').hide();
-                $('.page-header').text("Add New Location");
-            }
-
-            else {
-                $('.page-header').text("Manage Location: " + locationName);
-                $('#button-id-delete').attr('data-toggle', "modal");
-                $('#button-id-delete').attr('data-target', "#myLocationModal");
-            }
-
-            $('#button-id-cancel').on('click', function() {
-                document.location.href = redirectUrl;
-            });
+        if (!locationName) {
+            $('#id-deleteBtn').hide();
+            $('.page-header').text("Add New Location");
+        }
+        else {
+            $('.page-header').text("Manage Location: " + locationName);
+            $('#id-deleteBtn').attr('data-toggle', "modal");
+            $('#id-deleteBtn').attr('data-target', "#id-deleteLocationModal");
+        }
+        $('#id-cancelBtn').on('click', function () {
+            document.location.href = redirectToIndexUrl;
         });
+    });
     </script>
-
 {% endblock %}

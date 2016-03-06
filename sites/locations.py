@@ -18,7 +18,7 @@ class LocationData(object):
         locations_data = []
         all_locations_query = Locations_by_site.objects.filter(site_id=site_id)
         if location_name:
-            all_locations_query.filter(location_name=location_name)
+            all_locations_query = all_locations_query.filter(location_name=location_name)
         for row in all_locations_query:
             if json_request:
                 location_id = MiscTools.uuid_to_str(row.location_id)

@@ -133,3 +133,6 @@ class TimeManager(object):
         utc_ts = int(calendar.timegm(utc_dt.timetuple()))
         utc_ts_millis = utc_ts*1000
         return utc_ts_millis
+
+    def date_handler(self, dt):
+        return dt.isoformat() if hasattr(dt, 'isoformat') else dt

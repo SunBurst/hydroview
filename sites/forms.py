@@ -148,8 +148,8 @@ class ManageLocationForm(forms.Form):
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
                 Reset('reset', 'Reset', css_class="btn-default"),
-                Button('cancel', 'Cancel', css_class="btn-default"),
-                Button('delete', 'Delete', css_class="btn-danger pull-right")
+                Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default"),
+                Button('delete', 'Delete', css_id="id-deleteBtn", css_class="btn-danger pull-right")
             )
         )
 
@@ -182,8 +182,8 @@ class ManageLogForm(forms.Form):
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
                 Reset('reset', 'Reset', css_class="btn-default"),
-                Button('cancel', 'Cancel', css_class="btn-default"),
-                Button('delete', 'Delete', css_class="btn-danger pull-right")
+                Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default"),
+                Button('delete', 'Delete', css_id="id-deleteBtn", css_class="btn-danger pull-right")
             )
         )
 

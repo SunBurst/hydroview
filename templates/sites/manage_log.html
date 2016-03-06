@@ -7,19 +7,17 @@
 {% block heading %}<h1 class="page-header"></h1>{% endblock %}
 
 {% block content %}
-  <div class="row">
-    <div class="col-lg-6">
-      <div class="panel panel-default">
-        <div class="panel-heading">Log Info</div>
-        <div class="panel-body">{% crispy form %}
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">Log Info</div>
+                <div class="panel-body">{% crispy form %}</div>
+            </div>
+            <!-- /.panel-body -->
         </div>
-        <!-- /.panel-body -->
-      </div>
-      <!-- /.panel-body -->
+        <!-- /.col-lg-12 -->
     </div>
-    <!-- /.col-lg-12 -->
-  </div>
-  <!-- /.row -->
+    <!-- /.row -->
 
     <!-- Modal -->
     <div class="modal fade" id="id-deleteLogModal" tabindex="-1" role="dialog" aria-labelledby="id-deleteLogModalLabel" aria-hidden="true">
@@ -33,7 +31,7 @@
                     Delete this log? This operation cannot be undone!
                 </div>
                 <div class="modal-footer">
-                    <a href="{% url 'sites:delete_log' %}?location_id={{ location_id }}&log_id={{ log_id }}&log_name={{ log_name }}" class = "btn btn-default" role = "button">OK</a>
+                    <a href="{% url 'sites:delete_log' %}?site_name={{ site_name }}&location_id={{ location_id }}&location_name={{ location_name }}&log_id={{ log_id }}&log_name={{ log_name }}" class = "btn btn-default" role = "button">OK</a>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
@@ -46,11 +44,14 @@
 {% endblock %}
 
 {% block extrajs %}
-  <script type="text/javascript">
+    <script type="text/javascript">
     $(document).ready(function () {
         var redirectToLocationUrl = '{% url 'sites:location_logs' %}';
+        var siteName = '{{ site_name }}';
+        var locationId = '{{ location_id }}';
+        var locationName = '{{ location_name }}';
         var logName = '{{ log_name }}';
-
+        redirectToLocationUrl += '?site_name=' + siteName + '&location_id=' + locationId + '&location_name=' + locationName;
         if (!logName) {
             $('#id-deleteBtn').hide();
             $('.page-header').text("Add New Log");
@@ -64,5 +65,5 @@
             document.location.href = redirectToLocationUrl;
         });
     });
-  </script>
+    </script>
 {% endblock %}
