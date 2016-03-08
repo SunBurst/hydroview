@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block title %} {{ site_name }}/{{ location_name }} {% endblock %}
+
+{% block heading %}<h1 class="page-header"></h1>{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">Log Update Info</div>
+                <div class="panel-body">{% crispy form %}</div>
+            </div>
+            <!-- /.panel-body -->
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+    <!-- /.row -->
+{% endblock %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+    $(document).ready(function () {
+        var redirectToLocationUrl = '{% url 'sites:location_logs' %}';
+        var siteName = '{{ site_name }}';
+        var locationId = '{{ location_id }}';
+        var locationName = '{{ location_name }}';
+        var logName = '{{ log_name }}';
+        redirectToLocationUrl += '?site_name=' + siteName + '&location_id=' + locationId
+            + '&location_name=' + locationName;
+        $('.page-header').text("Manage Log: " + logName);
+
+        $('#id-cancelBtn').on('click', function () {
+            document.location.href = redirectToLocationUrl;
+        });
+
+        $('#id_update_is_active').on('click', function() {
+            if ($(this).is(":checked")) {
+                $('#div_id_update_interval').show();
+            }
+            else {
+                $('#div_id_update_interval').hide();
+            }
+        });
+    });
+    </script>
+{% endblock %}

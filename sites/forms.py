@@ -187,6 +187,69 @@ class ManageLogForm(forms.Form):
             )
         )
 
+class ManageLogUpdateInfoForm(forms.Form):
+    update_is_active = forms.BooleanField(label='Automatic Update is Active', initial=False, required=False)
+    update_interval = forms.TimeField(label='Update Every Day At', required=False)
+    log_file_path = forms.CharField(label='File Path', required=True)
+    log_file_line_num = forms.IntegerField(label='Last Inserted Line Number', required=True)
+
+    def __init__(self, *args, **kwargs):
+        init_logger_types = kwargs.pop('init_logger_types')
+        super(ManageLogUpdateInfoForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_id = 'id-manageLogUpdateInfoForm'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Fieldset(
+                'Logger Type Info',
+            ),
+            Fieldset(
+                'Update Routine',
+                Field('update_is_active'),
+                Field('update_interval')
+            ),
+            Fieldset(
+                'File Info',
+                Field('log_file_path'),
+                Field('log_file_line_num'),
+            ),
+            FormActions(
+                Submit('save', 'Save', css_class="btn-primary"),
+                Reset('reset', 'Reset', css_class="btn-default"),
+                Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default")
+            )
+        )
+
+        LOGGER_TYPE_CHOICES = ()
+        for logger_type in init_logger_types:
+            LOGGER_TYPE_CHOICES = LOGGER_TYPE_CHOICES + ((logger_type, logger_type,),)
+        self.fields['logger_type_name'] = forms.ChoiceField(label='Logger Type', choices=LOGGER_TYPE_CHOICES, required=True)
+        self.helper.layout[0].append(
+            Field('logger_type_name')
+        )
+
+    def get_next_update(self):
+        is_active = self.cleaned_data['update_is_active']
+        time = self.cleaned_data['update_interval']
+
+        if (is_active and time):
+            hour = time.hour
+            minute = time.minute
+            second = time.second
+            time_now = datetime.now()
+            year_now = time_now.year
+            month_now = time_now.month
+            day_now = time_now.day
+            time_next_update = datetime(year_now, month_now, day_now, hour, minute, second)
+
+            if (datetime.now() > time_next_update):   #: time candidate has passed.
+                time_next_update += timedelta(days=1)
+                return time_next_update
+            else:
+                return time_next_update
+        else:
+            return None
+
 class ManageSensorForm(forms.Form):
     location = forms.CharField(label='Location', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=True)
     sensor_num = forms.IntegerField(label='Sensor Number', required=True)

@@ -29,6 +29,26 @@ urlpatterns = [
         name='load_log_update_info_json',
     ),
     url(
+        regex=r'^load_log_time_info_json/$',
+        view=views.load_log_time_info_json,
+        name='load_log_time_info_json',
+    ),
+    url(
+        regex=r'^load_log_parameters_info_json/$',
+        view=views.load_log_parameters_info_json,
+        name='load_log_parameters_info_json',
+    ),
+    url(
+        regex=r'^load_log_qc_info_json/$',
+        view=views.load_log_qc_info_json,
+        name='load_log_qc_info_json',
+    ),
+    url(
+        regex=r'^load_log_qc_values_json/$',
+        view=views.load_log_qc_values_json,
+        name='load_log_qc_values_json',
+    ),
+    url(
         regex=r'^load_all_logger_types_json/$',
         view=views.load_all_logger_types_json,
         name='load_all_logger_types_json',
@@ -87,6 +107,31 @@ urlpatterns = [
         regex=r'^manage_log/$',
         view=views.manage_log,
         name='manage_log',
+    ),
+    url(
+        regex=r'^manage_log_update_info/$',
+        view=views.manage_log_update_info,
+        name='manage_log_update_info',
+    ),
+    url(
+        regex=r'^manage_log_time_info/$',
+        view=views.manage_log_time_info,
+        name='manage_log_time_info',
+    ),
+    url(
+        regex=r'^manage_log_parameters_info/$',
+        view=views.manage_log_parameters_info,
+        name='manage_log_parameters_info',
+    ),
+    url(
+        regex=r'^manage_log_qc_info/$',
+        view=views.manage_log_qc_info,
+        name='manage_log_qc_info',
+    ),
+    url(
+        regex=r'^manage_log_qc_values/$',
+        view=views.manage_log_qc_values,
+        name='manage_log_qc_values',
     ),
     url(
         regex=r'^delete_log/$',

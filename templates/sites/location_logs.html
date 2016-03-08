@@ -56,7 +56,7 @@
                         + '</div>'
                     );
                     $logsPanel.append(
-                        '<div id="id-' + logId + '-panel" class="panel-collapse collapse in">'
+                        '<div id="id-' + logId + '-panel" class="panel-collapse collapse">'
                         + '</div>'
                     );
                     $('#id-' + logId + '-panel').append(
@@ -82,6 +82,44 @@
                         + '</div>'
                     );
 
+                    var manageLogUpdateInfoUrl = '{% url 'sites:manage_log_update_info' %}'
+                        + '?site_name=' + siteName + '&location_id=' + locationId
+                        + '&location_name=' + locationName + '&log_id=' + logId + '&log_name=' + logName;
+
+                    var manageLogQCInfoUrl = '{% url 'sites:manage_log_qc_info' %}'
+                        + '?site_name=' + siteName + '&location_id=' + locationId
+                        + '&location_name=' + locationName + '&log_id=' + logId + '&log_name=' + logName;
+
+                    $('#id-' + logId + '-panel').append(
+                        '<div class="col-lg-12">'
+                            + '<div class="panel panel-default">'
+                                + '<div class="panel-heading">'
+                                    + '<h6 class="panel-title"> Update Info '
+                                        + '<a href="' + manageLogUpdateInfoUrl + '">'
+                                            + '<i class="fa fa-pencil fa-fw pull-right"></i>'
+                                        + '</a>'
+                                    + '</h6>'
+                                + '</div>'
+                                + '<div id="id-' + logId + '-updateInfoPanel" class="panel-body"></div>'
+                            + '</div>'
+                        + '</div>'
+                    );
+
+                    $('#id-' + logId + '-panel').append(
+                        '<div class="col-lg-12">'
+                            + '<div class="panel panel-default">'
+                                + '<div class="panel-heading">'
+                                    + '<h6 class="panel-title"> Quality Control Info '
+                                        + '<a href="' + manageLogQCInfoUrl + '">'
+                                            + '<i class="fa fa-pencil fa-fw pull-right"></i>'
+                                        + '</a>'
+                                    + '</h6>'
+                                + '</div>'
+                                + '<div id="id-' + logId + '-qcInfoPanel" class="panel-body"></div>'
+                            + '</div>'
+                        + '</div>'
+                    );
+
                     var jsonLogUpdateInfoUrl = '{% url 'sites:load_log_update_info_json' %}' + '?json_request=' + true
                         + '&log_id=' + logId;
                     $.getJSON(jsonLogUpdateInfoUrl, function (LogUpdateInfoData) {
@@ -102,7 +140,7 @@
                             if(!filePath) {
                                 filePath = "-";
                             }
-                            $('#id-' + logId + '-panel').append(
+                            $('#id-' + logId + '-updateInfoPanel').append(
                                 '<div class="panel-body"><h4>Update Info</h4>'
                                     + '<div class="table-responsive table-bordered">'
                                         + '<table class="table">'
@@ -131,6 +169,227 @@
                         });
                     });
 
+                    var jsonLogTimeInfoUrl = '{% url 'sites:load_log_time_info_json' %}'
+                        + '?log_id=' + logId;
+                    $.getJSON(jsonLogTimeInfoUrl, function (LogTimeInfoData) {
+                        $.each(LogTimeInfoData, function (j, log_time_info) {
+                            var loggerTypeName = log_time_info.logger_type_name;
+                            var loggerTimeFormat = log_time_info.logger_time_format;
+                            var loggerTimeIds = log_time_info.logger_time_ids;
+                            var logTimeZone = log_time_info.log_time_zone;
+                            if(!loggerTypeName) {
+                                loggerTypeName = "-";
+                            }
+                            if(!loggerTimeFormat) {
+                                loggerTimeFormat = "-";
+                            }
+                            if(loggerTimeIds.length == 0) {
+                                loggerTimeIds = "-";
+                            }
+                            if(!logTimeZone) {
+                                logTimeZone = "-";
+                            }
+                            $('#id-' + logId + '-updateInfoPanel').append(
+                                '<div class="panel-body"><h4>Logger Type Info</h4>'
+                                    + '<div class="table-responsive table-bordered">'
+                                        + '<table class="table">'
+                                            + '<thead>'
+                                                + '<tr>'
+                                                    + '<th>Logger Type</th>'
+                                                    + '<th>Logger Time Format</th>'
+                                                    + '<th>Logger Time Ids</th>'
+                                                    + '<th>Time Zone</th>'
+                                                + '</tr>'
+                                            + '</thead>'
+                                            + '<tbody>'
+                                            + '<tr>'
+                                                + '<td>' + loggerTypeName + '</td>'
+                                                + '<td>' + loggerTimeFormat + '</td>'
+                                                + '<td>' + loggerTimeIds + '</td>'
+                                                + '<td>' + logTimeZone + '</td>'
+                                            + '</tr>'
+                                            + '</tbody>'
+                                        + '</table>'
+                                    + '</div>'
+                                + '</div>'
+                            );
+                        });
+                    });
+
+                    var jsonLogParamsInfoUrl = '{% url 'sites:load_log_parameters_info_json' %}'
+                        + '?log_id=' + logId;
+                    $.getJSON(jsonLogParamsInfoUrl, function (LogParamsInfoData) {
+                        $.each(LogParamsInfoData, function (j, log_params_info) {
+                            var logParams = log_params_info.log_parameters;
+                            var logReadingTypes = log_params_info.log_reading_types;
+                            $('#id-' + logId + '-updateInfoPanel').append(
+                                '<div class="panel-body"><h4>Parameters</h4>'
+                                    + '<div class="table-responsive table-bordered">'
+                                        + '<table class="table">'
+                                            + '<thead>'
+                                                + '<tr>'
+                                                    + '<th>Parameters</th>'
+                                                    + '<th>Reading Types</th>'
+                                                + '</tr>'
+                                            + '</thead>'
+                                            + '<tbody>'
+                                                + '<tr>'
+                                                    + '<td id="id-' + logId + '-params-td"></td>'
+                                                    + '<td id="id-' + logId + '-readingTypes-td"></td>'
+                                                + '</tr>'
+                                            + '</tbody>'
+                                        + '</table>'
+                                    + '</div>'
+                                + '</div>'
+                            );
+                            $.each(logParams, function (k, param) {
+                                $.each(logReadingTypes, function (param_name, param_type) {
+                                    if (param == param_name) {
+                                        $('#id-' + logId + '-params-td').append(
+                                            param_name + '<br>'
+                                        );
+                                        $('#id-' + logId + '-readingTypes-td').append(
+                                            param_type + '<br>'
+                                        );
+                                    }
+                                });
+                            });
+                        });
+                    });
+
+                    var jsonLogQCInfoUrl = '{% url 'sites:load_log_qc_info_json' %}' + '?json_request=' + true
+                        + '&log_id=' + logId;
+                    var manageLogQCInfoUrl = '{% url 'sites:manage_log_qc_info' %}'
+                        + '?log_id=' + logId + '&log_name=' + logName;
+                    $('#id-' + logId + '-qcInfoPanel').append(
+                        '<div class="panel-body"><h4>Quality Control Info</h4>'
+                            + '<div class="table-responsive table-bordered">'
+                                + '<table class="table">'
+                                    + '<thead>'
+                                        + '<tr>'
+                                            + '<th>Status</th>'
+                                            + '<th>QC Level</th>'
+                                            + '<th>QC Name</th>'
+                                            + '<th>Last QC</th>'
+                                            + '<th>Next QC</th>'
+                                            + '<th>Replacement Value</th>'
+                                        + '</tr>'
+                                    + '</thead>'
+                                    + '<tbody id="id-' + logId + '-qc-tbody"></tbody>'
+                                + '</table>'
+                            + '</div>'
+                        + '</div>'
+                    );
+
+                    $('#id-' + logId + '-qcInfoPanel').append(
+                        '<div class="panel-body"><h4>Quality Control Values</h4>'
+                            + '<div class="table-responsive table-bordered">'
+                                + '<table class="table">'
+                                    + '<thead>'
+                                        + '<tr>'
+                                            + '<th>QC Level</th>'
+                                            + '<th>Month</th>'
+                                            + '<th>Parameters</th>'
+                                            + '<th>Time Interval</th>'
+                                            + '<th>Parameters Min Values</th>'
+                                            + '<th>Parameters Max Values</th>'
+                                            + '<th>Window Size</th>'
+                                        + '</tr>'
+                                    + '</thead>'
+                                    + '<tbody id="id-' + logId + '-qcValues-tbody"></tbody>'
+                                + '</table>'
+                            + '</div>'
+                        + '</div>'
+                    );
+
+                    $.getJSON(jsonLogQCInfoUrl, function (LogQCInfoData) {
+                        $.each(LogQCInfoData, function (j, log_qc_info) {
+                            var qcLevel = log_qc_info.log_qc_level;
+                            var qcName = log_qc_info.log_qc_name;
+                            var lastQC = log_qc_info.log_last_quality_control;
+                            var nextQC = log_qc_info.log_next_quality_control;
+                            var repValue = log_qc_info.log_qc_replacement_value;
+                            var statusIcon = '<i class="fa fa-circle fa-fw" style="color:orange"></i>';
+                            if (nextQC) {
+                                statusIcon = '<i class="fa fa-circle fa-fw" style="color:green"></i>';
+                            }
+                            else {
+                                nextQC = "-";
+                            }
+                            if(!lastQC) {
+                                lastQC = "-";
+                            }
+                            $('#id-' + logId + '-qc-tbody').append(
+                                '<tr>'
+                                    + '<td>' + statusIcon + '</td>'
+                                    + '<td>' + qcLevel + '</td>'
+                                    + '<td>' + qcName + '</td>'
+                                    + '<td>' + lastQC + '</td>'
+                                    + '<td>' + nextQC + '</td>'
+                                    + '<td>' + repValue + '</td>'
+                                + '</tr>'
+                            );
+
+                            var jsonLogQCValuesUrl = '{% url 'sites:load_log_qc_values_json' %}'
+                                + '?json_request=' + true + '&log_id=' + logId + '&qc_level=' + qcLevel;
+                            $.getJSON(jsonLogQCValuesUrl, function (LogQCValuesData) {
+                                if (LogQCValuesData.length > 0) {
+                                    LogQCValues = LogQCValuesData[0];
+                                    var month = LogQCValues.month_first_day;
+                                    console.log(month);
+                                    var qcParams = LogQCValues.qc_parameters;
+                                    var qcTimeInterval = LogQCValues.qc_time_interval;
+                                    var qcParamsMinValues = LogQCValues.qc_parameters_min_values;
+                                    var qcParamsMaxValues = LogQCValues.qc_parameters_max_values;
+                                    var qcWindowSizes = LogQCValues.qc_window_sizes;
+                                    if (!month) {
+                                        month = "-";
+                                    }
+                                    if (!qcTimeInterval){
+                                        qcTimeInterval = "-";
+                                    }
+                                    $('#id-' + logId + '-qcValues-tbody').append(
+                                        '<tr>'
+                                            + '<td>' + qcLevel + '</td>'
+                                            + '<td>' + month + '</td>'
+                                            + '<td id="id-' + logId + +'-qclvl' + qcLevel + '-qcParams-td"></td>'
+                                            + '<td>' + qcTimeInterval + '</td>'
+                                            + '<td id="id-' + logId + +'-qclvl' + qcLevel + '-minVals-td"></td>'
+                                            + '<td id="id-' + logId + +'-qclvl' + qcLevel + '-maxVals-td"></td>'
+                                            + '<td id="id-' + logId + +'-qclvl' + qcLevel + '-windSize-td"></td>'
+                                        +'</tr>'
+                                    );
+
+                                    $.each(qcParams, function (k, qcParam) {
+                                        $('#id-' + logId + +'-qclvl' + qcLevel + '-qcParams-td').append(
+                                                    qcParam + ',<br>'
+                                                );
+                                        $.each(qcParamsMinValues, function (qcParamName, paramMinValue) {
+                                            if (qcParam == qcParamName) {
+                                                $('#id-' + logId + +'-qclvl' + qcLevel + '-minVals-td').append(
+                                                    paramMinValue + ',<br>'
+                                                );
+                                            }
+                                        });
+                                        $.each(qcParamsMaxValues, function (qcParamName, paramMaxValue) {
+                                            if (qcParam == qcParamName) {
+                                                $('#id-' + logId + +'-qclvl' + qcLevel + '-maxVals-td').append(
+                                                    paramMaxValue + ',<br>'
+                                                );
+                                            }
+                                        });
+                                        $.each(qcWindowSizes, function (qcParamName, paramWindowSize) {
+                                            if (qcParam == qcParamName) {
+                                                $('#id-' + logId + +'-qclvl' + qcLevel + '-windSize-td').append(
+                                                    paramWindowSize + ',<br>'
+                                                );
+                                            }
+                                        });
+                                    });
+                                }
+                            });
+                        });
+                    });
                 });
             });
         }

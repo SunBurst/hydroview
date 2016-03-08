@@ -8,7 +8,8 @@ from django.core.urlresolvers import reverse
 from datetime import datetime, timedelta
 
 from .charts import ChartData
-from .forms import ManageLocationForm, ManageLogForm, ManageLoggerTypeForm, ManageQCForm, ManageSiteForm
+from .forms import ManageLocationForm, ManageLogForm, ManageLogUpdateInfoForm, ManageLoggerTypeForm, ManageQCForm, \
+    ManageSiteForm
 from .locations import LocationData
 from .loggers import LoggerData
 from .logs import LogData
@@ -16,7 +17,9 @@ from .qcs import QCData
 from .sites import SiteData
 from .models import Locations_by_site, Location_info_by_location, Logger_types, Logger_type_by_logger_type, \
     Logger_time_format_by_logger_type, Logs_by_location, Log_info_by_log, Log_file_info_by_log, \
-    Log_update_schedule_by_log, Quality_controls, Quality_control_info_by_quality_control, Sites, Site_info_by_site
+    Log_quality_control_schedule_by_log, Log_parameters_by_log, Log_time_info_by_log, Log_update_schedule_by_log, \
+    Quality_controls, Quality_control_info_by_log, Quality_control_info_by_quality_control, \
+    Quality_control_level_info_by_log, Sites, Site_info_by_site
 from .management.commands import run_update
 from utils.tools import MiscTools
 
@@ -96,17 +99,6 @@ def load_location_logs_json(request):
     log_name = params.get('log_name', '')
     json_request = params.get('json_request', '')
     logs_data = LogData.get_all_logs(location_id, log_name, json_request)
-
-    #for sensor in sensors_data:
-    #    sensor_name = sensor.get('sensor')
-    #    sensor_info = LogData.get_sensor(sensor_name)
-    #    temp_sensor_dict = sensor_info[0]
-    #    temp_last_update = date_handler(temp_sensor_dict.get('last_update'))
-    #    temp_next_update = date_handler(temp_sensor_dict.get('next_update'))
-    #    temp_sensor_dict['last_update'] = temp_last_update
-    #    temp_sensor_dict['next_update'] = temp_next_update
-    #    location_sensors_data.append(temp_sensor_dict)
-
     return HttpResponse(json.dumps(logs_data), content_type='application/json')
 
 def load_log_update_info_json(request):
@@ -115,6 +107,33 @@ def load_log_update_info_json(request):
     json_request = params.get('json_request', '')
     log_file_info_data = LogData.get_log_update_info(log_id, json_request)
     return HttpResponse(json.dumps(log_file_info_data), content_type='application/json')
+
+def load_log_time_info_json(request):
+    params = request.GET
+    log_id = params.get('log_id', '')
+    log_time_info_data = LoggerData.get_log_time_info(log_id)
+    return HttpResponse(json.dumps(log_time_info_data), content_type='application/json')
+
+def load_log_parameters_info_json(request):
+    params = request.GET
+    log_id = params.get('log_id', '')
+    log_params_info_data = LogData.get_log_parameters(log_id)
+    return HttpResponse(json.dumps(log_params_info_data), content_type='application/json')
+
+def load_log_qc_info_json(request):
+    params = request.GET
+    log_id = params.get('log_id', '')
+    json_request = params.get('json_request', '')
+    log_qc_info_data = QCData.get_log_qc_info(log_id, json_request)
+    return HttpResponse(json.dumps(log_qc_info_data), content_type='application/json')
+
+def load_log_qc_values_json(request):
+    params = request.GET
+    log_id = params.get('log_id', '')
+    log_qc_level = params.get('qc_level', '')
+    json_request = params.get('json_request', '')
+    log_qc_values_data = QCData.get_log_qc_values(log_id, log_qc_level, json_request)
+    return HttpResponse(json.dumps(log_qc_values_data), content_type='application/json')
 
 def load_all_logger_types_json(request):
     logger_types_data = LoggerData.get_all_loggers()
@@ -493,10 +512,18 @@ def manage_log(request):
         log_description = form.cleaned_data['log_description']
         temp_log_name = log_name
         temp_location_log = LogData.get_all_logs(location_id, temp_log_name)
+
         log_file_path = None
         log_file_line_num = 0
         log_last_update = None
         log_next_update = None
+        logger_type_name = None
+        logger_time_format = None
+        logger_time_ids = None
+        log_time_zone = None
+        log_parameters = None
+        log_reading_types = None
+
         if not temp_location_log:
 
             if not log_id:
@@ -505,16 +532,30 @@ def manage_log(request):
                 try:
                     log_update_info_data = LogData.get_log_update_info(log_id)
                     log_update_info_data = log_update_info_data[0]
+                    log_logger_type_info_data = LoggerData.get_log_time_info(log_id)
+                    log_logger_type_info_data = log_logger_type_info_data[0]
+                    log_parameters_info_data = LogData.get_log_parameters(log_id)
+                    log_parameters_info_data = log_parameters_info_data[0]
                     log_file_path = log_update_info_data.get('log_file_path')
                     log_file_line_num = log_update_info_data.get('log_file_line_num', 0)
                     log_last_update = log_update_info_data.get('log_last_update')
                     log_next_update = log_update_info_data.get('log_next_update')
+                    logger_type_name = log_logger_type_info_data.get('logger_type_name')
+                    logger_time_format = log_logger_type_info_data.get('logger_time_format')
+                    logger_time_ids = log_logger_type_info_data.get('logger_time_ids')
+                    log_time_zone = log_logger_type_info_data.get('log_time_zone')
+                    log_parameters = log_parameters_info_data.get('log_parameters')
+                    log_reading_types = log_parameters_info_data.get('log_reading_types')
+
                 except IndexError:
                     print("Index error!")
                 Logs_by_location(location_id=location_id, log_name=log_name).delete()
                 Log_info_by_log(log_id=log_id).delete()
                 Log_file_info_by_log(log_id=log_id).delete()
                 Log_update_schedule_by_log(log_id=log_id).delete()
+                Log_time_info_by_log(log_id=log_id).delete()
+                Log_parameters_by_log(log_id=log_id).delete()
+
             Logs_by_location.create(
                 location_id=location_id,
                 log_name=log_name,
@@ -535,6 +576,18 @@ def manage_log(request):
                 log_id=log_id,
                 log_last_update=log_last_update,
                 log_next_update=log_next_update
+            )
+            Log_time_info_by_log.create(
+                log_id=log_id,
+                logger_type_name=logger_type_name,
+                logger_time_format=logger_time_format,
+                logger_time_ids=logger_time_ids,
+                log_time_zone=log_time_zone
+            )
+            Log_parameters_by_log.create(
+                log_id=log_id,
+                log_parameters=log_parameters,
+                log_reading_types=log_reading_types,
             )
         url = reverse('sites:location_logs')
         url += '?site_name=' + site_name
@@ -561,10 +614,19 @@ def delete_log(request):
     location_name = params.get('location_name', '')
     log_id = params.get('log_id', '')
     log_name = params.get('log_name', '')
-    print(location_id, type(location_id), log_name, log_id, type(log_id))
+    log_qc_levels = QCData.get_log_qc_info(log_id)
     try:
         Logs_by_location(location_id=location_id, log_name=log_name).delete()
         Log_info_by_log(log_id=log_id).delete()
+        Log_file_info_by_log(log_id=log_id).delete()
+        Log_parameters_by_log(log_id=log_id).delete()
+        Log_update_schedule_by_log(log_id=log_id).delete()
+        Log_quality_control_schedule_by_log(log_id=log_id).delete()
+        Log_time_info_by_log(log_id=log_id).delete()
+        for qc_level_info in log_qc_levels:
+            log_qc_level = qc_level_info.get('log_qc_level')
+            Quality_control_info_by_log(log_id=log_id, qc_level=log_qc_level).delete()
+        Quality_control_level_info_by_log(log_id=log_id).delete()
     except:
         print("Couldn't delete log!")
     url = reverse('sites:location_logs')
@@ -573,6 +635,120 @@ def delete_log(request):
     url += '&location_name=' + location_name
 
     return HttpResponseRedirect(url)
+
+def manage_log_update_info(request):
+    params = request.GET
+    site_name = params.get('site_name', '')
+    location_id = params.get('location_id', '')
+    location_name = params.get('location_name', '')
+    log_id = params.get('log_id', '')
+    log_name = params.get('log_name', '')
+    init_log_update_info_form = dict
+    template = 'sites/manage_log_update_info.html'
+    log_update_info_data = LogData.get_log_update_info(log_id)
+    log_file_info_data = LoggerData.get_log_time_info(log_id)
+    log_parameters = LogData.get_log_parameters(log_id)
+    logger_types_data = LoggerData.get_all_loggers()
+
+    try:
+        log_update_info_data = log_update_info_data[0]
+        log_file_info_data = log_file_info_data[0]
+        log_parameters = log_parameters[0]
+    except IndexError:
+        print("Index error!")
+
+    init_logger_types = []
+    for logger_type in logger_types_data:
+        init_logger_types.append(logger_type.get('logger_type_name'))
+    init_log_last_update = log_update_info_data.get('log_last_update')
+    init_log_next_update = log_update_info_data.get('log_next_update')
+    init_log_update_interval = None
+    init_log_update_is_active = False
+
+    if init_log_next_update:
+        init_log_update_is_active = True
+        init_log_update_interval = datetime.time(init_log_next_update)
+
+    init_logger_type_name = log_file_info_data.get('logger_type_name')
+    init_logger_time_format = log_file_info_data.get('logger_time_format')
+    init_logger_time_ids = log_file_info_data.get('logger_time_ids')
+    init_log_time_zone = log_file_info_data.get('log_time_zone')
+    init_log_update_info_form = {
+        'log_file_path' : log_update_info_data.get('log_file_path'),
+        'log_file_line_num' : log_update_info_data.get('log_file_line_num'),
+        'update_is_active' : init_log_update_is_active,
+        'update_interval' : init_log_update_interval,
+        'logger_type_name' : init_logger_type_name,
+        #'logger_time_format' : init_logger_time_format,
+        #'logger_time_ids' : init_logger_time_ids,
+        #'log_time_zone' : init_log_time_zone
+    }
+
+    form = ManageLogUpdateInfoForm(request.POST or None, initial=init_log_update_info_form, init_logger_types=init_logger_types)
+
+    if form.is_valid():
+        log_next_update = form.get_next_update()
+        log_file_line_num = form.cleaned_data['log_file_line_num']
+        log_file_path = form.cleaned_data['log_file_path']
+        try:
+            Log_file_info_by_log(log_id=log_id).delete()
+            Log_update_schedule_by_log(log_id=log_id).delete()
+        except:
+            print("Couldn't delete log update info!")
+        Log_file_info_by_log.create(
+            log_id=log_id,
+            log_file_path=log_file_path,
+            log_file_line_num=log_file_line_num
+        )
+        Log_update_schedule_by_log.create(
+            log_id=log_id,
+            log_last_update=init_log_last_update,
+            log_next_update=log_next_update
+        )
+        # fire off update
+        url = reverse('sites:location_logs')
+        url += '?site_name=' + site_name
+        url += '&location_id=' + MiscTools.uuid_to_str(location_id)
+        url += '&location_name=' + location_name
+        return HttpResponseRedirect(url)
+
+    context = {
+        'site_name' : site_name,
+        'location_id' : location_id,
+        'location_name' : location_name,
+        'log_name' : log_name,
+        'form' : form
+    }
+
+    return render(request, template, context)
+
+def manage_log_time_info(request):
+    params = request.GET
+    log_id = params.get('log_id', '')
+    log_name = params.get('log_name', '')
+    template = 'sites/manage_log_time_info.html'
+    return render(request, template, {})
+
+def manage_log_parameters_info(request):
+    params = request.GET
+    log_id = params.get('log_id', '')
+    log_name = params.get('log_name', '')
+    template = 'sites/manage_log_parameters_info.html'
+    return render(request, template, {})
+
+def manage_log_qc_info(request):
+    params = request.GET
+    log_id = params.get('log_id', '')
+    log_name = params.get('log_name', '')
+    template = 'sites/manage_log_qc_info.html'
+    return render(request, template, {})
+
+def manage_log_qc_values(request):
+    params = request.GET
+    log_id = params.get('log_id', '')
+    log_name = params.get('log_name', '')
+    template = 'sites/manage_log_qc_values.html'
+    return render(request, template, {})
 
 def manage_log1(request):
     params = request.GET
