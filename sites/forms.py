@@ -1,21 +1,13 @@
 from datetime import datetime, timedelta
 from django import forms
 from pytz import all_timezones
-from collections import OrderedDict
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Button, Div, Field, Fieldset, Layout, Reset, Submit
 from crispy_forms.bootstrap import FormActions
 
 from settings.settings import TIME_ZONE
-
-
-LOGGER_TIME_FORMATS = OrderedDict(
-    [
-        ('Timestamp', ['Timestamp']),
-        ('Campbell-Legacy', ['Year','Julian Day','HourMinute'])
-    ]
-)
+from utils.tools import MiscTools
 
 class ManageLoggerTypeForm(forms.Form):
     logger_type_name = forms.CharField(label='Logger Type', required=True)
@@ -44,7 +36,9 @@ class ManageLoggerTypeForm(forms.Form):
             )
         )
 
-        for time_fmt, time_fmt_placeholder in LOGGER_TIME_FORMATS.items():
+        self.LOGGER_TIME_FORMATS = MiscTools.get_init_time_formats()
+
+        for time_fmt, time_fmt_placeholder in self.LOGGER_TIME_FORMATS.items():
             init_bool_val = False
             if time_fmt in init_logger_time_formats:
                 init_bool_val = True
@@ -60,9 +54,9 @@ class ManageLoggerTypeForm(forms.Form):
     def clean_time_formats(self):
         cleaned_time_fmts = {}
         for name, value in self.cleaned_data.items():
-            if name in LOGGER_TIME_FORMATS.keys():
+            if name in self.LOGGER_TIME_FORMATS.keys():
                 if value:
-                    cleaned_time_fmts[name] = LOGGER_TIME_FORMATS.get(name)
+                    cleaned_time_fmts[name] = self.LOGGER_TIME_FORMATS.get(name)
         return cleaned_time_fmts
 
 class ManageQCForm(forms.Form):
@@ -221,12 +215,42 @@ class ManageLogUpdateInfoForm(forms.Form):
         )
 
         LOGGER_TYPE_CHOICES = ()
-        for logger_type in init_logger_types:
-            LOGGER_TYPE_CHOICES = LOGGER_TYPE_CHOICES + ((logger_type, logger_type,),)
+
+        for name, time_fmts_dict in init_logger_types.items():
+            logger_type_name = name
+            LOGGER_TYPE_CHOICES = LOGGER_TYPE_CHOICES + ((logger_type_name, logger_type_name,),)
+            for time_fmt_label, time_fmts in time_fmts_dict.items():
+                for time_fmt, time_ids in time_fmts.items():
+                    LOGGER_TIME_FORMATS = ()
+                    LOGGER_TIME_FORMATS = LOGGER_TIME_FORMATS + ((time_fmt, time_fmt,),)
+                    self.fields['logger_time_format_%s' % time_fmt] = forms.ChoiceField(
+                        label='Logger Time Format',
+                        choices=LOGGER_TIME_FORMATS,
+                        required=True
+                    )
+                    LOGGER_TIME_IDS = ()
+                    LOGGER_TIME_IDS = LOGGER_TIME_IDS + ((time_ids, time_ids,),)
+                    self.fields['logger_time_ids_%s' % time_fmt] = forms.ChoiceField(
+                        label='Logger Time Identifiers',
+                        choices=LOGGER_TYPE_CHOICES,
+                        required=True
+                    )
+
         self.fields['logger_type_name'] = forms.ChoiceField(label='Logger Type', choices=LOGGER_TYPE_CHOICES, required=True)
         self.helper.layout[0].append(
             Field('logger_type_name')
         )
+
+        for name, val in self.fields.items():
+            if (name.startswith('logger_time_format_')):
+                self.helper.layout[0].append(
+                    Field(name)
+                )
+        for name, val in self.fields.items():
+            if (name.startswith('logger_time_ids_')):
+                self.helper.layout[0].append(
+                    Field(name)
+                )
 
     def get_next_update(self):
         is_active = self.cleaned_data['update_is_active']

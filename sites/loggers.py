@@ -56,6 +56,27 @@ class LoggerData(object):
         return logger_data
 
     @classmethod
+    def get_logger_info(cls):
+        loggers_data = []
+        all_loggers_query = Logger_types.objects.filter(bucket=0)
+        for row in all_loggers_query:
+            logger_type_name = row.logger_type_name
+            logger_query = Logger_type_by_logger_type.objects.filter(logger_type_name=logger_type_name)
+            for i in logger_query:
+                logger_time_formats = i.logger_time_formats
+                loggers_data = {logger_type_name : {'logger_time_formats' : {}}}
+                for time_fmt in logger_time_formats:
+                    time_fmt_query = Logger_time_format_by_logger_type.objects.filter(
+                        logger_type_name=logger_type_name,
+                        logger_time_format=time_fmt
+                    )
+                    loggers_data[logger_type_name]['logger_time_formats'][time_fmt] = []
+                    for j in time_fmt_query:
+                        time_ids = j.logger_time_ids
+                        loggers_data[logger_type_name]['logger_time_formats'][time_fmt] = time_ids
+        return loggers_data
+
+    @classmethod
     def get_log_time_info(cls, log_id):
         """
         Return log time info or an empty list if not found.

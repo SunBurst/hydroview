@@ -423,30 +423,28 @@ def manage_location(request):
         location_name = form.cleaned_data['location_name']
         location_description = form.cleaned_data['location_description']
         location_position = form.clean_gps_coordinates()
-
         temp_location_name = location_name
         temp_site_location = LocationData.get_all_locations(site_id, temp_location_name)
-        if not temp_site_location:
 
-            if not location_id:
-                location_id = uuid.uuid4()
-            else:
-                Locations_by_site(site_id=site_id, location_name=location_name).delete()
-                Location_info_by_location(location_id=location_id).delete()
+        if not location_id:
+            location_id = uuid.uuid4()
+        else:
+            Locations_by_site(site_id=site_id, location_name=location_name).delete()
+            Location_info_by_location(location_id=location_id).delete()
 
-            Locations_by_site.create(
-                site_id=site_id,
-                location_name=location_name,
-                location_id=location_id,
-                location_description=location_description,
-                location_position=location_position
-            )
-            Location_info_by_location.create(
-                location_id=location_id,
-                location_name=location_name,
-                location_description=location_description,
-                location_position=location_position
-            )
+        Locations_by_site.create(
+            site_id=site_id,
+            location_name=location_name,
+            location_id=location_id,
+            location_description=location_description,
+            location_position=location_position
+        )
+        Location_info_by_location.create(
+            location_id=location_id,
+            location_name=location_name,
+            location_description=location_description,
+            location_position=location_position
+        )
 
         url = reverse('sites:location_info')
         url += '?site_id=' + MiscTools.uuid_to_str(site_id)
@@ -648,7 +646,7 @@ def manage_log_update_info(request):
     log_update_info_data = LogData.get_log_update_info(log_id)
     log_file_info_data = LoggerData.get_log_time_info(log_id)
     log_parameters = LogData.get_log_parameters(log_id)
-    logger_types_data = LoggerData.get_all_loggers()
+    init_logger_types = LoggerData.get_logger_info()
 
     try:
         log_update_info_data = log_update_info_data[0]
@@ -657,9 +655,6 @@ def manage_log_update_info(request):
     except IndexError:
         print("Index error!")
 
-    init_logger_types = []
-    for logger_type in logger_types_data:
-        init_logger_types.append(logger_type.get('logger_type_name'))
     init_log_last_update = log_update_info_data.get('log_last_update')
     init_log_next_update = log_update_info_data.get('log_next_update')
     init_log_update_interval = None
