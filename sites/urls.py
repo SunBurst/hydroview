@@ -54,6 +54,11 @@ urlpatterns = [
         name='load_all_logger_types_json',
     ),
     url(
+        regex=r'^load_all_logger_time_formats_json/$',
+        view=views.load_all_logger_time_formats_json,
+        name='load_all_logger_time_formats_json',
+    ),
+    url(
         regex=r'^load_all_quality_controls_json/$',
         view=views.load_all_quality_controls_json,
         name='load_all_quality_controls_json',
@@ -67,6 +72,11 @@ urlpatterns = [
         regex=r'^delete_logger_type/',
         view=views.delete_logger_type,
         name='delete_logger_type',
+    ),
+    url(
+        regex=r'^manage_logger_time_format/$',
+        view=views.manage_logger_time_format,
+        name='manage_logger_time_format',
     ),
     url(
         regex=r'^manage_quality_control/$',

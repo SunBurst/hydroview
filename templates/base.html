@@ -101,6 +101,14 @@
                             <i class="fa fa-plus fa-fw"></i> Add New Logger Type
                         </a>
                     </li>
+                    <li class="divider"></li>
+                    <li class="dropdown-header">Installed Logger Time Formats</li>
+                    <li id="id-timeFormatsDropdown" class="divider"></li>
+                    <li>
+                        <a href="{% url 'sites:manage_logger_time_format' %}">
+                            <i class="fa fa-plus fa-fw"></i> Add New Logger Time Format
+                        </a>
+                    </li>
                 </ul>
                 <!-- /.dropdown-loggers -->
             </li>
@@ -243,6 +251,20 @@
                     '<li>'
                         + '<a href=' + manageLoggerTypeUrl + '>'
                             + '<i class="fa fa-pencil fa-fw"></i>' + ' ' + loggerType.logger_type_name
+                        + '</a>'
+                    + '</li>'
+                );
+            });
+        });
+        var jsonLoggerTimeFormatsUrl = '{% url 'sites:load_all_logger_time_formats_json' %}';
+        $.getJSON(jsonLoggerTimeFormatsUrl, function (allLoggerTimeFormatsData) {
+            $.each(allLoggerTimeFormatsData, function (i, timeFormat) {
+                var manageLoggerTimeFormatUrl = '{% url 'sites:manage_logger_time_format' %}';
+                manageLoggerTimeFormatUrl += '?logger_time_format=' + timeFormat.logger_time_format;
+                $('#id-timeFormatsDropdown').before(
+                    '<li>'
+                        + '<a href=' + manageLoggerTimeFormatUrl + '>'
+                            + '<i class="fa fa-pencil fa-fw"></i>' + ' ' + timeFormat.logger_time_format
                         + '</a>'
                     + '</li>'
                 );

@@ -1,4 +1,5 @@
-from .models import Logger_types, Logger_type_by_logger_type, Logger_time_format_by_logger_type, Log_time_info_by_log
+from .models import Logger_time_formats, Logger_time_format_by_logger_time_format, Logger_types, \
+    Logger_type_by_logger_type, Logger_time_format_by_logger_type, Log_time_info_by_log
 
 class LoggerData(object):
     """Helper class for getting logger related data from the Cassandra database. """
@@ -15,6 +16,19 @@ class LoggerData(object):
             }
             loggers_data.append(logger)
         return loggers_data
+
+    @classmethod
+    def get_all_logger_time_formats(cls):
+        """Return all logger time formats or an empty list if not found. """
+        time_format_data = []
+        all_time_formats_query = Logger_time_formats.objects.filter(bucket=0)
+        for row in all_time_formats_query:
+            time_format = {
+                'logger_time_format' : row.logger_time_format,
+                'logger_time_format_description' : row.logger_time_format_description,
+            }
+            time_format_data.append(time_format)
+        return time_format_data
 
     @classmethod
     def get_logger(cls, logger_type_name):
@@ -35,6 +49,26 @@ class LoggerData(object):
         return logger_data
 
     @classmethod
+    def get_logger_time_format(cls, logger_time_format):
+        """
+        Return logger time format or an empty list if not found.
+
+        Keyword arguments:
+        logger_time_format -- logger time format (str)
+        """
+        time_format_data = []
+        time_format_query = Logger_time_format_by_logger_time_format.objects.filter(
+            logger_time_format=logger_time_format
+        )
+        for row in time_format_query:
+            time_format = {
+                'logger_time_format_description' : row.logger_time_format_description,
+                'logger_time_ids' : row.logger_time_ids,
+            }
+            time_format_data.append(time_format)
+        return time_format_data
+
+    @classmethod
     def get_logger_time_ids(cls, logger_type_name, logger_time_format=None):
         """
         Return logger type time identifiers for a specific time format, or return an empty list if not found.
@@ -50,6 +84,7 @@ class LoggerData(object):
         for row in logger_query:
             logger = {
                 'logger_time_format' : row.logger_time_format,
+                'logger_time_format_description' : row.logger_time_format_description,
                 'logger_time_ids' : row.logger_time_ids
             }
             logger_data.append(logger)
@@ -64,16 +99,17 @@ class LoggerData(object):
             logger_query = Logger_type_by_logger_type.objects.filter(logger_type_name=logger_type_name)
             for i in logger_query:
                 logger_time_formats = i.logger_time_formats
-                loggers_data = {logger_type_name : {'logger_time_formats' : {}}}
+                logger_data = {logger_type_name : {'logger_time_formats' : {}}}
                 for time_fmt in logger_time_formats:
                     time_fmt_query = Logger_time_format_by_logger_type.objects.filter(
                         logger_type_name=logger_type_name,
                         logger_time_format=time_fmt
                     )
-                    loggers_data[logger_type_name]['logger_time_formats'][time_fmt] = []
+                    logger_data[logger_type_name]['logger_time_formats'][time_fmt] = []
                     for j in time_fmt_query:
                         time_ids = j.logger_time_ids
-                        loggers_data[logger_type_name]['logger_time_formats'][time_fmt] = time_ids
+                        logger_data[logger_type_name]['logger_time_formats'][time_fmt] = time_ids
+                loggers_data.append(logger_data)
         return loggers_data
 
     @classmethod

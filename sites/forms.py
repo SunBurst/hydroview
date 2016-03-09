@@ -59,6 +59,72 @@ class ManageLoggerTypeForm(forms.Form):
                     cleaned_time_fmts[name] = self.LOGGER_TIME_FORMATS.get(name)
         return cleaned_time_fmts
 
+class ManageLoggerTimeFormatForm(forms.Form):
+    MAX_TIME_IDS = 5
+    logger_time_format = forms.CharField(label='Logger Time Format', required=True)
+    logger_time_format_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
+
+    def __init__(self, *args, **kwargs):
+        init_logger_time_ids = kwargs.pop('init_time_ids')
+        super(ManageLoggerTimeFormatForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_id = 'id-manageLoggerTimeFormatForm'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Fieldset(
+                'Basic Info',
+                Field('logger_time_format'),
+                Field('logger_time_format_description'),
+            ),
+            Fieldset(
+                'Logger Time Identifiers',
+            ),
+            FormActions(
+                Submit('save', 'Save', css_class="btn-primary"),
+                Reset('reset', 'Reset', css_class="btn-default"),
+                Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default"),
+                Button('delete', 'Delete', css_id="id-deleteBtn", css_class="btn-danger pull-right")
+            )
+        )
+
+        #self.fields['logger_time_ids'] = ", ".join(init_logger_time_ids)
+        #self.LOGGER_TIME_FORMATS = MiscTools.get_init_time_formats()
+        for time_id_field in range(self.MAX_TIME_IDS):
+            self.fields['time_format_id_%s' % time_id_field] = forms.CharField(
+                label='Time Identifier %s' % (time_id_field + 1)
+            )
+        for i, init_time_id_field in enumerate(init_logger_time_ids):
+            self.fields['time_format_id_%s' % (i)] =  forms.CharField(
+                label='Time Identifier %s' % (i + 1),
+                initial=init_time_id_field
+            )
+        #for time_fmt, time_fmt_placeholder in self.LOGGER_TIME_FORMATS.items():
+        #    init_bool_val = False
+        #    if time_fmt in init_logger_time_formats:
+        #        init_bool_val = True
+        #    self.fields[time_fmt] = forms.BooleanField(
+        #        label=time_fmt,
+        #        initial=init_bool_val,
+        #        required=False
+        #    )
+        #    self.helper.layout[1].append(
+        #        Field(time_fmt)
+        #    )
+
+    def clean_time_ids(self):
+        for name, value in self.cleaned_data.items():
+            if (name.startswith('time_format_id_')):
+                print(value)
+        return None
+
+    #def clean_time_formats(self):
+    #    cleaned_time_fmts = {}
+    #    for name, value in self.cleaned_data.items():
+    #        if name in self.LOGGER_TIME_FORMATS.keys():
+    #            if value:
+    #                cleaned_time_fmts[name] = self.LOGGER_TIME_FORMATS.get(name)
+    #    return cleaned_time_fmts
+
 class ManageQCForm(forms.Form):
     qc_level = forms.IntegerField(label='Quality Control Level', required=True)
     qc_name = forms.CharField(label='Quality Control Name', required=True)
@@ -216,27 +282,35 @@ class ManageLogUpdateInfoForm(forms.Form):
 
         LOGGER_TYPE_CHOICES = ()
 
-        for name, time_fmts_dict in init_logger_types.items():
-            logger_type_name = name
-            LOGGER_TYPE_CHOICES = LOGGER_TYPE_CHOICES + ((logger_type_name, logger_type_name,),)
-            for time_fmt_label, time_fmts in time_fmts_dict.items():
-                for time_fmt, time_ids in time_fmts.items():
-                    LOGGER_TIME_FORMATS = ()
-                    LOGGER_TIME_FORMATS = LOGGER_TIME_FORMATS + ((time_fmt, time_fmt,),)
-                    self.fields['logger_time_format_%s' % time_fmt] = forms.ChoiceField(
-                        label='Logger Time Format',
-                        choices=LOGGER_TIME_FORMATS,
-                        required=True
-                    )
-                    LOGGER_TIME_IDS = ()
-                    LOGGER_TIME_IDS = LOGGER_TIME_IDS + ((time_ids, time_ids,),)
-                    self.fields['logger_time_ids_%s' % time_fmt] = forms.ChoiceField(
-                        label='Logger Time Identifiers',
-                        choices=LOGGER_TYPE_CHOICES,
-                        required=True
-                    )
+        for logger in init_logger_types:
+            for name, time_fmts_dict in logger.items():
+                logger_type_name = name
+                LOGGER_TYPE_CHOICES = LOGGER_TYPE_CHOICES + ((logger_type_name, logger_type_name,),)
+                for time_fmt_label, time_fmts in time_fmts_dict.items():
+                    for time_fmt, time_ids in time_fmts.items():
+                        LOGGER_TIME_FORMATS = ()
+                        LOGGER_TIME_FORMATS = LOGGER_TIME_FORMATS + ((time_fmt, time_fmt,),)
+                        print(LOGGER_TIME_FORMATS)
+                        self.fields['logger_time_format_%s' % time_fmt] = forms.ChoiceField(
+                            label='Logger Time Format',
+                            choices=LOGGER_TIME_FORMATS,
+                            required=True
+                        )
+                        LOGGER_TIME_IDS = ()
+                        time_ids_str = ", ".join(time_ids)
+                        LOGGER_TIME_IDS = LOGGER_TIME_IDS + ((time_fmt, time_ids_str,),)
+                        print(LOGGER_TIME_IDS)
+                        self.fields['logger_time_ids_%s' % time_fmt] = forms.ChoiceField(
+                            label='Logger Time Identifiers',
+                            choices=LOGGER_TIME_IDS,
+                            required=True
+                        )
 
-        self.fields['logger_type_name'] = forms.ChoiceField(label='Logger Type', choices=LOGGER_TYPE_CHOICES, required=True)
+        self.fields['logger_type_name'] = forms.ChoiceField(
+            label='Logger Type',
+            choices=LOGGER_TYPE_CHOICES,
+            required=True
+        )
         self.helper.layout[0].append(
             Field('logger_type_name')
         )

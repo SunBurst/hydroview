@@ -32,6 +32,11 @@
             + '&location_name=' + locationName;
         $('.page-header').text("Manage Log: " + logName);
 
+        $('#id_logger_type_name').change(function () {
+            loggerTypeName = $(this).val();
+            
+        });
+
         $('#id-cancelBtn').on('click', function () {
             document.location.href = redirectToLocationUrl;
         });

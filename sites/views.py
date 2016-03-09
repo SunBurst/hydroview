@@ -8,8 +8,8 @@ from django.core.urlresolvers import reverse
 from datetime import datetime, timedelta
 
 from .charts import ChartData
-from .forms import ManageLocationForm, ManageLogForm, ManageLogUpdateInfoForm, ManageLoggerTypeForm, ManageQCForm, \
-    ManageSiteForm
+from .forms import ManageLocationForm, ManageLogForm, ManageLogUpdateInfoForm, ManageLoggerTimeFormatForm, \
+    ManageLoggerTypeForm, ManageQCForm, ManageSiteForm
 from .locations import LocationData
 from .loggers import LoggerData
 from .logs import LogData
@@ -139,6 +139,10 @@ def load_all_logger_types_json(request):
     logger_types_data = LoggerData.get_all_loggers()
     return HttpResponse(json.dumps(logger_types_data), content_type='application/json')
 
+def load_all_logger_time_formats_json(request):
+    logger_time_formats_data = LoggerData.get_all_logger_time_formats()
+    return HttpResponse(json.dumps(logger_time_formats_data), content_type='application/json')
+
 def load_all_quality_controls_json(request):
     quality_controls_data = QCData.get_all_qcs()
     return HttpResponse(json.dumps(quality_controls_data), content_type='application/json')
@@ -146,6 +150,71 @@ def load_all_quality_controls_json(request):
 ###########################################################################
 #######################    API FOR MANAGING FORMS    ######################
 ###########################################################################
+
+def manage_logger_time_format(request):
+    params = request.GET
+    init_time_format = params.get('logger_time_format', '')
+    init_time_format_form = dict
+    init_time_ids = []
+    template = 'sites/manage_logger_time_format.html'
+
+    if init_time_format:    #: Edit existing logger time format
+        time_format_data = LoggerData.get_logger_time_format(init_time_format)
+        try:
+            time_format_data = time_format_data[0]
+        except IndexError:
+            print("Index error!")
+        init_time_format_description = time_format_data.get('logger_time_format_description')
+        init_time_ids = time_format_data.get('logger_time_formats')
+
+        init_logger_type_form = {
+            'logger_time_format' : init_time_format,
+            'logger_time_format_description' : init_time_format_description,
+        }
+    else:   #: Add new logger time format
+        init_time_format_form = {}
+
+    form = ManageLoggerTimeFormatForm(request.POST or None, initial=init_time_format_form, init_time_ids=init_time_ids)
+
+    if form.is_valid():
+        logger_time_format = form.cleaned_data['logger_time_format']
+        logger_time_format_description = form.cleaned_data['logger_time_format_description']
+        logger_time_format_ids = form.clean_time_ids()
+
+        if init_time_format:
+            try:
+                Logger_types(bucket=0, logger_type_name=init_logger_type_name).delete()
+                Logger_type_by_logger_type(logger_type_name=init_logger_type_name).delete()
+                Logger_time_format_by_logger_type(logger_type_name=init_logger_type_name).delete()
+            except:
+                print("Delete query failed!")
+
+        Logger_types.create(
+            bucket=0,
+            logger_type_name=logger_type_name,
+            logger_type_description=logger_type_description
+        )
+        Logger_type_by_logger_type.create(
+            logger_type_name=logger_type_name,
+            logger_type_description=logger_type_description,
+            logger_time_formats=logger_time_formats
+        )
+        for time_fmt, time_ids in logger_time_formats_ids.items():
+            Logger_time_format_by_logger_type.create(
+                logger_type_name=logger_type_name,
+                logger_time_format=time_fmt,
+                logger_time_ids=time_ids
+            )
+        url = reverse('sites:index')
+
+        return HttpResponseRedirect(url)
+
+    context = {
+        'logger_type_name' : init_logger_type_name,
+        'form' : form
+    }
+
+    return render(request, template, context)
 
 def manage_logger_type(request):
     params = request.GET
@@ -679,7 +748,11 @@ def manage_log_update_info(request):
         #'log_time_zone' : init_log_time_zone
     }
 
-    form = ManageLogUpdateInfoForm(request.POST or None, initial=init_log_update_info_form, init_logger_types=init_logger_types)
+    form = ManageLogUpdateInfoForm(
+        request.POST or None,
+        initial=init_log_update_info_form,
+        init_logger_types=init_logger_types
+    )
 
     if form.is_valid():
         log_next_update = form.get_next_update()
