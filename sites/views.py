@@ -9,17 +9,17 @@ from datetime import datetime, timedelta
 
 from .charts import ChartData
 from .forms import ManageLocationForm, ManageLogForm, ManageLogUpdateInfoForm, ManageLoggerTimeFormatForm, \
-    ManageLoggerTypeForm, ManageQCForm, ManageSiteForm
+    ManageQCForm, ManageSiteForm
 from .locations import LocationData
 from .loggers import LoggerData
 from .logs import LogData
 from .qcs import QCData
 from .sites import SiteData
-from .models import Locations_by_site, Location_info_by_location, Logger_types, Logger_type_by_logger_type, \
-    Logger_time_format_by_logger_type, Logs_by_location, Log_info_by_log, Log_file_info_by_log, \
-    Log_quality_control_schedule_by_log, Log_parameters_by_log, Log_time_info_by_log, Log_update_schedule_by_log, \
-    Quality_controls, Quality_control_info_by_log, Quality_control_info_by_quality_control, \
-    Quality_control_level_info_by_log, Sites, Site_info_by_site
+from .models import Locations_by_site, Location_info_by_location, Logger_time_formats, \
+    Logger_time_format_by_logger_time_format, Logs_by_logger_time_format, Logs_by_location, Log_info_by_log, \
+    Log_file_info_by_log, Log_quality_control_schedule_by_log, Log_parameters_by_log, Log_time_info_by_log, \
+    Log_update_schedule_by_log, Quality_controls, Quality_control_info_by_log, \
+    Quality_control_info_by_quality_control, Quality_control_level_info_by_log, Sites, Site_info_by_site
 from .management.commands import run_update
 from utils.tools import MiscTools
 
@@ -135,12 +135,10 @@ def load_log_qc_values_json(request):
     log_qc_values_data = QCData.get_log_qc_values(log_id, log_qc_level, json_request)
     return HttpResponse(json.dumps(log_qc_values_data), content_type='application/json')
 
-def load_all_logger_types_json(request):
-    logger_types_data = LoggerData.get_all_loggers()
-    return HttpResponse(json.dumps(logger_types_data), content_type='application/json')
-
 def load_all_logger_time_formats_json(request):
-    logger_time_formats_data = LoggerData.get_all_logger_time_formats()
+    params = request.GET
+    json_request = params.get('json_request', '')
+    logger_time_formats_data = LoggerData.get_all_logger_time_formats(json_request)
     return HttpResponse(json.dumps(logger_time_formats_data), content_type='application/json')
 
 def load_all_quality_controls_json(request):
@@ -153,144 +151,117 @@ def load_all_quality_controls_json(request):
 
 def manage_logger_time_format(request):
     params = request.GET
-    init_time_format = params.get('logger_time_format', '')
-    init_time_format_form = dict
+    logger_time_format_id = params.get('logger_time_format_id', '')
+    logger_time_format_name = params.get('logger_time_format_name', '')
+    init_logger_time_format_form = dict
     init_time_ids = []
+    init_time_id_types = {}
     template = 'sites/manage_logger_time_format.html'
 
-    if init_time_format:    #: Edit existing logger time format
-        time_format_data = LoggerData.get_logger_time_format(init_time_format)
+    if logger_time_format_id:    #: Edit existing logger time format
+        time_format_data = LoggerData.get_logger_time_format(logger_time_format_id)
         try:
             time_format_data = time_format_data[0]
         except IndexError:
             print("Index error!")
+        init_time_format_name = time_format_data.get('logger_time_format_name')
         init_time_format_description = time_format_data.get('logger_time_format_description')
-        init_time_ids = time_format_data.get('logger_time_formats')
+        init_time_ids = time_format_data.get('logger_time_ids')
+        init_time_id_types = time_format_data.get('logger_time_id_types')
 
-        init_logger_type_form = {
-            'logger_time_format' : init_time_format,
+        init_logger_time_format_form = {
+            'logger_time_format_name' : init_time_format_name,
             'logger_time_format_description' : init_time_format_description,
         }
     else:   #: Add new logger time format
-        init_time_format_form = {}
+        init_logger_time_format_form = {}
 
-    form = ManageLoggerTimeFormatForm(request.POST or None, initial=init_time_format_form, init_time_ids=init_time_ids)
+    form = ManageLoggerTimeFormatForm(
+        request.POST or None,
+        initial=init_logger_time_format_form,
+        init_time_ids=init_time_ids,
+        init_time_id_types=init_time_id_types
+    )
 
     if form.is_valid():
-        logger_time_format = form.cleaned_data['logger_time_format']
+        logger_time_format_name = form.cleaned_data['logger_time_format_name']
         logger_time_format_description = form.cleaned_data['logger_time_format_description']
-        logger_time_format_ids = form.clean_time_ids()
+        logger_time_format_ids, logger_time_format_id_types = form.clean_time_ids()
 
-        if init_time_format:
+        if not logger_time_format_id:
+            logger_time_format_id = uuid.uuid4()
+        else:
+            logs_by_logger_time_format = LoggerData.get_logs_by_logger_time_format(logger_time_format_id)
+            for log in logs_by_logger_time_format:
+                log_id = log.get('log_id')
+                log_time_info_query = LoggerData.get_log_time_info(log_id)
+                try:
+                    log_time_info_query = log_time_info_query[0]
+                except IndexError:
+                    print("Index error!")
+                temp_logger_time_ids = log_time_info_query.get('logger_time_ids')
+                temp_log_time_zone = log_time_info_query.get('log_time_zone')
+                try:
+                    Log_time_info_by_log(log_id=log_id).delete()
+                    Log_time_info_by_log.create(
+                        log_id=log_id,
+                        logger_time_format_id=logger_time_format_id,
+                        logger_time_format_name=logger_time_format_name,
+                        logger_time_ids=temp_logger_time_ids,
+                        log_time_zone=temp_log_time_zone
+                    )
+                except:
+                    print("Log time info query failed!")
             try:
-                Logger_types(bucket=0, logger_type_name=init_logger_type_name).delete()
-                Logger_type_by_logger_type(logger_type_name=init_logger_type_name).delete()
-                Logger_time_format_by_logger_type(logger_type_name=init_logger_type_name).delete()
+                Logger_time_formats(bucket=0, logger_time_format_id=logger_time_format_id).delete()
+                Logger_time_format_by_logger_time_format(logger_time_format_id=logger_time_format_id).delete()
             except:
                 print("Delete query failed!")
 
-        Logger_types.create(
+        Logger_time_formats.create(
             bucket=0,
-            logger_type_name=logger_type_name,
-            logger_type_description=logger_type_description
+            logger_time_format_id=logger_time_format_id,
+            logger_time_format_name=logger_time_format_name,
+            logger_time_format_description=logger_time_format_description
         )
-        Logger_type_by_logger_type.create(
-            logger_type_name=logger_type_name,
-            logger_type_description=logger_type_description,
-            logger_time_formats=logger_time_formats
+        Logger_time_format_by_logger_time_format.create(
+            logger_time_format_id=logger_time_format_id,
+            logger_time_format_name=logger_time_format_name,
+            logger_time_format_description=logger_time_format_description,
+            logger_time_ids=logger_time_format_ids,
+            logger_time_id_types=logger_time_format_id_types
         )
-        for time_fmt, time_ids in logger_time_formats_ids.items():
-            Logger_time_format_by_logger_type.create(
-                logger_type_name=logger_type_name,
-                logger_time_format=time_fmt,
-                logger_time_ids=time_ids
-            )
+
         url = reverse('sites:index')
 
         return HttpResponseRedirect(url)
 
     context = {
-        'logger_type_name' : init_logger_type_name,
+        'logger_time_format_id' : logger_time_format_id,
+        'logger_time_format_name' : logger_time_format_name,
         'form' : form
     }
 
     return render(request, template, context)
 
-def manage_logger_type(request):
+def delete_logger_time_format(request):
     params = request.GET
-    init_logger_type_name = params.get('logger_type_name', '')
-    init_logger_type_form = dict
-    init_logger_time_formats = []
-    template = 'sites/manage_logger_type.html'
-
-    if init_logger_type_name:    #: Edit existing logger type
-        logger_type_data = LoggerData.get_logger(init_logger_type_name)
+    logger_time_format_id = params.get('logger_time_format_id', '')
+    logs_by_logger_time_format = LoggerData.get_logs_by_logger_time_format(logger_time_format_id)
+    for log in logs_by_logger_time_format:
+        log_id = log.get('log_id')
+        log_time_info_query = LoggerData.get_log_time_info(log_id)
         try:
-            logger_type_data = logger_type_data[0]
+            log_time_info_query = log_time_info_query[0]
         except IndexError:
             print("Index error!")
-        init_logger_description = logger_type_data.get('logger_type_description')
-        init_logger_time_formats = logger_type_data.get('logger_time_formats')
-
-        init_logger_type_form = {
-            'logger_type_name' : init_logger_type_name,
-            'logger_type_description' : init_logger_description,
-        }
-    else:   #: Add new logger type
-        init_logger_type_form = {}
-
-    form = ManageLoggerTypeForm(request.POST or None, initial=init_logger_type_form, init_logger_time_formats=init_logger_time_formats)
-
-    if form.is_valid():
-        logger_type_name = form.cleaned_data['logger_type_name']
-        logger_type_description = form.cleaned_data['logger_type_description']
-        logger_time_formats_ids = form.clean_time_formats()
-        logger_time_formats = list(logger_time_formats_ids.keys())
-
-        if init_logger_type_name:
-            try:
-                Logger_types(bucket=0, logger_type_name=init_logger_type_name).delete()
-                Logger_type_by_logger_type(logger_type_name=init_logger_type_name).delete()
-                Logger_time_format_by_logger_type(logger_type_name=init_logger_type_name).delete()
-            except:
-                print("Delete query failed!")
-
-        Logger_types.create(
-            bucket=0,
-            logger_type_name=logger_type_name,
-            logger_type_description=logger_type_description
-        )
-        Logger_type_by_logger_type.create(
-            logger_type_name=logger_type_name,
-            logger_type_description=logger_type_description,
-            logger_time_formats=logger_time_formats
-        )
-        for time_fmt, time_ids in logger_time_formats_ids.items():
-            Logger_time_format_by_logger_type.create(
-                logger_type_name=logger_type_name,
-                logger_time_format=time_fmt,
-                logger_time_ids=time_ids
-            )
-        url = reverse('sites:index')
-
-        return HttpResponseRedirect(url)
-
-    context = {
-        'logger_type_name' : init_logger_type_name,
-        'form' : form
-    }
-
-    return render(request, template, context)
-
-def delete_logger_type(request):
-    params = request.GET
-    logger_type_name = params.get('logger_type_name', '')
-    try:
-        Logger_types(bucket=0, logger_type_name=logger_type_name).delete()
-        Logger_type_by_logger_type(logger_type_name=logger_type_name).delete()
-        Logger_time_format_by_logger_type(logger_type_name=logger_type_name).delete()
-    except:
-        print("Delete query failed!")
+        try:
+            Logs_by_logger_time_format(logger_time_format_id=logger_time_format_id, log_id=log_id).delete()
+            Log_time_info_by_log(log_id=log_id).delete()
+            Logger_time_formats(bucket=0, logger_time_format_id=logger_time_format_id).delete()
+            Logger_time_format_by_logger_time_format(logger_time_format_id=logger_time_format_id)
+        except:
+            print("Delete logger time format query failed!")
 
     url = reverse('sites:index')
 
@@ -389,6 +360,7 @@ def manage_site(request):
         init_site_longitude = site_data.get('site_longitude')
 
         init_site_form = {
+            'site_id' : site_id,
             'site_name' : init_site_name,
             'site_description' : init_site_description,
             'site_latitude' : init_site_latitude,
@@ -453,6 +425,7 @@ def manage_location(request):
     params = request.GET
     site_id = params.get('site_id', '')
     site_name = params.get('site_name', '')
+    init_site_id_name = site_name + ": " + site_id
     location_id = params.get('location_id', '')
     location_name = params.get('location_name', '')
     init_location_form = dict
@@ -465,13 +438,15 @@ def manage_location(request):
         except IndexError:
             print("Index error!")
 
+
         init_location_name = location_data.get('location_name')
         init_location_latitude = location_data.get('location_latitude')
         init_location_longitude = location_data.get('location_longitude')
         init_location_description = location_data.get('location_description')
 
         init_location_form = {
-            'site_name' : site_name,
+            'site' : init_site_id_name,
+            'location_id' : location_id,
             'location_name' : init_location_name,
             'location_latitude' : init_location_latitude,
             'location_longitude' : init_location_longitude,
@@ -479,12 +454,7 @@ def manage_location(request):
         }
 
     else:   #: Add new location
-        try:
-            target_site = SiteData.get_site(site_id)[0]
-            site_name = target_site.get('site_name')
-            init_location_form = {'site_name' : site_name}
-        except IndexError:
-            print("Index error!")
+        init_location_form = {'site' : init_site_id_name}
 
     form = ManageLocationForm(request.POST or None, initial=init_location_form)
 
@@ -492,8 +462,6 @@ def manage_location(request):
         location_name = form.cleaned_data['location_name']
         location_description = form.cleaned_data['location_description']
         location_position = form.clean_gps_coordinates()
-        temp_location_name = location_name
-        temp_site_location = LocationData.get_all_locations(site_id, temp_location_name)
 
         if not location_id:
             location_id = uuid.uuid4()
@@ -551,7 +519,8 @@ def manage_log(request):
     location_id = params.get('location_id', '')
     location_name = params.get('location_name', '')
     log_id = params.get('log_id', '')
-    log_name = params.get('log_name', '')
+    init_log_name = params.get('log_name', '')
+    init_location_id_name = location_name + ": " + location_id
     init_log_form = dict
     template = 'sites/manage_log.html'
 
@@ -561,101 +530,48 @@ def manage_log(request):
             log_data = log_data[0]
         except IndexError:
             print("Index error!")
-        init_log_name = log_data.get('log_name')
         init_log_description = log_data.get('log_description')
         init_log_form = {
-            'location_name' : location_name,
+            'location' : init_location_id_name,
+            'log_id' : log_id,
             'log_name' : init_log_name,
             'log_description' : init_log_description
         }
 
     else:   #: Add new log
-        init_log_form = {'location_name' : location_name}
+        init_log_form = {'location' : init_location_id_name}
 
     form = ManageLogForm(request.POST or None, initial=init_log_form)
 
     if form.is_valid():
         log_name = form.cleaned_data['log_name']
         log_description = form.cleaned_data['log_description']
-        temp_log_name = log_name
-        temp_location_log = LogData.get_all_logs(location_id, temp_log_name)
-
-        log_file_path = None
-        log_file_line_num = 0
-        log_last_update = None
-        log_next_update = None
-        logger_type_name = None
-        logger_time_format = None
-        logger_time_ids = None
-        log_time_zone = None
-        log_parameters = None
-        log_reading_types = None
-
-        if not temp_location_log:
-
-            if not log_id:
-                log_id = uuid.uuid4()
-            else:
-                try:
-                    log_update_info_data = LogData.get_log_update_info(log_id)
-                    log_update_info_data = log_update_info_data[0]
-                    log_logger_type_info_data = LoggerData.get_log_time_info(log_id)
-                    log_logger_type_info_data = log_logger_type_info_data[0]
-                    log_parameters_info_data = LogData.get_log_parameters(log_id)
-                    log_parameters_info_data = log_parameters_info_data[0]
-                    log_file_path = log_update_info_data.get('log_file_path')
-                    log_file_line_num = log_update_info_data.get('log_file_line_num', 0)
-                    log_last_update = log_update_info_data.get('log_last_update')
-                    log_next_update = log_update_info_data.get('log_next_update')
-                    logger_type_name = log_logger_type_info_data.get('logger_type_name')
-                    logger_time_format = log_logger_type_info_data.get('logger_time_format')
-                    logger_time_ids = log_logger_type_info_data.get('logger_time_ids')
-                    log_time_zone = log_logger_type_info_data.get('log_time_zone')
-                    log_parameters = log_parameters_info_data.get('log_parameters')
-                    log_reading_types = log_parameters_info_data.get('log_reading_types')
-
-                except IndexError:
-                    print("Index error!")
-                Logs_by_location(location_id=location_id, log_name=log_name).delete()
-                Log_info_by_log(log_id=log_id).delete()
-                Log_file_info_by_log(log_id=log_id).delete()
-                Log_update_schedule_by_log(log_id=log_id).delete()
-                Log_time_info_by_log(log_id=log_id).delete()
-                Log_parameters_by_log(log_id=log_id).delete()
-
+        if not log_id:
+            log_id = uuid.uuid4()
             Logs_by_location.create(
                 location_id=location_id,
                 log_name=log_name,
-                log_id=log_id,
-                log_description=log_description
+                log_description=log_description,
+                log_id=log_id
             )
             Log_info_by_log.create(
                 log_id=log_id,
                 log_name=log_name,
                 log_description=log_description
             )
-            Log_file_info_by_log.create(
-                log_id=log_id,
-                log_file_path=log_file_path,
-                log_file_line_num=log_file_line_num
-            )
-            Log_update_schedule_by_log.create(
-                log_id=log_id,
-                log_last_update=log_last_update,
-                log_next_update=log_next_update
-            )
-            Log_time_info_by_log.create(
-                log_id=log_id,
-                logger_type_name=logger_type_name,
-                logger_time_format=logger_time_format,
-                logger_time_ids=logger_time_ids,
-                log_time_zone=log_time_zone
-            )
-            Log_parameters_by_log.create(
-                log_id=log_id,
-                log_parameters=log_parameters,
-                log_reading_types=log_reading_types,
-            )
+        else:
+            try:
+                Logs_by_location(location_id=location_id, log_name=init_log_name).update(
+                    log_name=log_name,
+                    log_description=log_description
+                )
+                Log_info_by_log(log_id=log_id).update(
+                    log_name=log_name,
+                    log_description=log_description
+                )
+            except:
+                print("Update query failed!")
+
         url = reverse('sites:location_logs')
         url += '?site_name=' + site_name
         url += '&location_id=' + MiscTools.uuid_to_str(location_id)
@@ -668,7 +584,7 @@ def manage_log(request):
         'location_id' : location_id,
         'location_name' : location_name,
         'log_id' : log_id,
-        'log_name' : log_name,
+        'log_name' : init_log_name,
         'form' : form
     }
 
@@ -710,12 +626,13 @@ def manage_log_update_info(request):
     location_name = params.get('location_name', '')
     log_id = params.get('log_id', '')
     log_name = params.get('log_name', '')
-    init_log_update_info_form = dict
-    template = 'sites/manage_log_update_info.html'
+
     log_update_info_data = LogData.get_log_update_info(log_id)
     log_file_info_data = LoggerData.get_log_time_info(log_id)
     log_parameters = LogData.get_log_parameters(log_id)
     init_logger_types = LoggerData.get_logger_info()
+    init_log_update_info_form = dict
+    template = 'sites/manage_log_update_info.html'
 
     try:
         log_update_info_data = log_update_info_data[0]

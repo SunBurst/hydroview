@@ -70,7 +70,7 @@
                 <ul class="dropdown-menu dropdown-sites">
                     <li class="dropdown-header">Installed Sites</li>
                     <li id="id-sitesDropdown" class="divider"></li>
-                    <li><a href="{% url 'sites:manage_site' %}"><i class="fa fa-plus fa-fw"></i> Add New Site</a></li>
+                    <li><a href="{% url 'sites:manage_site' %}"><i class="fa fa-plus fa-fw"></i> Add Site</a></li>
                 </ul>
             <!-- /.dropdown-sites -->
             </li>
@@ -83,34 +83,26 @@
                 <ul class="dropdown-menu dropdown-loggers">
                     <li class="dropdown-header">Installed QC:s</li>
                     <li id="id-qualityControlsDropdown" class="divider"></li>
-                    <li><a href="{% url 'sites:manage_quality_control' %}"><i class="fa fa-plus fa-fw"></i> Add New QC</a></li>
+                    <li><a href="{% url 'sites:manage_quality_control' %}"><i class="fa fa-plus fa-fw"></i> Add QC</a></li>
                 </ul>
                 <!-- /.dropdown-qcs -->
             </li>
             <!-- /.dropdown -->
-            <!-- /dropdown-loggers -->
+            <!-- /dropdown-loggerTimeFormats -->
             <li class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                     <i class="fa fa-list fa-fw"></i>  <i class="fa fa-caret-down"></i>
                 </a>
-                <ul class="dropdown-menu dropdown-loggers">
-                    <li class="dropdown-header">Installed Logger Types</li>
-                    <li id="id-loggersDropdown" class="divider"></li>
-                    <li>
-                        <a href="{% url 'sites:manage_logger_type' %}">
-                            <i class="fa fa-plus fa-fw"></i> Add New Logger Type
-                        </a>
-                    </li>
-                    <li class="divider"></li>
+                <ul class="dropdown-menu dropdown-loggerTimeFormats">
                     <li class="dropdown-header">Installed Logger Time Formats</li>
                     <li id="id-timeFormatsDropdown" class="divider"></li>
                     <li>
                         <a href="{% url 'sites:manage_logger_time_format' %}">
-                            <i class="fa fa-plus fa-fw"></i> Add New Logger Time Format
+                            <i class="fa fa-plus fa-fw"></i> Add Time Format
                         </a>
                     </li>
                 </ul>
-                <!-- /.dropdown-loggers -->
+                <!-- /.dropdown-loggerTimeFormats -->
             </li>
             <!-- /.dropdown -->
             <!-- /dropdown-users -->
@@ -189,7 +181,7 @@
                 $('#id-' + site.site_id + '-nav').append(
                     '<li>'
                         +'<a href=' + manageLocationUrl + '>'
-                            + '<i class="fa fa-plus fa-fw"></i> Add New Location</a>'
+                            + '<i class="fa fa-plus fa-fw"></i> Add Location</a>'
                     + '</li>'
                 );
                 jsonSiteLocationsDataUrl = jsonSiteLocationsUrl + '&site_id=' + site.site_id;
@@ -197,7 +189,7 @@
                     + '?site_id=' + site.site_id + '&site_name=' + site.site_name;
                 $('#id-sitesDropdown').before(
                     '<li>'
-                        + '<a href=' + manageSiteUrl + '><i class="fa fa-pencil fa-fw"></i>' + ' ' + site.site_name
+                        + '<a href=' + manageSiteUrl + '><i class="fa fa-edit fa-fw"></i>' + ' ' + site.site_name
                         + '</a>'
                     + '</li>'
                 );
@@ -232,7 +224,7 @@
                                     + '</li>'
                                     + '<li>'
                                         + '<a href="' + manageLocationUrl + '">'
-                                            + '<i class="fa fa-pencil fa-fw"></i> Manage Location'
+                                            + '<i class="fa fa-edit fa-fw"></i> Manage Location'
                                         + '</a>'
                                     + '</li>'
                                 + '</ul>'
@@ -242,29 +234,16 @@
                 });
             });
         });
-        var jsonLoggerTypesUrl = '{% url 'sites:load_all_logger_types_json' %}';
-        $.getJSON(jsonLoggerTypesUrl, function (allLoggerTypesData) {
-            $.each(allLoggerTypesData, function (i, loggerType) {
-                var manageLoggerTypeUrl = '{% url 'sites:manage_logger_type' %}';
-                manageLoggerTypeUrl += '?logger_type_name=' + loggerType.logger_type_name;
-                $('#id-loggersDropdown').before(
-                    '<li>'
-                        + '<a href=' + manageLoggerTypeUrl + '>'
-                            + '<i class="fa fa-pencil fa-fw"></i>' + ' ' + loggerType.logger_type_name
-                        + '</a>'
-                    + '</li>'
-                );
-            });
-        });
-        var jsonLoggerTimeFormatsUrl = '{% url 'sites:load_all_logger_time_formats_json' %}';
-        $.getJSON(jsonLoggerTimeFormatsUrl, function (allLoggerTimeFormatsData) {
-            $.each(allLoggerTimeFormatsData, function (i, timeFormat) {
-                var manageLoggerTimeFormatUrl = '{% url 'sites:manage_logger_time_format' %}';
-                manageLoggerTimeFormatUrl += '?logger_time_format=' + timeFormat.logger_time_format;
+        var jsonLoggerTimeFormatsUrl = '{% url 'sites:load_all_logger_time_formats_json' %}' + '?json_request=' + true;
+        $.getJSON(jsonLoggerTimeFormatsUrl, function (allTimeFormatsData) {
+            $.each(allTimeFormatsData, function (i, timeFormat) {
+                var manageLoggerTimeFormatUrl = '{% url 'sites:manage_logger_time_format' %}'
+                    + '?logger_time_format_id=' + timeFormat.logger_time_format_id
+                    + '&logger_time_format_name=' + timeFormat.logger_time_format_name;
                 $('#id-timeFormatsDropdown').before(
                     '<li>'
-                        + '<a href=' + manageLoggerTimeFormatUrl + '>'
-                            + '<i class="fa fa-pencil fa-fw"></i>' + ' ' + timeFormat.logger_time_format
+                        + '<a href="' + manageLoggerTimeFormatUrl + '">'
+                            + '<i class="fa fa-edit fa-fw"></i>' + ' ' + timeFormat.logger_time_format_name
                         + '</a>'
                     + '</li>'
                 );
@@ -278,7 +257,7 @@
                 $('#id-qualityControlsDropdown').before(
                     '<li>'
                         + '<a href=' + manageQualityControlUrl + '>'
-                            + '<i class="fa fa-pencil fa-fw"></i>' + ' ' + QC.qc_level + ': ' + QC.qc_name
+                            + '<i class="fa fa-edit fa-fw"></i>' + ' ' + QC.qc_level + ': ' + QC.qc_name
                         + '</a>'
                     + '</li>'
                 );

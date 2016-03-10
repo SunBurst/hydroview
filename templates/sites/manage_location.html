@@ -2,13 +2,27 @@
 
 {% load crispy_forms_tags %}
 
+{% block title %} {{ site_name }}/{{ location_name }} {% endblock %}
+
 {% block heading %}<h1 class="page-header"></h1>{% endblock %}
+
+{% block extracss %}
+    <style>
+        .clickableSpan {
+            cursor: pointer;
+            cursor: hand;
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
     <div class="row">
         <div class="col-lg-6">
             <div class="panel panel-default">
-                <div class="panel-heading">Location Info</div>
+                <div class="panel-heading">
+                    <h4 class="panel-title">Location Info
+                    </h4>
+                </div>
                 <div class="panel-body">{% crispy form %}</div>
             </div>
             <!-- /.panel-body -->
@@ -18,16 +32,22 @@
     <!-- /.row -->
 
     <!-- Modal -->
-    <div class="modal fade" id="id-deleteLocationModal" tabindex="-1" role="dialog" aria-labelledby="id-deleteLocationModalLabel" aria-hidden="true">
+    <div class="modal fade" id="id-deleteLocationModal" tabindex="-1" role="dialog"
+        aria-labelledby="id-deleteLocationModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="id-deleteLocationModalLabel"><i class="fa fa-warning fa-fw"></i> Attention</h4>
+                    <h4 class="modal-title" id="id-deleteLocationModalLabel">
+                        <i class="fa fa-warning fa-fw"></i> Attention
+                    </h4>
                 </div>
                 <div class="modal-body">Delete this location? This operation cannot be undone!</div>
                 <div class="modal-footer">
-                    <a href="{% url 'sites:delete_location' %}?site_id={{ site_id }}&location_id={{ location_id }}&location_name={{ location_name }}" class="btn btn-default" role="button">OK</a>
+                    <a href="{% url 'sites:delete_location' %}?site_id={{ site_id }}
+                        &location_id={{ location_id }}&location_name={{ location_name }}"
+                        class="btn btn-default" role="button">OK
+                    </a>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
                 <!-- /.modal-footer -->
@@ -45,14 +65,18 @@
         var redirectToIndexUrl = '{% url 'sites:index' %}';
         var locationName = '{{ location_name }}';
 
-        if (!locationName) {
-            $('#id-deleteBtn').hide();
-            $('.page-header').text("Add New Location");
+        if (locationName) {
+            $('.page-header').text("Manage Location: " + locationName);
+            $('.panel-title').append(
+                '<span id="id-deleteLocationSpan" class="clickableSpan">'
+                    + '<i class="fa fa-trash-o fa-fw pull-right"></i>'
+                + '</span>'
+            );
+            $('#id-deleteLocationSpan').attr('data-toggle', "modal");
+            $('#id-deleteLocationSpan').attr('data-target', "#id-deleteLocationModal");
         }
         else {
-            $('.page-header').text("Manage Location: " + locationName);
-            $('#id-deleteBtn').attr('data-toggle', "modal");
-            $('#id-deleteBtn').attr('data-target', "#id-deleteLocationModal");
+            $('.page-header').text("Add New Location");
         }
         $('#id-cancelBtn').on('click', function () {
             document.location.href = redirectToIndexUrl;

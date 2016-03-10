@@ -9,63 +9,21 @@ from crispy_forms.bootstrap import FormActions
 from settings.settings import TIME_ZONE
 from utils.tools import MiscTools
 
-class ManageLoggerTypeForm(forms.Form):
-    logger_type_name = forms.CharField(label='Logger Type', required=True)
-    logger_type_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
-
-    def __init__(self, *args, **kwargs):
-        init_logger_time_formats = kwargs.pop('init_logger_time_formats')
-        super(ManageLoggerTypeForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_id = 'id-manageLoggerTypeForm'
-        self.helper.form_method = 'post'
-        self.helper.layout = Layout(
-            Fieldset(
-                'Basic Info',
-                Field('logger_type_name'),
-                Field('logger_type_description'),
-            ),
-            Fieldset(
-                'Logger Type Time Formats',
-            ),
-            FormActions(
-                Submit('save', 'Save', css_class="btn-primary"),
-                Reset('reset', 'Reset', css_class="btn-default"),
-                Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default"),
-                Button('delete', 'Delete', css_id="id-deleteBtn", css_class="btn-danger pull-right")
-            )
-        )
-
-        self.LOGGER_TIME_FORMATS = MiscTools.get_init_time_formats()
-
-        for time_fmt, time_fmt_placeholder in self.LOGGER_TIME_FORMATS.items():
-            init_bool_val = False
-            if time_fmt in init_logger_time_formats:
-                init_bool_val = True
-            self.fields[time_fmt] = forms.BooleanField(
-                label=time_fmt,
-                initial=init_bool_val,
-                required=False
-            )
-            self.helper.layout[1].append(
-                Field(time_fmt)
-            )
-
-    def clean_time_formats(self):
-        cleaned_time_fmts = {}
-        for name, value in self.cleaned_data.items():
-            if name in self.LOGGER_TIME_FORMATS.keys():
-                if value:
-                    cleaned_time_fmts[name] = self.LOGGER_TIME_FORMATS.get(name)
-        return cleaned_time_fmts
-
 class ManageLoggerTimeFormatForm(forms.Form):
     MAX_TIME_IDS = 5
-    logger_time_format = forms.CharField(label='Logger Time Format', required=True)
+    TIME_ID_TYPES = {
+        'int_year' : 'Integer (Year)',
+        'int_julday' : 'Integer (Julian Day)',
+        'int_hourminute' : 'Integer (HourMinute)',
+        'timetamp' : 'Timestamp (YYYY-MM-DD HH:MM:SS)',
+        'timestamp_tz' : 'Timestamp (YYYY-MM-DD HH:MM:SS+ZZZZ)'
+    }
+    logger_time_format_name = forms.CharField(label='Logger Time Format Name', required=True)
     logger_time_format_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
 
     def __init__(self, *args, **kwargs):
         init_logger_time_ids = kwargs.pop('init_time_ids')
+        init_logger_time_id_types = kwargs.pop('init_time_id_types')
         super(ManageLoggerTimeFormatForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_id = 'id-manageLoggerTimeFormatForm'
@@ -73,7 +31,7 @@ class ManageLoggerTimeFormatForm(forms.Form):
         self.helper.layout = Layout(
             Fieldset(
                 'Basic Info',
-                Field('logger_time_format'),
+                Field('logger_time_format_name'),
                 Field('logger_time_format_description'),
             ),
             Fieldset(
@@ -87,43 +45,72 @@ class ManageLoggerTimeFormatForm(forms.Form):
             )
         )
 
-        #self.fields['logger_time_ids'] = ", ".join(init_logger_time_ids)
-        #self.LOGGER_TIME_FORMATS = MiscTools.get_init_time_formats()
-        for time_id_field in range(self.MAX_TIME_IDS):
-            self.fields['time_format_id_%s' % time_id_field] = forms.CharField(
-                label='Time Identifier %s' % (time_id_field + 1)
-            )
-        for i, init_time_id_field in enumerate(init_logger_time_ids):
-            self.fields['time_format_id_%s' % (i)] =  forms.CharField(
-                label='Time Identifier %s' % (i + 1),
-                initial=init_time_id_field
-            )
-        #for time_fmt, time_fmt_placeholder in self.LOGGER_TIME_FORMATS.items():
-        #    init_bool_val = False
-        #    if time_fmt in init_logger_time_formats:
-        #        init_bool_val = True
-        #    self.fields[time_fmt] = forms.BooleanField(
-        #        label=time_fmt,
-        #        initial=init_bool_val,
-        #        required=False
-        #    )
-        #    self.helper.layout[1].append(
-        #        Field(time_fmt)
-        #    )
+        TIME_ID_TYPE_CHOICES = (('disabled', ''),)
+        for name, description in self.TIME_ID_TYPES.items():
+            TIME_ID_TYPE_CHOICES = TIME_ID_TYPE_CHOICES + ((name, description,),)
+
+        if (init_logger_time_ids and init_logger_time_id_types):
+            num_of_init_fields = 0
+            for i, init_time_id_field in enumerate(init_logger_time_ids):
+                self.fields['time_format_id_{0}'.format(i)] =  forms.CharField(
+                    label='Time Identifier {0}'.format(i + 1),
+                    initial=init_time_id_field,
+                    required=False
+                )
+                init_time_id_type_field = init_logger_time_id_types.get(init_time_id_field)
+                self.fields['time_format_type_id_{0}'.format(i)] = forms.ChoiceField(
+                    label='Time Identifier {0} type'.format(i + 1),
+                    choices=TIME_ID_TYPE_CHOICES,
+                    initial=init_time_id_type_field,
+                    required=False
+                )
+                self.helper.layout[1].append(Field('time_format_id_{0}'.format(i)))
+                self.helper.layout[1].append(Field('time_format_type_id_{0}'.format(i)))
+                num_of_init_fields += 1
+
+            while (num_of_init_fields < self.MAX_TIME_IDS):
+                self.fields['time_format_id_{0}'.format(num_of_init_fields)] = forms.CharField(
+                    label='Time Identifier {0}'.format(num_of_init_fields + 1),
+                    required=False
+                    )
+                self.fields['time_format_type_id_{0}'.format(num_of_init_fields)] = forms.ChoiceField(
+                    label='Time Identifier {0} type'.format(num_of_init_fields + 1),
+                    choices=TIME_ID_TYPE_CHOICES,
+                    initial='inactive',
+                    required=False
+                )
+                self.helper.layout[1].append(Field('time_format_id_{0}'.format(num_of_init_fields)))
+                self.helper.layout[1].append(Field('time_format_type_id_{0}'.format(num_of_init_fields)))
+                num_of_init_fields += 1
+        else:
+            for time_id_field in range(self.MAX_TIME_IDS):
+                self.fields['time_format_id_{0}'.format(time_id_field)] = forms.CharField(
+                    label='Time Identifier {0}'.format(time_id_field + 1),
+                    required=False
+                )
+                self.fields['time_format_type_id_{0}'.format(time_id_field)] = forms.ChoiceField(
+                    label='Time Identifier {0} type'.format(time_id_field + 1),
+                    choices=TIME_ID_TYPE_CHOICES,
+                    initial='inactive',
+                    required=False
+                )
+                self.helper.layout[1].append(Field('time_format_id_{0}'.format(time_id_field)))
+                self.helper.layout[1].append(Field('time_format_type_id_{0}'.format(time_id_field)))
 
     def clean_time_ids(self):
-        for name, value in self.cleaned_data.items():
-            if (name.startswith('time_format_id_')):
-                print(value)
-        return None
-
-    #def clean_time_formats(self):
-    #    cleaned_time_fmts = {}
-    #    for name, value in self.cleaned_data.items():
-    #        if name in self.LOGGER_TIME_FORMATS.keys():
-    #            if value:
-    #                cleaned_time_fmts[name] = self.LOGGER_TIME_FORMATS.get(name)
-    #    return cleaned_time_fmts
+        time_format_id_positions = {}
+        time_format_id_types = {}
+        for field, value in self.cleaned_data.items():
+            for i in range(self.MAX_TIME_IDS):
+                if (field == 'time_format_id_{0}'.format(i) and value):
+                    time_format_id_positions[i] = value
+        for field, value in self.cleaned_data.items():
+            for i in range(self.MAX_TIME_IDS):
+                if (field == 'time_format_type_id_{0}'.format(i) and i in time_format_id_positions):
+                    time_id_name = time_format_id_positions.get(i)
+                    time_format_id_types[time_id_name] = value
+        time_format_ids_order = [val for key, val in time_format_id_positions.items()]
+        return time_format_ids_order, time_format_id_types
 
 class ManageQCForm(forms.Form):
     qc_level = forms.IntegerField(label='Quality Control Level', required=True)
@@ -151,6 +138,7 @@ class ManageQCForm(forms.Form):
         )
 
 class ManageSiteForm(forms.Form):
+    site_id = forms.CharField(label='Site ID', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=False)
     site_name = forms.CharField(label='Site', required=True)
     site_latitude = forms.FloatField(label='Latitude (WGS 84)', required=False)
     site_longitude = forms.FloatField(label='Longitude (WGS 84)', required=False)
@@ -163,6 +151,7 @@ class ManageSiteForm(forms.Form):
         self.helper.form_id = 'id-manageSiteForm'
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
+            Field('site_id'),
             Field('site_name'),
             Field('site_latitude'),
             Field('site_longitude'),
@@ -171,8 +160,7 @@ class ManageSiteForm(forms.Form):
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
                 Reset('reset', 'Reset', css_class="btn-default"),
-                Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default"),
-                Button('delete', 'Delete', css_id="id-deleteBtn", css_class="btn-danger pull-right")
+                Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default pull-right"),
             )
         )
 
@@ -186,7 +174,13 @@ class ManageSiteForm(forms.Form):
         return position
 
 class ManageLocationForm(forms.Form):
-    site_name = forms.CharField(label='Site', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=True)
+
+    site = forms.CharField(label='Site', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=False)
+    location_id = forms.CharField(
+        label='Location ID',
+        widget=forms.TextInput(attrs={'readonly':'readonly'}),
+        required=False
+    )
     location_name = forms.CharField(label='Location', required=True)
     location_latitude = forms.FloatField(label='Latitude (WGS 84)', required=False)
     location_longitude = forms.FloatField(label='Longitude (WGS 84)', required=False)
@@ -199,7 +193,8 @@ class ManageLocationForm(forms.Form):
         self.helper.form_id = 'id-manageLocationForm'
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
-            Field('site_name'),
+            Field('site'),
+            Field('location_id'),
             Field('location_name'),
             Field('location_latitude'),
             Field('location_longitude'),
@@ -208,8 +203,7 @@ class ManageLocationForm(forms.Form):
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
                 Reset('reset', 'Reset', css_class="btn-default"),
-                Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default"),
-                Button('delete', 'Delete', css_id="id-deleteBtn", css_class="btn-danger pull-right")
+                Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default pull-right"),
             )
         )
 
@@ -223,8 +217,13 @@ class ManageLocationForm(forms.Form):
         return position
 
 class ManageLogForm(forms.Form):
-    location_name = forms.CharField(
-        label='Location', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=True
+    location = forms.CharField(
+        label='Location', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=False
+    )
+    log_id = forms.CharField(
+        label='Log ID',
+        widget=forms.TextInput(attrs={'readonly':'readonly'}),
+        required=False
     )
     log_name = forms.CharField(label='Log', required=True)
     log_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
@@ -235,15 +234,15 @@ class ManageLogForm(forms.Form):
         self.helper.form_id = 'id-manageLogForm'
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
-            Field('location_name'),
+            Field('location'),
+            Field('log_id'),
             Field('log_name'),
             Field('log_description'),
 
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
                 Reset('reset', 'Reset', css_class="btn-default"),
-                Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default"),
-                Button('delete', 'Delete', css_id="id-deleteBtn", css_class="btn-danger pull-right")
+                Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default pull-right"),
             )
         )
 

@@ -110,36 +110,26 @@ class Log_quality_control_schedule_by_log(models.Model):
     log_last_quality_control = columns.DateTime()
     log_next_quality_control = columns.DateTime()
 
-class Logger_types(models.Model):
-    bucket = columns.Integer(primary_key=True, default=0)
-    logger_type_name = columns.Text(primary_key=True, clustering_order="ASC")
-    logger_type_description = columns.Text()
-
 class Logger_time_formats(models.Model):
     bucket = columns.Integer(primary_key=True, default=0)
-    logger_time_format = columns.Text(primary_key=True, clustering_order="ASC")
-    logger_time_format_description = columns.Text()
+    logger_time_format_id = columns.UUID(primary_key=True)
+    logger_time_format_name = columns.Text(primary_key=True, clustering_order="ASC")
+    logger_time_format_description = columns.Text(default=None)
 
 class Logger_time_format_by_logger_time_format(models.Model):
-    logger_time_format = columns.Text(primary_key=True)
-    logger_time_format_description = columns.Text()
+    logger_time_format_id =  columns.UUID(primary_key=True)
+    logger_time_format_name = columns.Text()
+    logger_time_format_description = columns.Text(default=None)
     logger_time_ids = columns.List(columns.Text)
+    logger_time_id_types = columns.Map(columns.Text, columns.Text)
 
-class Logger_type_by_logger_type(models.Model):
-    logger_type_name = columns.Text(primary_key=True)
-    logger_type_description = columns.Text()
-    logger_time_formats = columns.List(columns.Text)
-
-class Logger_time_format_by_logger_type(models.Model):
-    logger_type_name = columns.Text(primary_key=True, partition_key=True)
-    logger_time_format = columns.Text(primary_key=True, clustering_order="ASC")
-    logger_time_format_description = columns.Text()
-    logger_time_ids = columns.List(columns.Text)
-    log_ids = columns.List(columns.UUID())
+class Logs_by_logger_time_format(models.Model):
+    logger_time_format_id = columns.UUID(primary_key=True)
+    log_id = columns.UUID(primary_key=True, clustering_order="ASC")
 
 class Log_time_info_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
-    logger_type_name = columns.Text()
-    logger_time_format = columns.Text()
-    logger_time_ids = columns.List(columns.Text)
+    logger_time_format_id = columns.UUID()
+    logger_time_format_name = columns.Text()
+    log_time_ids = columns.List(columns.Text)
     log_time_zone = columns.Text()
