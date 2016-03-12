@@ -34,6 +34,11 @@ urlpatterns = [
         name='load_log_time_info_json',
     ),
     url(
+        regex=r'^load_log_file_info_json/$',
+        view=views.load_log_file_info_json,
+        name='load_log_file_info_json',
+    ),
+    url(
         regex=r'^load_log_parameters_info_json/$',
         view=views.load_log_parameters_info_json,
         name='load_log_parameters_info_json',

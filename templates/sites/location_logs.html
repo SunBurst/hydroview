@@ -173,7 +173,7 @@
                                 $('id-' + logId + '-updateInfoNextUpdate').text(nextUpdate)
                             }
                             if (lastUpdate) {$('id-' + logId + '-updateInfoLastUpdate').text(lastUpdate)}
-                            if (updateInterval) {{$('id-' + logId + '-updateInfoUpdateInterval').text(updateInterval)}
+                            if (updateInterval) {$('id-' + logId + '-updateInfoUpdateInterval').text(updateInterval)}
                             if (filePath) {$('id-' + logId + '-updateInfoFilePath').text(filePath)}
                             if (lineNum) {$('id-' + logId + '-updateInfoFilePath').text(lineNum)}
                         });
@@ -202,8 +202,8 @@
                         + '</div>'
                     );
 
-                    var jsonLogTimeInfoUrl = '{% url 'sites:load_log_time_info_json' %}'
-                        + '?log_id=' + logId;
+                    var jsonLogTimeInfoUrl = '{% url 'sites:load_log_time_info_json' %}' + '?json_request=' + true
+                        + '&log_id=' + logId;
                     $.getJSON(jsonLogTimeInfoUrl, function (LogTimeInfoData) {
                         $.each(LogTimeInfoData, function (j, log_time_info) {
                             var loggerTimeFormat = log_time_info.logger_time_format_name;

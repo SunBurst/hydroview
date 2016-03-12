@@ -67,18 +67,23 @@ class LoggerData(object):
         return logs_data
 
     @classmethod
-    def get_log_time_info(cls, log_id):
+    def get_log_time_info(cls, log_id, json_request=None):
         """
         Return log time info or an empty list if not found.
 
         Keyword arguments:
         log_id -- log identifier (UUID)
+        json_request -- if true, convert uuid to string representation (bool).
         """
         log_time_info_data = []
         log_time_info_data_query = Log_time_info_by_log.objects.filter(log_id=log_id)
         for row in log_time_info_data_query:
+            if json_request:
+                logger_time_format_id = MiscTools.uuid_to_str(row.logger_time_format_id)
+            else:
+                logger_time_format_id = row.logger_time_format_id
             log = {
-                'logger_time_format_id' : row.logger_time_format_id,
+                'logger_time_format_id' : logger_time_format_id,
                 'logger_time_format_name' : row.logger_time_format_name,
                 'log_time_ids' : row.log_time_ids,
                 'log_time_zone' : row.log_time_zone

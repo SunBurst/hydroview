@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Button, Div, Field, Fieldset, Layout, Reset, Submit
-from crispy_forms.bootstrap import FormActions
+from crispy_forms.bootstrap import FormActions, Tab, TabHolder
 
 from settings.settings import TIME_ZONE
 from utils.tools import MiscTools
@@ -258,8 +258,17 @@ class ManageLogUpdateInfoForm(forms.Form):
         'profile_reading' : 'Profile Reading',
         'status_parameter_reading' : 'Status Parameter Reading',
     })
-    log_file_path = forms.CharField(label='File Path', required=True)
-    log_file_line_num = forms.IntegerField(label='Last Inserted Line Number', required=False)
+    log_file_path = forms.CharField(
+        label='Log File Path',
+        widget=forms.TextInput(attrs={'readonly':'readonly'}),
+        required=False
+    )
+    log_file_path_browser = forms.FileField(
+        label='Browse File',
+        required=False
+    )
+
+    log_file_line_num = forms.IntegerField(label='Last Inserted Line Number', min_value=0, required=False)
     update_is_active = forms.BooleanField(label='Automatic Updating is Active', initial=False, required=False)
 
     UPDATE_INTERVAL_CHOICES=(
@@ -291,24 +300,27 @@ class ManageLogUpdateInfoForm(forms.Form):
         self.helper.form_id = 'id-manageLogUpdateInfoForm'
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
-            Fieldset(
-                'File Info',
-                Field('log_file_path'),
-                Field('log_file_line_num'),
-            ),
-            Fieldset(
-                'Update Routine',
-                Field('update_is_active', css_id="id-updateIsActiveField"),
-                Field('update_interval', css_id="id-updateIntervalField"),
-                Field('daily_interval', css_id="id-updateIntervalDailyField"),
-                Field('hourly_interval', css_id="id-updateIntervalHourlyField"),
-            ),
-            Fieldset(
-                'Time Info',
-                Field('log_time_zone'),
-            ),
-            Fieldset(
-                'Parameters',
+            TabHolder(
+                Tab(
+                    'Update Info',
+                    Field('update_is_active', css_id="id-updateIsActiveField"),
+                    Field('update_interval', css_id="id-updateIntervalField"),
+                    Field('daily_interval', css_id="id-updateIntervalDailyField"),
+                    Field('hourly_interval', css_id="id-updateIntervalHourlyField"),
+                ),
+                Tab(
+                    'File Info',
+                    Field('log_file_path'),
+                    Field('log_file_path_browser'),
+                    Field('log_file_line_num'),
+                ),
+                Tab(
+                    'Time Info',
+                    Field('log_time_zone'),
+                ),
+                Tab(
+                    'Parameters',
+                ),
             ),
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
@@ -342,8 +354,8 @@ class ManageLogUpdateInfoForm(forms.Form):
             required=False
         )
 
-        self.helper.layout[2].append(Field('logger_time_format', css_id="id-loggerTimeFormatField"))
-        self.helper.layout[2].append(Field('logger_time_format_time_ids', css_id="id-loggerTimeFormatIdsField"))
+        self.helper.layout[0][2].append(Field('logger_time_format', css_id="id-loggerTimeFormatField"))
+        self.helper.layout[0][2].append(Field('logger_time_format_time_ids', css_id="id-loggerTimeFormatIdsField"))
 
         if init_log_time_ids:
             num_of_init_fields = 0
@@ -353,7 +365,7 @@ class ManageLogUpdateInfoForm(forms.Form):
                     initial=init_log_time_id_field,
                     required=False
                 )
-                self.helper.layout[2].append(Field('log_time_format_time_id_{0}'.format(i)))
+                self.helper.layout[0][2].append(Field('log_time_format_time_id_{0}'.format(i)))
                 num_of_init_fields += 1
 
             while (num_of_init_fields < self.MAX_TIME_IDS):
@@ -361,7 +373,7 @@ class ManageLogUpdateInfoForm(forms.Form):
                     label='Log Time Identifier {0}'.format(num_of_init_fields + 1),
                     required=False
                     )
-                self.helper.layout[2].append(Field('log_time_format_time_id_{0}'.format(num_of_init_fields)))
+                self.helper.layout[0][2].append(Field('log_time_format_time_id_{0}'.format(num_of_init_fields)))
                 num_of_init_fields += 1
         else:
             for log_time_id_field in range(self.MAX_TIME_IDS):
@@ -369,7 +381,7 @@ class ManageLogUpdateInfoForm(forms.Form):
                     label='Log Time Identifier {0}'.format(log_time_id_field + 1),
                     required=False
                 )
-                self.helper.layout[2].append(Field('log_time_format_time_id_{0}'.format(log_time_id_field)))
+                self.helper.layout[0][2].append(Field('log_time_format_time_id_{0}'.format(log_time_id_field)))
 
         PARAMETER_READING_TYPE_CHOICES = (('disabled', ''),)
         for name, description in self.PARAMETER_READING_TYPES.items():
@@ -378,7 +390,7 @@ class ManageLogUpdateInfoForm(forms.Form):
             num_of_init_fields = 0
             for i, init_log_param_field in enumerate(init_log_parameters):
                 self.fields['parameter_{0}'.format(i)] =  forms.CharField(
-                    label='Parameter {0}'.format(i + 1),
+                    label='Parameter {0} Name'.format(i + 1),
                     initial=init_log_param_field,
                     required=False
                 )
@@ -389,13 +401,13 @@ class ManageLogUpdateInfoForm(forms.Form):
                     initial=init_log_param_type_field,
                     required=False
                 )
-                self.helper.layout[3].append(Field('parameter_{0}'.format(i)))
-                self.helper.layout[3].append(Field('reading_type_{0}'.format(i)))
+                self.helper.layout[0][3].append(Field('parameter_{0}'.format(i)))
+                self.helper.layout[0][3].append(Field('reading_type_{0}'.format(i)))
                 num_of_init_fields += 1
 
             while (num_of_init_fields < self.MAX_PARAMETERS):
                 self.fields['parameter_{0}'.format(num_of_init_fields)] = forms.CharField(
-                    label='Parameter {0}'.format(num_of_init_fields + 1),
+                    label='Parameter {0} Name'.format(num_of_init_fields + 1),
                     required=False
                     )
                 self.fields['reading_type_{0}'.format(num_of_init_fields)] = forms.ChoiceField(
@@ -404,13 +416,13 @@ class ManageLogUpdateInfoForm(forms.Form):
                     initial='disabled',
                     required=False
                 )
-                self.helper.layout[3].append(Field('parameter_{0}'.format(num_of_init_fields)))
-                self.helper.layout[3].append(Field('reading_type_{0}'.format(num_of_init_fields)))
+                self.helper.layout[0][3].append(Field('parameter_{0}'.format(num_of_init_fields)))
+                self.helper.layout[0][3].append(Field('reading_type_{0}'.format(num_of_init_fields)))
                 num_of_init_fields += 1
         else:
             for param_field in range(self.MAX_PARAMETERS):
                 self.fields['parameter_{0}'.format(param_field)] = forms.CharField(
-                    label='Parameter {0}'.format(param_field + 1),
+                    label='Parameter {0} Name'.format(param_field + 1),
                     required=False
                 )
                 self.fields['reading_type_{0}'.format(param_field)] = forms.ChoiceField(
@@ -419,8 +431,8 @@ class ManageLogUpdateInfoForm(forms.Form):
                     initial='disabled',
                     required=False
                 )
-                self.helper.layout[3].append(Field('parameter_{0}'.format(param_field)))
-                self.helper.layout[3].append(Field('reading_type_{0}'.format(param_field)))
+                self.helper.layout[0][3].append(Field('parameter_{0}'.format(param_field)))
+                self.helper.layout[0][3].append(Field('reading_type_{0}'.format(param_field)))
 
     def get_next_update(self):
         is_active = self.cleaned_data['update_is_active']

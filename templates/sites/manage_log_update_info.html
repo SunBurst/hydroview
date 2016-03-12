@@ -30,7 +30,7 @@
         var siteName = '{{ site_name }}';
         var locationId = '{{ location_id }}';
         var locationName = '{{ location_name }}';
-        var logId = '{{ log_id }}'
+        var logId = '{{ log_id }}';
         var logName = '{{ log_name }}';
 
         redirectToLocationUrl += '?site_name=' + siteName + '&location_id=' + locationId
@@ -65,6 +65,13 @@
                     }
                 }
             });
+        }
+
+        function checkInitFilePath() {
+            logFilePath = $('#id_log_file_path').val();
+            if (!logFilePath) {
+                $('#id_log_file_path').parents('div .form-group').hide();
+            }
         }
 
         function checkInitTimeFormat() {
@@ -133,8 +140,9 @@
             }
         });
 
-    checkInitTimeFormat();
     checkInitUpdateInterval();
+    checkInitTimeFormat();
+    checkInitFilePath();
     });
     </script>
 {% endblock %}

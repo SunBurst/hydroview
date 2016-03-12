@@ -111,8 +111,15 @@ def load_log_update_info_json(request):
 def load_log_time_info_json(request):
     params = request.GET
     log_id = params.get('log_id', '')
-    log_time_info_data = LoggerData.get_log_time_info(log_id)
+    json_request = params.get('json_request', '')
+    log_time_info_data = LoggerData.get_log_time_info(log_id, json_request)
     return HttpResponse(json.dumps(log_time_info_data), content_type='application/json')
+
+def load_log_file_info_json(request):
+    params = request.GET
+    log_id = params.get('log_id', '')
+    log_file_info_data = LogData.get_log_file_info(log_id)
+    return HttpResponse(json.dumps(log_file_info_data), content_type='application/json')
 
 def load_log_parameters_info_json(request):
     params = request.GET
@@ -743,6 +750,7 @@ def manage_log_update_info(request):
         'site_name' : site_name,
         'location_id' : location_id,
         'location_name' : location_name,
+        'log_id' : log_id,
         'log_name' : log_name,
         'form' : form
     }
