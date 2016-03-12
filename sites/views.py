@@ -141,6 +141,12 @@ def load_all_logger_time_formats_json(request):
     logger_time_formats_data = LoggerData.get_all_logger_time_formats(json_request)
     return HttpResponse(json.dumps(logger_time_formats_data), content_type='application/json')
 
+def load_logger_time_format_json(request):
+    params = request.GET
+    logger_time_format_id = params.get('logger_time_format_id', '')
+    logger_time_format_data = LoggerData.get_logger_time_format(logger_time_format_id)
+    return HttpResponse(json.dumps(logger_time_format_data), content_type='application/json')
+
 def load_all_quality_controls_json(request):
     quality_controls_data = QCData.get_all_qcs()
     return HttpResponse(json.dumps(quality_controls_data), content_type='application/json')
@@ -627,75 +633,111 @@ def manage_log_update_info(request):
     log_id = params.get('log_id', '')
     log_name = params.get('log_name', '')
 
-    log_update_info_data = LogData.get_log_update_info(log_id)
-    log_file_info_data = LoggerData.get_log_time_info(log_id)
-    log_parameters = LogData.get_log_parameters(log_id)
-    init_logger_types = LoggerData.get_logger_info()
+    all_logger_time_formats_data = LoggerData.get_all_logger_time_formats()
+
+    log_file_info_data = LogData.get_log_file_info(log_id)
+    log_update_info_data = LogData.get_log_updates(log_id)
+    log_parameters_info_data = LogData.get_log_parameters(log_id)
+    log_time_info_data = LogData.get_log_time_info(log_id)
     init_log_update_info_form = dict
     template = 'sites/manage_log_update_info.html'
 
+    init_log_file_path = None
+    init_log_file_line_num = 0
+    init_log_update_interval = None
+    init_log_last_update = None
+    init_log_next_update = None
+    init_log_parameters = None
+    init_log_reading_types = None
+    init_logger_time_format_id = 'disabled'
+    init_logger_time_format_name = None
+    init_log_time_ids = None
+    init_log_time_zone = None
+    init_daily_interval = None
+    init_hourly_interval = None
+
     try:
-        log_update_info_data = log_update_info_data[0]
         log_file_info_data = log_file_info_data[0]
-        log_parameters = log_parameters[0]
+        init_log_file_path = log_file_info_data.get('log_file_path')
+        init_log_file_line_num = log_file_info_data.get('log_file_line_num')
     except IndexError:
         print("Index error!")
+    try:
+        log_update_info_data = log_update_info_data[0]
+        init_log_update_interval = log_update_info_data.get('log_update_interval')
+        init_log_last_update = log_update_info_data.get('log_last_update')
+        init_log_next_update = log_update_info_data.get('log_next_update')
+    except IndexError:
+        print("Index error!")
+    try:
+        log_parameters_info_data = log_parameters_info_data[0]
+        init_log_parameters = log_parameters_info_data.get('log_parameters')
+        init_log_reading_types = log_parameters_info_data.get('log_reading_types')
+    except IndexError:
+        print("Index error!")
+    try:
+        log_time_info_data = log_time_info_data[0]
+        init_logger_time_format_id = log_time_info_data.get('logger_time_format_id')
+        init_logger_time_format_name = log_time_info_data.get('logger_time_format_name')
+        init_log_time_ids = log_time_info_data.get('log_time_ids')
+        init_log_time_zone = log_time_info_data.get('log_time_zone')
+    except:
+        print("Index error!")
 
-    init_log_last_update = log_update_info_data.get('log_last_update')
-    init_log_next_update = log_update_info_data.get('log_next_update')
-    init_log_update_interval = None
     init_log_update_is_active = False
 
-    if init_log_next_update:
+    if (init_log_update_interval and init_log_next_update):
         init_log_update_is_active = True
-        init_log_update_interval = datetime.time(init_log_next_update)
+        if (init_log_update_interval == 'daily'):
+            init_daily_interval = datetime.time(init_log_next_update)
+        elif (init_log_update_interval == 'hourly'):
+            init_hourly_interval = datetime.time(init_log_next_update)
 
-    init_logger_type_name = log_file_info_data.get('logger_type_name')
-    init_logger_time_format = log_file_info_data.get('logger_time_format')
-    init_logger_time_ids = log_file_info_data.get('logger_time_ids')
-    init_log_time_zone = log_file_info_data.get('log_time_zone')
     init_log_update_info_form = {
-        'log_file_path' : log_update_info_data.get('log_file_path'),
-        'log_file_line_num' : log_update_info_data.get('log_file_line_num'),
+        'log_file_path' : init_log_file_path,
+        'log_file_line_num' : init_log_file_line_num,
         'update_is_active' : init_log_update_is_active,
         'update_interval' : init_log_update_interval,
-        'logger_type_name' : init_logger_type_name,
-        #'logger_time_format' : init_logger_time_format,
-        #'logger_time_ids' : init_logger_time_ids,
-        #'log_time_zone' : init_log_time_zone
+        'daily_interval' : init_daily_interval,
+        'hourly_interval' : init_hourly_interval,
+        'logger_time_format' : init_logger_time_format_id,
+        'log_time_zone' : init_log_time_zone
     }
 
     form = ManageLogUpdateInfoForm(
         request.POST or None,
         initial=init_log_update_info_form,
-        init_logger_types=init_logger_types
+        init_log_parameters=init_log_parameters,
+        init_log_reading_types=init_log_reading_types,
+        init_logger_time_formats=all_logger_time_formats_data,
+        init_log_time_ids=init_log_time_ids
     )
 
-    if form.is_valid():
-        log_next_update = form.get_next_update()
-        log_file_line_num = form.cleaned_data['log_file_line_num']
-        log_file_path = form.cleaned_data['log_file_path']
-        try:
-            Log_file_info_by_log(log_id=log_id).delete()
-            Log_update_schedule_by_log(log_id=log_id).delete()
-        except:
-            print("Couldn't delete log update info!")
-        Log_file_info_by_log.create(
-            log_id=log_id,
-            log_file_path=log_file_path,
-            log_file_line_num=log_file_line_num
-        )
-        Log_update_schedule_by_log.create(
-            log_id=log_id,
-            log_last_update=init_log_last_update,
-            log_next_update=log_next_update
-        )
-        # fire off update
-        url = reverse('sites:location_logs')
-        url += '?site_name=' + site_name
-        url += '&location_id=' + MiscTools.uuid_to_str(location_id)
-        url += '&location_name=' + location_name
-        return HttpResponseRedirect(url)
+    #if form.is_valid():
+    #    log_next_update = form.get_next_update()
+    #    log_file_line_num = form.cleaned_data['log_file_line_num']
+    #    log_file_path = form.cleaned_data['log_file_path']
+    #    try:
+    #        Log_file_info_by_log(log_id=log_id).delete()
+    #        Log_update_schedule_by_log(log_id=log_id).delete()
+    #    except:
+    #        print("Couldn't delete log update info!")
+    #    Log_file_info_by_log.create(
+    #        log_id=log_id,
+    #        log_file_path=log_file_path,
+    #        log_file_line_num=log_file_line_num
+    #    )
+    #    Log_update_schedule_by_log.create(
+    #        log_id=log_id,
+    #        log_last_update=init_log_last_update,
+    #        log_next_update=log_next_update
+    #    )
+    #    # fire off update
+    #    url = reverse('sites:location_logs')
+    #    url += '?site_name=' + site_name
+    #    url += '&location_id=' + MiscTools.uuid_to_str(location_id)
+    #    url += '&location_name=' + location_name
+    #    return HttpResponseRedirect(url)
 
     context = {
         'site_name' : site_name,

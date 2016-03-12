@@ -1,5 +1,5 @@
 from .models import Logs_by_location, Log_info_by_log, Log_file_info_by_log, Log_parameters_by_log,\
-    Log_update_schedule_by_log
+    Log_time_info_by_log, Log_update_schedule_by_log
 from utils.tools import MiscTools
 from utils.timemanager import TimeManager
 
@@ -100,11 +100,32 @@ class LogData(object):
         log_updates_query = Log_update_schedule_by_log.objects.filter(log_id=log_id)
         for row in log_updates_query:
             log = {
+                'log_update_interval' : row.log_update_interval,
                 'log_last_update' : row.log_last_update,
                 'log_next_update' : row.log_next_update,
             }
             log_updates_data.append(log)
         return log_updates_data
+
+    @classmethod
+    def get_log_time_info(cls, log_id):
+        """
+        Return log time info or an empty list if not found.
+
+        Keyword arguments:
+        log_id -- log identifier (UUID)
+        """
+        log_time_info_data = []
+        log_time_info_query = Log_time_info_by_log.objects.filter(log_id=log_id)
+        for row in log_time_info_query:
+            log = {
+                'logger_time_format_id' : row.logger_time_format_id,
+                'logger_time_format_name' : row.logger_time_format_name,
+                'log_time_ids' : row.log_time_ids,
+                'log_time_zone' : row.log_time_zone,
+            }
+            log_time_info_data.append(log)
+        return log_time_info_data
 
     @classmethod
     def get_log_update_info(cls, log_id, json_request=None):
@@ -131,6 +152,7 @@ class LogData(object):
             log = {
                 'log_file_path' : log_file_info.log_file_path,
                 'log_file_line_num' : log_file_info.log_file_line_num,
+                'log_update_interval' : log_update_info.log_update_interval,
                 'log_last_update' : log_last_update,
                 'log_next_update' : log_next_update
             }
@@ -138,3 +160,4 @@ class LogData(object):
         except IndexError:
             print("Index error!")
         return log_update_info_data
+

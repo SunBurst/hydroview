@@ -52,6 +52,7 @@ class Log_parameters_by_log(models.Model):
 
 class Log_update_schedule_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
+    log_update_interval = columns.Text(default=None)
     log_last_update = columns.DateTime(default=None)
     log_next_update = columns.DateTime(default=None)
 
@@ -107,8 +108,9 @@ class Quality_control_info_by_log(models.Model):
 class Log_quality_control_schedule_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
     qc_level = columns.Integer(primary_key=True, clustering_order="ASC")
-    log_last_quality_control = columns.DateTime()
-    log_next_quality_control = columns.DateTime()
+    log_qc_interval = columns.Text(default=None)
+    log_last_quality_control = columns.DateTime(default=None)
+    log_next_quality_control = columns.DateTime(default=None)
 
 class Logger_time_formats(models.Model):
     bucket = columns.Integer(primary_key=True, default=0)

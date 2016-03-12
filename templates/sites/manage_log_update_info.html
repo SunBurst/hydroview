@@ -8,14 +8,17 @@
 
 {% block content %}
     <div class="row">
-        <div class="col-lg-6">
+        <div class="col-lg-8">
             <div class="panel panel-default">
-                <div class="panel-heading">Log Update Info</div>
+                <div class="panel-heading">
+                    <h4 class="panel-title">Log Update Info
+                    </h4>
+                </div>
                 <div class="panel-body">{% crispy form %}</div>
             </div>
             <!-- /.panel-body -->
         </div>
-        <!-- /.col-lg-12 -->
+        <!-- /.col-lg-8 -->
     </div>
     <!-- /.row -->
 {% endblock %}
@@ -27,14 +30,94 @@
         var siteName = '{{ site_name }}';
         var locationId = '{{ location_id }}';
         var locationName = '{{ location_name }}';
+        var logId = '{{ log_id }}'
         var logName = '{{ log_name }}';
+
         redirectToLocationUrl += '?site_name=' + siteName + '&location_id=' + locationId
             + '&location_name=' + locationName;
+
+        function setTimeFormatIdsField (timeFmtId, initSet) {
+            var jsonLoggerTimeFormatUrl = '{% url 'sites:load_logger_time_format_json' %}' + '?json_request=' + true
+                + '&logger_time_format_id=' + timeFmtId;
+            $.getJSON(jsonLoggerTimeFormatUrl, function (TimeFormatData) {
+                if (TimeFormatData.length > 0) {
+                    loggerTimeIds = TimeFormatData[0].logger_time_ids;
+                    $('#id_logger_time_format_time_ids').val(loggerTimeIds);
+                    if (!initSet) {
+                        totalNumOfTimeIdFields = $('div[id^=div_id_log_time_format_time_id_]').length;
+                        allocatedTimeIdFields = 0;
+                        $.each(loggerTimeIds, function (i, timeId) {
+                            $('#div_id_log_time_format_time_id_' + i).show();
+                            $('#id_log_time_format_time_id_' + i).val(timeId);
+                            allocatedTimeIdFields += 1;
+                        });
+                        while(allocatedTimeIdFields < totalNumOfTimeIdFields) {
+                            $('#div_id_log_time_format_time_id_' + allocatedTimeIdFields).hide();
+                            allocatedTimeIdFields += 1;
+                        }
+                    }
+                    else {
+                        $('[id^=id_log_time_format_time_id_]').each(function () {
+                            if (!$(this).val()) {
+                                $(this).parents('div .form-group').hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        function checkInitTimeFormat() {
+            loggerTimeFormatId = $('#id_logger_time_format').val()
+            if (loggerTimeFormatId) {
+                initSet = true;
+                setTimeFormatIdsField(loggerTimeFormatId, initSet);
+            }
+        }
+
+        function showUpdateIntervalFields () {
+            $('#div_id_update_interval').show();
+                if ($('#id_update_interval').val() == 'daily') {
+                    $('#div_id_daily_interval').show();
+                    $('#div_id_hourly_interval').hide();
+                }
+                else if ($('#id_update_interval').val() == 'daily') {
+                    $('#div_id_daily_interval').hide();
+                    $('#div_id_hourly_interval').show();
+                }
+        }
+
+        function hideUpdateIntervalFields () {
+            $('#div_id_update_interval').hide();
+            $('#div_id_daily_interval').hide();
+            $('#div_id_hourly_interval').hide();
+        }
+
+        function checkInitUpdateInterval() {
+            if ($('#id_update_is_active').is(":checked")) {
+                showUpdateIntervalFields();
+            }
+            else {
+                hideUpdateIntervalFields();
+            }
+        }
         $('.page-header').text("Manage Log: " + logName);
 
-        $('#id_logger_type_name').change(function () {
-            loggerTypeName = $(this).val();
-            
+        $('#id_logger_time_format').change(function () {
+            loggerTimeFormatId = $(this).val();
+            initSet = false;
+            setTimeFormatIdsField(loggerTimeFormatId, initSet);
+        });
+
+        $('#id_update_interval').change(function () {
+            if ($(this).val() == 'daily') {
+                $('#div_id_daily_interval').show();
+                $('#div_id_hourly_interval').hide();
+            }
+            else if ($(this).val() == 'hourly') {
+                $('#div_id_daily_interval').hide();
+                $('#div_id_hourly_interval').show();
+            }
         });
 
         $('#id-cancelBtn').on('click', function () {
@@ -43,12 +126,15 @@
 
         $('#id_update_is_active').on('click', function() {
             if ($(this).is(":checked")) {
-                $('#div_id_update_interval').show();
+                showUpdateIntervalFields();
             }
             else {
-                $('#div_id_update_interval').hide();
+                hideUpdateIntervalFields();
             }
         });
+
+    checkInitTimeFormat();
+    checkInitUpdateInterval();
     });
     </script>
 {% endblock %}

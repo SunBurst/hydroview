@@ -54,6 +54,11 @@ urlpatterns = [
         name='load_all_logger_time_formats_json',
     ),
     url(
+        regex=r'^load_logger_time_format_json/$',
+        view=views.load_logger_time_format_json,
+        name='load_logger_time_format_json',
+    ),
+    url(
         regex=r'^load_all_quality_controls_json/$',
         view=views.load_all_quality_controls_json,
         name='load_all_quality_controls_json',

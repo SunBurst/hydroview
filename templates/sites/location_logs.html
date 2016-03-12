@@ -137,6 +137,7 @@
                                             + '<th>Status</th>'
                                             + '<th>File Path</th>'
                                             + '<th>Line Number</th>'
+                                            + '<th>Update Interval</th>'
                                             + '<th>Last Update</th>'
                                             + '<th>Next Update</th>'
                                         + '</tr>'
@@ -147,6 +148,7 @@
                                                 + '<i class="fa fa-circle fa-fw" style="color:orange"></td>'
                                             + '<td id="id-' + logId + '-updateInfoFilePath">-</td>'
                                             + '<td id="id-' + logId + '-updateInfoFileLineNum">-</td>'
+                                            + '<td id="id-' + logId + '-updateInfoUpdateInterval">-</td>'
                                             + '<td id="id-' + logId + '-updateInfoLastUpdate">-</td>'
                                             + '<td id="id-' + logId + '-updateInfoNextUpdate">-</td>'
                                         + '</tr>'
@@ -161,6 +163,7 @@
 
                     $.getJSON(jsonLogUpdateInfoUrl, function (LogUpdateInfoData) {
                         $.each(LogUpdateInfoData, function (j, log_update_info) {
+                            var updateInterval = log_update_info.log_update_interval;
                             var lastUpdate = log_update_info.log_last_update;
                             var nextUpdate = log_update_info.log_next_update;
                             var filePath = log_update_info.log_file_path;
@@ -170,6 +173,7 @@
                                 $('id-' + logId + '-updateInfoNextUpdate').text(nextUpdate)
                             }
                             if (lastUpdate) {$('id-' + logId + '-updateInfoLastUpdate').text(lastUpdate)}
+                            if (updateInterval) {{$('id-' + logId + '-updateInfoUpdateInterval').text(updateInterval)}
                             if (filePath) {$('id-' + logId + '-updateInfoFilePath').text(filePath)}
                             if (lineNum) {$('id-' + logId + '-updateInfoFilePath').text(lineNum)}
                         });
@@ -327,6 +331,7 @@
                                             + '<i class="fa fa-circle fa-fw" style="color:orange"></i></td>'
                                         + '<td id="id-' + logId + '-qcInfoQcLevel_Row_' + j + '">-</td>'
                                         + '<td id="id-' + logId + '-qcInfoQcName_Row_' + j + '">-</td>'
+                                        + '<td id="id-' + logId + '-qcInfoQcInterval_Row_' + j + '">-</td>'
                                         + '<td id="id-' + logId + '-qcInfoLastQc_Row_' + j + '">-</td>'
                                         + '<td id="id-' + logId + '-qcInfoNextQc_Row_' + j + '">-</td>'
                                         + '<td id="id-' + logId + '-qcInfoRepValue_Row_' + j + '">-</td>'
@@ -334,6 +339,7 @@
                                 );
                                 var qcLevel = log_qc_info.log_qc_level;
                                 var qcName = log_qc_info.log_qc_name;
+                                var qcInterval = log_qc_info.log_qc_interval;
                                 var lastQC = log_qc_info.log_last_quality_control;
                                 var nextQC = log_qc_info.log_next_quality_control;
                                 var repValue = log_qc_info.log_qc_replacement_value;
@@ -344,6 +350,7 @@
                                     $('#id-' + logId + '-qcInfoNextQc_Row_' + j).text(nextQC);
                                 }
                                 if (lastQc) {$('#id-' + logId + '-qcInfoLastQc_Row_' + j).text(lastQc);}
+                                if (qcInterval) {$('#id-' + logId + '-qcInfoQcInterval_Row_' + j).text(qcInterval);}
                                 if (qcLevel) {$('#id-' + logId + '-qcInfoQcLevel_Row_' + j).text(qcLevel);}
                                 if (qcName) {$('#id-' + logId + '-qcInfoQcName_Row_' + j).text(qcName);}
                                 if (repValue) {$('#id-' + logId + '-qcInfoRepValue_Row_' + j).text(repValue);}

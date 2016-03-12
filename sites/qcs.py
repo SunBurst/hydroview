@@ -171,6 +171,7 @@ class QCData(object):
         for row in log_qc_schedule_info_query:
             qc = {
                 'qc_level' : row.qc_level,
+                'log_qc_interval' : row.log_qc_interval,
                 'log_last_quality_control' : row.log_last_quality_control,
                 'log_next_quality_control' : row.log_next_quality_control
             }
@@ -292,6 +293,7 @@ class QCData(object):
             log = {
                 'log_qc_level' : log_qc_level,
                 'log_qc_name' : row.qc_name,
+                'log_qc_interval' : log_qc_schedule_query.get('log_qc_interval'),
                 'log_last_quality_control' : log_last_qc,
                 'log_next_quality_control' : log_next_qc,
                 'log_qc_replacement_value' : row.qc_replacement_value
