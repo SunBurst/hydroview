@@ -36,68 +36,69 @@
         redirectToLocationUrl += '?site_name=' + siteName + '&location_id=' + locationId
             + '&location_name=' + locationName;
 
-        function setTimeFormatIdsField (timeFmtId, initSet) {
+        $('.page-header').text("Manage Log: " + logName);
+
+        function setTimeFormatIdsField (timeFmtId) {
             var jsonLoggerTimeFormatUrl = '{% url 'sites:load_logger_time_format_json' %}' + '?json_request=' + true
                 + '&logger_time_format_id=' + timeFmtId;
             $.getJSON(jsonLoggerTimeFormatUrl, function (TimeFormatData) {
                 if (TimeFormatData.length > 0) {
                     loggerTimeIds = TimeFormatData[0].logger_time_ids;
                     $('#id_logger_time_format_time_ids').val(loggerTimeIds);
-                    if (!initSet) {
-                        totalNumOfTimeIdFields = $('div[id^=div_id_log_time_format_time_id_]').length;
-                        allocatedTimeIdFields = 0;
-                        $.each(loggerTimeIds, function (i, timeId) {
-                            $('#div_id_log_time_format_time_id_' + i).show();
-                            $('#id_log_time_format_time_id_' + i).val(timeId);
-                            allocatedTimeIdFields += 1;
-                        });
-                        while(allocatedTimeIdFields < totalNumOfTimeIdFields) {
-                            $('#div_id_log_time_format_time_id_' + allocatedTimeIdFields).hide();
-                            allocatedTimeIdFields += 1;
-                        }
-                    }
-                    else {
-                        $('[id^=id_log_time_format_time_id_]').each(function () {
-                            if (!$(this).val()) {
-                                $(this).parents('div .form-group').hide();
-                            }
-                        });
+                    totalNumOfTimeIdFields = $('div[id^=div_id_log_time_format_time_id_]').length;
+                    allocatedTimeIdFields = 0;
+                    $.each(loggerTimeIds, function (i, timeId) {
+                        $('#div_id_log_time_format_time_id_' + i).show();
+                        $('#id_log_time_format_time_id_' + i).val(timeId);
+                        allocatedTimeIdFields += 1;
+                    });
+                    while(allocatedTimeIdFields < totalNumOfTimeIdFields) {
+                        $('#div_id_log_time_format_time_id_' + allocatedTimeIdFields).hide();
+                        allocatedTimeIdFields += 1;
                     }
                 }
             });
+        }
+
+        function showUpdateIntervalFields () {
+            $('#div_id_update_interval').show();
+                $('#id_update_interval').prop('required', true);
+                if ($('#id_update_interval').val() == 'daily') {
+                    $('#div_id_daily_interval').show();
+                    $('#id_daily_interval').prop('required', true);
+                    $('#div_id_hourly_interval').hide();
+                    $('#id_hourly_interval').prop('required', false);
+                }
+                else if ($('#id_update_interval').val() == 'hourly') {
+                    $('#div_id_hourly_interval').show();
+                    $('#id_hourly_interval').prop('required', true);
+                    $('#div_id_daily_interval').hide();
+                    $('#id_daily_interval').prop('required', false);
+                }
+        }
+
+        function hideUpdateIntervalFields () {
+            $('#div_id_update_interval').hide();
+            $('#id_update_interval').prop('required', false);
+            $('#div_id_daily_interval').hide();
+            $('#id_daily_interval').prop('required', false);
+            $('#div_id_hourly_interval').hide();
+            $('#id_hourly_interval').prop('required', false);
         }
 
         function checkInitFilePath() {
             logFilePath = $('#id_log_file_path').val();
             if (!logFilePath) {
                 $('#id_log_file_path').parents('div .form-group').hide();
+                $('#id_new_log_file_path').prop('required', true);
             }
         }
 
         function checkInitTimeFormat() {
             loggerTimeFormatId = $('#id_logger_time_format').val()
             if (loggerTimeFormatId) {
-                initSet = true;
-                setTimeFormatIdsField(loggerTimeFormatId, initSet);
+                setTimeFormatIdsField(loggerTimeFormatId);
             }
-        }
-
-        function showUpdateIntervalFields () {
-            $('#div_id_update_interval').show();
-                if ($('#id_update_interval').val() == 'daily') {
-                    $('#div_id_daily_interval').show();
-                    $('#div_id_hourly_interval').hide();
-                }
-                else if ($('#id_update_interval').val() == 'daily') {
-                    $('#div_id_daily_interval').hide();
-                    $('#div_id_hourly_interval').show();
-                }
-        }
-
-        function hideUpdateIntervalFields () {
-            $('#div_id_update_interval').hide();
-            $('#div_id_daily_interval').hide();
-            $('#div_id_hourly_interval').hide();
         }
 
         function checkInitUpdateInterval() {
@@ -108,24 +109,6 @@
                 hideUpdateIntervalFields();
             }
         }
-        $('.page-header').text("Manage Log: " + logName);
-
-        $('#id_logger_time_format').change(function () {
-            loggerTimeFormatId = $(this).val();
-            initSet = false;
-            setTimeFormatIdsField(loggerTimeFormatId, initSet);
-        });
-
-        $('#id_update_interval').change(function () {
-            if ($(this).val() == 'daily') {
-                $('#div_id_daily_interval').show();
-                $('#div_id_hourly_interval').hide();
-            }
-            else if ($(this).val() == 'hourly') {
-                $('#div_id_daily_interval').hide();
-                $('#div_id_hourly_interval').show();
-            }
-        });
 
         $('#id-cancelBtn').on('click', function () {
             document.location.href = redirectToLocationUrl;
@@ -138,6 +121,27 @@
             else {
                 hideUpdateIntervalFields();
             }
+        });
+
+        $('#id_update_interval').change(function () {
+            if ($(this).val() == 'daily') {
+                $('#div_id_daily_interval').show();
+                $('#id_daily_interval').prop('required', true);
+                $('#div_id_hourly_interval').hide();
+                $('#id_hourly_interval').prop('required', false);
+            }
+            else if ($(this).val() == 'hourly') {
+                $('#div_id_hourly_interval').show();
+                $('#id_hourly_interval').prop('required', true);
+                $('#div_id_daily_interval').hide();
+                $('#id_daily_interval').prop('required', false);
+            }
+        });
+
+        $('#id_logger_time_format').change(function () {
+            loggerTimeFormatId = $(this).val();
+            initSet = false;
+            setTimeFormatIdsField(loggerTimeFormatId, initSet);
         });
 
     checkInitUpdateInterval();

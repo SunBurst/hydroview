@@ -649,97 +649,125 @@ def manage_log_update_info(request):
     init_log_update_info_form = dict
     template = 'sites/manage_log_update_info.html'
 
-    init_log_file_path = None
-    init_log_file_line_num = 0
-    init_log_update_interval = None
-    init_log_last_update = None
-    init_log_next_update = None
-    init_log_parameters = None
-    init_log_reading_types = None
-    init_logger_time_format_id = 'disabled'
-    init_logger_time_format_name = None
-    init_log_time_ids = None
-    init_log_time_zone = None
-    init_daily_interval = None
-    init_hourly_interval = None
+    log_file_path = None
+    log_file_line_num = 0
+    log_update_interval = None
+    log_last_update = None
+    log_next_update = None
+    log_parameters = None
+    log_reading_types = None
+    logger_time_format_id = 'disabled'
+    logger_time_format_name = None
+    log_time_ids = None
+    log_time_zone = None
+    daily_interval = None
+    hourly_interval = None
 
     try:
         log_file_info_data = log_file_info_data[0]
-        init_log_file_path = log_file_info_data.get('log_file_path')
-        init_log_file_line_num = log_file_info_data.get('log_file_line_num')
+        log_file_path = log_file_info_data.get('log_file_path')
+        log_file_line_num = log_file_info_data.get('log_file_line_num')
     except IndexError:
         print("Index error!")
     try:
         log_update_info_data = log_update_info_data[0]
-        init_log_update_interval = log_update_info_data.get('log_update_interval')
-        init_log_last_update = log_update_info_data.get('log_last_update')
-        init_log_next_update = log_update_info_data.get('log_next_update')
+        log_update_interval = log_update_info_data.get('log_update_interval')
+        log_last_update = log_update_info_data.get('log_last_update')
+        log_next_update = log_update_info_data.get('log_next_update')
     except IndexError:
         print("Index error!")
     try:
         log_parameters_info_data = log_parameters_info_data[0]
-        init_log_parameters = log_parameters_info_data.get('log_parameters')
-        init_log_reading_types = log_parameters_info_data.get('log_reading_types')
+        log_parameters = log_parameters_info_data.get('log_parameters')
+        log_reading_types = log_parameters_info_data.get('log_reading_types')
     except IndexError:
         print("Index error!")
     try:
         log_time_info_data = log_time_info_data[0]
-        init_logger_time_format_id = log_time_info_data.get('logger_time_format_id')
-        init_logger_time_format_name = log_time_info_data.get('logger_time_format_name')
-        init_log_time_ids = log_time_info_data.get('log_time_ids')
-        init_log_time_zone = log_time_info_data.get('log_time_zone')
-    except:
+        logger_time_format_id = log_time_info_data.get('logger_time_format_id')
+        logger_time_format_name = log_time_info_data.get('logger_time_format_name')
+        log_time_ids = log_time_info_data.get('log_time_ids')
+        log_time_zone = log_time_info_data.get('log_time_zone')
+    except IndexError:
         print("Index error!")
 
     init_log_update_is_active = False
 
-    if (init_log_update_interval and init_log_next_update):
+    if (log_update_interval and log_next_update):
         init_log_update_is_active = True
-        if (init_log_update_interval == 'daily'):
-            init_daily_interval = datetime.time(init_log_next_update)
-        elif (init_log_update_interval == 'hourly'):
-            init_hourly_interval = datetime.time(init_log_next_update)
+        if (log_update_interval == 'daily'):
+            daily_interval = datetime.time(log_next_update)
+        elif (log_update_interval == 'hourly'):
+            hourly_interval = datetime.time(log_next_update)
 
     init_log_update_info_form = {
-        'log_file_path' : init_log_file_path,
-        'log_file_line_num' : init_log_file_line_num,
+        'log_file_path' : log_file_path,
+        'log_file_line_num' : log_file_line_num,
         'update_is_active' : init_log_update_is_active,
-        'update_interval' : init_log_update_interval,
-        'daily_interval' : init_daily_interval,
-        'hourly_interval' : init_hourly_interval,
-        'logger_time_format' : init_logger_time_format_id,
-        'log_time_zone' : init_log_time_zone
+        'update_interval' : log_update_interval,
+        'daily_interval' : daily_interval,
+        'hourly_interval' : hourly_interval,
+        'logger_time_format' : logger_time_format_id,
+        'log_time_zone' : log_time_zone
     }
 
     form = ManageLogUpdateInfoForm(
         request.POST or None,
+        request.FILES or None,
         initial=init_log_update_info_form,
-        init_log_parameters=init_log_parameters,
-        init_log_reading_types=init_log_reading_types,
+        init_log_parameters=log_parameters,
+        init_log_reading_types=log_reading_types,
         init_logger_time_formats=all_logger_time_formats_data,
-        init_log_time_ids=init_log_time_ids
+        init_log_time_ids=log_time_ids
     )
 
-    #if form.is_valid():
-    #    log_next_update = form.get_next_update()
-    #    log_file_line_num = form.cleaned_data['log_file_line_num']
-    #    log_file_path = form.cleaned_data['log_file_path']
-    #    try:
-    #        Log_file_info_by_log(log_id=log_id).delete()
-    #        Log_update_schedule_by_log(log_id=log_id).delete()
-    #    except:
-    #        print("Couldn't delete log update info!")
-    #    Log_file_info_by_log.create(
-    #        log_id=log_id,
-    #        log_file_path=log_file_path,
-    #        log_file_line_num=log_file_line_num
-    #    )
-    #    Log_update_schedule_by_log.create(
-    #        log_id=log_id,
-    #        log_last_update=init_log_last_update,
-    #        log_next_update=log_next_update
-    #    )
-    #    # fire off update
+    if form.is_valid():
+        if (request.FILES):
+            import os
+            basename, extension = os.path.splitext(os.path.basename(form.cleaned_data['new_log_file_path'].name))
+            print(basename, extension)
+        else:
+            log_file_path = log_file_path
+        print(log_file_path, type(log_file_path))
+        log_file_line_num = form.cleaned_data['log_file_line_num']
+        log_update_info = form.get_update_info()
+        log_update_interval = log_update_info.get('log_update_info')
+        log_next_update = log_update_info.get('log_next_update')
+        log_time_zone = form.cleaned_data['log_time_zone']
+        logger_time_format_id = form.cleaned_data['logger_time_format']
+        log_time_ids = form.clean_time_ids()
+        log_parameters, log_parameters_reading_types = form.clean_parameters()
+
+        logger_time_format_data = LoggerData.get_logger_time_format(logger_time_format_id)
+        try:
+            logger_time_format_data = logger_time_format_data[0]
+            logger_time_format_name = logger_time_format_data.get('logger_time_format_data')
+        except IndexError:
+            print("Index error!")
+
+        Log_file_info_by_log.create(
+            log_id=log_id,
+            log_file_path=log_file_path,
+            log_file_line_num=log_file_line_num
+        )
+        Log_update_schedule_by_log.create(
+            log_id=log_id,
+            log_update_interval=log_update_interval,
+            log_last_update=log_last_update,
+            log_next_update=log_next_update,
+        )
+        Log_time_info_by_log.create(
+            log_id=log_id,
+            logger_time_format_id=logger_time_format_id,
+            logger_time_format_name=logger_time_format_name,
+            log_time_ids=log_time_ids,
+            log_time_zone=log_time_zone
+        )
+        Log_parameters_by_log.create(
+            log_id=log_id,
+            log_parameters=log_parameters,
+            log_reading_types=log_parameters_reading_types
+        )
     #    url = reverse('sites:location_logs')
     #    url += '?site_name=' + site_name
     #    url += '&location_id=' + MiscTools.uuid_to_str(location_id)

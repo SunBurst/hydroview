@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from django import forms
+from django.core.exceptions import ValidationError
 from pytz import all_timezones
 from collections import OrderedDict
 
@@ -8,6 +9,7 @@ from crispy_forms.layout import Button, Div, Field, Fieldset, Layout, Reset, Sub
 from crispy_forms.bootstrap import FormActions, Tab, TabHolder
 
 from settings.settings import TIME_ZONE
+from .validators import validate_file_extension
 from utils.tools import MiscTools
 
 class ManageLoggerTimeFormatForm(forms.Form):
@@ -251,20 +253,21 @@ class ManageLogForm(forms.Form):
 class ManageLogUpdateInfoForm(forms.Form):
     MAX_TIME_IDS = 5
     MAX_PARAMETERS = 30
-    PARAMETER_READING_TYPES = OrderedDict({
-        'ignore' : 'Ignore',
-        'time' : 'Time Identifier',
-        'parameter_reading' : 'Parameter Reading',
-        'profile_reading' : 'Profile Reading',
-        'status_parameter_reading' : 'Status Parameter Reading',
-    })
+    PARAMETER_READING_TYPES = OrderedDict([
+        ('ignore', 'Ignore'),
+        ('time', 'Time Identifier'),
+        ('parameter_reading', 'Parameter Reading'),
+        ('profile_reading', 'Profile Reading'),
+        ('status_parameter_reading', 'Status Parameter Reading')
+    ])
     log_file_path = forms.CharField(
-        label='Log File Path',
+        label='Current Log File Path',
         widget=forms.TextInput(attrs={'readonly':'readonly'}),
         required=False
     )
-    log_file_path_browser = forms.FileField(
+    new_log_file_path = forms.FileField(
         label='Browse File',
+        validators=[validate_file_extension],
         required=False
     )
 
@@ -311,7 +314,7 @@ class ManageLogUpdateInfoForm(forms.Form):
                 Tab(
                     'File Info',
                     Field('log_file_path'),
-                    Field('log_file_path_browser'),
+                    Field('new_log_file_path'),
                     Field('log_file_line_num'),
                 ),
                 Tab(
@@ -434,9 +437,10 @@ class ManageLogUpdateInfoForm(forms.Form):
                 self.helper.layout[0][3].append(Field('parameter_{0}'.format(param_field)))
                 self.helper.layout[0][3].append(Field('reading_type_{0}'.format(param_field)))
 
-    def get_next_update(self):
+    def get_update_info(self):
         is_active = self.cleaned_data['update_is_active']
         update_interval = self.cleaned_data['update_interval']
+        update_info = {}
 
         if (is_active and update_interval):
             time_now = datetime.now()
@@ -457,10 +461,38 @@ class ManageLogUpdateInfoForm(forms.Form):
             if (datetime.now() > time_next_update):   #: time candidate has passed.
                 if (update_interval == 'daily'):
                     time_next_update += timedelta(days=1)
-                    return time_next_update
                 elif (update_interval == 'hourly'):
                     time_next_update += timedelta(hours=1)
-                    return time_next_update
+                return {
+                    'log_update_interval' : update_interval,
+                    'log_next_update' : time_next_update
+                }
         else:
-            return None
+            return update_info
 
+    def clean_parameters(self):
+        log_parameters = []
+        log_parameter_reading_types = {}
+        for i in range(self.MAX_PARAMETERS):
+            param_field = 'parameter_{0}'.format(i)
+            param_reading_type_field = 'reading_type_{0}'.format(i)
+            if (
+                (param_field and param_reading_type_field in self.cleaned_data) and
+                    self.cleaned_data[param_field] and
+                        (self.cleaned_data[param_reading_type_field] != 'disabled')
+            ):
+                log_parameter = self.cleaned_data[param_field]
+                log_parameter_reading_type = self.cleaned_data[param_reading_type_field]
+                log_parameters.append(log_parameter)
+                log_parameter_reading_types[log_parameter] = log_parameter_reading_type
+
+        return log_parameters, log_parameter_reading_types
+
+    def clean_time_ids(self):
+        time_format_ids_order = []
+        for i in range(self.MAX_TIME_IDS):
+            time_id_field = 'log_time_format_time_id_{0}'.format(i)
+            if (time_id_field in self.cleaned_data and self.cleaned_data[time_id_field]):
+                time_id = self.cleaned_data[time_id_field]
+                time_format_ids_order.append(time_id)
+        return time_format_ids_order

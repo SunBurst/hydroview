@@ -48,7 +48,7 @@ class Log_file_info_by_log(models.Model):
 class Log_parameters_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
     log_parameters = columns.List(columns.Text)
-    log_reading_types = columns.Map(columns.Text, columns.Text) #: I.e. ignore, time, parameter, profile, status
+    log_reading_types = columns.Map(columns.Text, columns.Text)
 
 class Log_update_schedule_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
