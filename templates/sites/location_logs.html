@@ -160,7 +160,6 @@
 
                     var jsonLogUpdateInfoUrl = '{% url 'sites:load_log_update_info_json' %}' + '?json_request=' + true
                         + '&log_id=' + logId;
-
                     $.getJSON(jsonLogUpdateInfoUrl, function (LogUpdateInfoData) {
                         $.each(LogUpdateInfoData, function (j, log_update_info) {
                             var updateInterval = log_update_info.log_update_interval;
@@ -168,14 +167,22 @@
                             var nextUpdate = log_update_info.log_next_update;
                             var filePath = log_update_info.log_file_path;
                             var lineNum = log_update_info.log_file_line_num;
-                            if (nextUpdate) {
-                                $('id-' + logId + '-updateInfoStatusIcon').find('i').attr('style',"color:green");
-                                $('id-' + logId + '-updateInfoNextUpdate').text(nextUpdate)
+                            if (lineNum || lineNum == 0) {
+                                $('#id-' + logId + '-updateInfoFileLineNum').text(lineNum);
                             }
-                            if (lastUpdate) {$('id-' + logId + '-updateInfoLastUpdate').text(lastUpdate)}
-                            if (updateInterval) {$('id-' + logId + '-updateInfoUpdateInterval').text(updateInterval)}
-                            if (filePath) {$('id-' + logId + '-updateInfoFilePath').text(filePath)}
-                            if (lineNum) {$('id-' + logId + '-updateInfoFilePath').text(lineNum)}
+                            if (filePath) {
+                                $('#id-' + logId + '-updateInfoFilePath').text(filePath);
+                            }
+                            if (updateInterval) {$('id-' + logId + '-updateInfoUpdateInterval').text(updateInterval);}
+                            if (nextUpdate) {
+                                $('#id-' + logId + '-updateInfoStatusIcon').find('i').attr('style',"color:green");
+                                nextUpdateFmt = dateConverter(nextUpdate);
+                                $('#id-' + logId + '-updateInfoNextUpdate').text(nextUpdateFmt);
+                            }
+                            if (lastUpdate) {
+                                lastUpdateFmt = dateConverter(lastUpdate);
+                                $('#id-' + logId + '-updateInfoLastUpdate').text(lastUpdateFmt);
+                            }
                         });
                     });
 
@@ -209,11 +216,11 @@
                             var loggerTimeFormat = log_time_info.logger_time_format_name;
                             var logTimeIds = log_time_info.log_time_ids;
                             var logTimeZone = log_time_info.log_time_zone;
-                            if(loggerTimeFormat) {$('id-' + logId + '-timeInfoLoggerTimeFormat').text(loggerTimeFormat)}
+                            if(loggerTimeFormat) {$('#id-' + logId + '-timeInfoLoggerTimeFormat').text(loggerTimeFormat);}
                             if(logTimeIds.length > 0) {
-                                $('id-' + logId + '-timeInfoLogTimeIds').text(logTimeIds)
+                                $('#id-' + logId + '-timeInfoLogTimeIds').text(logTimeIds);
                             }
-                            if(logTimeZone) {$('id-' + logId + '-timeInfoLogTimeZone').text(logTimeZone)}
+                            if(logTimeZone) {$('#id-' + logId + '-timeInfoLogTimeZone').text(logTimeZone);}
                         });
                     });
 
@@ -418,6 +425,11 @@
                     });
                 });
             });
+        }
+        function dateConverter (d) {
+            var temp_d = new Date(d);
+            temp_d_fmt = temp_d.toLocaleTimeString() + ' ' + temp_d.toLocaleDateString();
+            return temp_d_fmt;
         }
 
         function initAddLogLink () {

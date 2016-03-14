@@ -165,3 +165,5 @@ MEDIA_ROOT = 'media'
 MEDIA_URL = '/media/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
+VALID_FILE_EXTENTIONS = ['.csv', '.dat']

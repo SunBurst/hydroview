@@ -62,19 +62,23 @@
 
         function showUpdateIntervalFields () {
             $('#div_id_update_interval').show();
-                $('#id_update_interval').prop('required', true);
-                if ($('#id_update_interval').val() == 'daily') {
-                    $('#div_id_daily_interval').show();
-                    $('#id_daily_interval').prop('required', true);
-                    $('#div_id_hourly_interval').hide();
-                    $('#id_hourly_interval').prop('required', false);
-                }
-                else if ($('#id_update_interval').val() == 'hourly') {
-                    $('#div_id_hourly_interval').show();
-                    $('#id_hourly_interval').prop('required', true);
-                    $('#div_id_daily_interval').hide();
-                    $('#id_daily_interval').prop('required', false);
-                }
+            $('#id_update_interval').prop('required', true);
+            if ($('#id_update_interval').val() == 'daily') {
+                $('#div_id_daily_interval').show();
+                $('#id_daily_interval').prop('required', true);
+                $('#id_daily_interval').attr('value', "");
+                $('#div_id_hourly_interval').hide();
+                $('#id_hourly_interval').prop('required', false);
+                $('#id_hourly_interval').removeAttr('value');
+            }
+            else if ($('#id_update_interval').val() == 'hourly') {
+                $('#div_id_hourly_interval').show();
+                $('#id_hourly_interval').prop('required', true);
+                $('#id_hourly_interval').attr('value', "");
+                $('#div_id_daily_interval').hide();
+                $('#id_daily_interval').prop('required', false);
+                $('#id_daily_interval').removeAttr('value');
+            }
         }
 
         function hideUpdateIntervalFields () {
@@ -82,16 +86,10 @@
             $('#id_update_interval').prop('required', false);
             $('#div_id_daily_interval').hide();
             $('#id_daily_interval').prop('required', false);
+            $('#id_daily_interval').removeAttr('value');
             $('#div_id_hourly_interval').hide();
             $('#id_hourly_interval').prop('required', false);
-        }
-
-        function checkInitFilePath() {
-            logFilePath = $('#id_log_file_path').val();
-            if (!logFilePath) {
-                $('#id_log_file_path').parents('div .form-group').hide();
-                $('#id_new_log_file_path').prop('required', true);
-            }
+            $('#id_hourly_interval').removeAttr('value');
         }
 
         function checkInitTimeFormat() {
@@ -146,7 +144,6 @@
 
     checkInitUpdateInterval();
     checkInitTimeFormat();
-    checkInitFilePath();
     });
     </script>
 {% endblock %}

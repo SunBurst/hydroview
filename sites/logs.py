@@ -144,8 +144,9 @@ class LogData(object):
             log_update_info = log_update_info_query[0]
             if json_request:
                 tm = TimeManager()
-                log_last_update = tm.date_handler(log_update_info.log_last_update)
-                log_next_update = tm.date_handler(log_update_info.log_next_update)
+                log_last_update = tm.json_date_handler(log_update_info.log_last_update)
+                log_next_update = tm.json_date_handler(log_update_info.log_next_update)
+                print(log_next_update, type(log_next_update))
             else:
                 log_last_update = log_update_info.log_last_update
                 log_next_update = log_update_info.log_next_update

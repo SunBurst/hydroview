@@ -137,26 +137,6 @@ class TimeManager(object):
     def dt_str_to_datetime(self, dt_str):
         return datetime.datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
 
-    def get_current_datetime(self):
-        return datetime.datetime.now()
-
-    def get_dt_fallback_value(self):
-        str_fallback_from_config = self.parser_qcinfo.get('QC_TIME_INFO', 'datetime_fallback')
-        if str_fallback_from_config:
-            print('Found fallback datetime "%s" in %s' % (str_fallback_from_config, self.cfg_qcinfo))
-            dt_fallback = self.dt_str_to_datetime(str_fallback_from_config)
-            return dt_fallback
-
-    def get_raw_data_timezone(self):
-        tz_from_config = self.parser_ids.get('LOCAL_INFO', 'raw_data_timezone')
-        if tz_from_config:
-            #print('Found raw data timezone "%s" in %s' % (tz_from_config, self.cfg_ids))
-            local_tz = timezone(tz_from_config)
-        else:
-            print('Local timezone not found in configuration file "%s"' % self.cfg_ids)
-        
-        return local_tz
-
     def local_dt_to_utc_dt(self, local_dt):
         loc_dt = self.local_tz.localize(local_dt)
         utc_dt = loc_dt.astimezone(pytz.utc)
@@ -175,5 +155,8 @@ class TimeManager(object):
         utc_ts_millis = utc_ts*1000
         return utc_ts_millis
 
-    def date_handler(self, dt):
+    def json_date_handler(self, dt):
+        """JSON serializer for datetime objects not serializable by default json code. """
         return dt.isoformat() if hasattr(dt, 'isoformat') else dt
+
+

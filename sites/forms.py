@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from django import forms
 from django.core.exceptions import ValidationError
 from pytz import all_timezones
@@ -11,6 +11,7 @@ from crispy_forms.bootstrap import FormActions, Tab, TabHolder
 from settings.settings import TIME_ZONE
 from .validators import validate_file_extension
 from utils.tools import MiscTools
+from utils import timemanager
 
 class ManageLoggerTimeFormatForm(forms.Form):
     MAX_TIME_IDS = 5
@@ -262,11 +263,7 @@ class ManageLogUpdateInfoForm(forms.Form):
     ])
     log_file_path = forms.CharField(
         label='Current Log File Path',
-        widget=forms.TextInput(attrs={'readonly':'readonly'}),
-        required=False
-    )
-    new_log_file_path = forms.FileField(
-        label='Browse File',
+        widget=forms.TextInput(),
         validators=[validate_file_extension],
         required=False
     )
@@ -284,14 +281,14 @@ class ManageLogUpdateInfoForm(forms.Form):
         required=False
     )
 
-    daily_interval = forms.TimeField(label='Update Every Day At', required=False)
-    hourly_interval = forms.TimeField(label='Update Every Hour At', required=False)
+    daily_interval = forms.TimeField(label='Update Every Day At Hour HH:MM:SS', required=False)
+    hourly_interval = forms.TimeField(label='Update Every Hour At Minute (00:MM:SS)', required=False)
 
     TZ_CHOICES = ()
     for tz in all_timezones:
         TZ_CHOICES = TZ_CHOICES + ((tz, tz,),)
 
-    log_time_zone = forms.ChoiceField(label='Log Time Zone', choices=TZ_CHOICES, initial=TIME_ZONE, required=True)
+    log_time_zone = forms.ChoiceField(label='Log Time Zone', choices=TZ_CHOICES, required=True)
 
     def __init__(self, *args, **kwargs):
         init_log_parameters = kwargs.pop('init_log_parameters')
@@ -314,7 +311,6 @@ class ManageLogUpdateInfoForm(forms.Form):
                 Tab(
                     'File Info',
                     Field('log_file_path'),
-                    Field('new_log_file_path'),
                     Field('log_file_line_num'),
                 ),
                 Tab(
@@ -440,14 +436,18 @@ class ManageLogUpdateInfoForm(forms.Form):
     def get_update_info(self):
         is_active = self.cleaned_data['update_is_active']
         update_interval = self.cleaned_data['update_interval']
-        update_info = {}
-
+        update_info = {
+            'log_update_interval' : None,
+            'log_next_update' : None
+        }
         if (is_active and update_interval):
-            time_now = datetime.now()
-            year_now = time_now.year
-            month_now = time_now.month
-            day_now = time_now.day
-            hour = time_now.hour
+            tm = timemanager.TimeManager()
+            utc_time_now = datetime.utcnow()
+            local_time_now = tm.utc_dt_to_local_dt(utc_time_now)
+            year_now = local_time_now.year
+            month_now = local_time_now.month
+            day_now = local_time_now.day
+            hour = local_time_now.hour
             if (update_interval == 'daily'):
                 time = self.cleaned_data['daily_interval']
                 hour = time.hour
@@ -456,19 +456,18 @@ class ManageLogUpdateInfoForm(forms.Form):
             minute = time.minute
             second = time.second
 
-            time_next_update = datetime(year_now, month_now, day_now, hour, minute, second)
-
-            if (datetime.now() > time_next_update):   #: time candidate has passed.
+            utc_time_next_update = datetime(year_now, month_now, day_now, hour, minute, second)
+            local_time_next_update = tm.utc_dt_to_local_dt(utc_time_next_update)
+            print(local_time_now)
+            print(local_time_next_update)
+            if (local_time_now > local_time_next_update):   #: time candidate has passed.
                 if (update_interval == 'daily'):
-                    time_next_update += timedelta(days=1)
+                    local_time_next_update += timedelta(days=1)
                 elif (update_interval == 'hourly'):
-                    time_next_update += timedelta(hours=1)
-                return {
-                    'log_update_interval' : update_interval,
-                    'log_next_update' : time_next_update
-                }
-        else:
-            return update_info
+                    local_time_next_update += timedelta(hours=1)
+            update_info['log_update_interval'] = update_interval
+            update_info['log_next_update'] = local_time_next_update
+        return update_info
 
     def clean_parameters(self):
         log_parameters = []

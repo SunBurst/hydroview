@@ -124,16 +124,6 @@ urlpatterns = [
         name='manage_log_update_info',
     ),
     url(
-        regex=r'^manage_log_time_info/$',
-        view=views.manage_log_time_info,
-        name='manage_log_time_info',
-    ),
-    url(
-        regex=r'^manage_log_parameters_info/$',
-        view=views.manage_log_parameters_info,
-        name='manage_log_parameters_info',
-    ),
-    url(
         regex=r'^manage_log_qc_info/$',
         view=views.manage_log_qc_info,
         name='manage_log_qc_info',

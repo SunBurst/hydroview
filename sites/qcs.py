@@ -124,49 +124,49 @@ class QCData(object):
                 if (qc_levels.get('eq_level')):
                     # Equal to (=) timestamp
                     qc_level = qc_levels.get('eq_level')
-                    log_qc_schedule_info_query.filter(Quality_control_level_info_by_log.qc_level == qc_level)
+                    log_qc_schedule_info_query.filter(Log_quality_control_schedule_by_log.qc_level == qc_level)
                 elif (qc_levels.get('lt_level')):
                     # Less than (<) timestamp
                     qc_level = qc_levels.get('lt_level')
-                    log_qc_schedule_info_query.filter(Quality_control_level_info_by_log.qc_level < qc_level)
+                    log_qc_schedule_info_query.filter(Log_quality_control_schedule_by_log.qc_level < qc_level)
                 elif (qc_levels.get('lte_level')):
                     # Less than or equal to (<=) timestamp
                     qc_level = qc_levels.get('lte_level')
-                    log_qc_schedule_info_query.filter(Quality_control_level_info_by_log.qc_level <= qc_level)
+                    log_qc_schedule_info_query.filter(Log_quality_control_schedule_by_log.qc_level <= qc_level)
                 elif (qc_levels.get('gt_level')):
                     # Greater than (>) timestamp
                     qc_level = qc_levels.get('gt_level')
-                    log_qc_schedule_info_query.filter(Quality_control_level_info_by_log.qc_level > qc_level)
+                    log_qc_schedule_info_query.filter(Log_quality_control_schedule_by_log.qc_level > qc_level)
                 elif (qc_levels.get('gte_level')):
                     # Greater than or equal to (>=) timestamp
                     qc_level = qc_levels.get('gte_level')
-                    log_qc_schedule_info_query.filter(Quality_control_level_info_by_log.qc_level >= qc_level)
+                    log_qc_schedule_info_query.filter(Log_quality_control_schedule_by_log.qc_level >= qc_level)
             else:
                 #  Two timestamps given
                 if (qc_levels.get('lt_level') and qc_levels.get('gt_level')):
                     # Less than (<) and greater than (>) timestamp
                     to_qc_level = qc_levels.get('lt_level')
                     from_qc_level = qc_levels.get('gt_level')
-                    log_qc_schedule_info_query.filter(Quality_control_level_info_by_log.qc_level < to_qc_level)
-                    log_qc_schedule_info_query.filter(Quality_control_level_info_by_log.qc_level > from_qc_level)
+                    log_qc_schedule_info_query.filter(Log_quality_control_schedule_by_log.qc_level < to_qc_level)
+                    log_qc_schedule_info_query.filter(Log_quality_control_schedule_by_log.qc_level > from_qc_level)
                 if (qc_levels.get('lte_level') and qc_levels.get('gte_level')):
                     # Less than or equal to (<=) and greater than or equal to (>=) timestamp
                     to_qc_level = qc_levels.get('lte_level')
                     from_qc_level = qc_levels.get('gte_level')
-                    log_qc_schedule_info_query.filter(Quality_control_level_info_by_log.qc_level <= to_qc_level)
-                    log_qc_schedule_info_query.filter(Quality_control_level_info_by_log.qc_level >= from_qc_level)
+                    log_qc_schedule_info_query.filter(Log_quality_control_schedule_by_log.qc_level <= to_qc_level)
+                    log_qc_schedule_info_query.filter(Log_quality_control_schedule_by_log.qc_level >= from_qc_level)
                 if (qc_levels.get('lt_level') and qc_levels.get('gte_level')):
                     # Less than (<) and greater than or equal to (>=) timestamp
                     to_qc_level = qc_levels.get('lt_level')
                     from_qc_level = qc_levels.get('gte_level')
-                    log_qc_schedule_info_query.filter(Quality_control_level_info_by_log.qc_level < to_qc_level)
-                    log_qc_schedule_info_query.filter(Quality_control_level_info_by_log.qc_level >= from_qc_level)
+                    log_qc_schedule_info_query.filter(Log_quality_control_schedule_by_log.qc_level < to_qc_level)
+                    log_qc_schedule_info_query.filter(Log_quality_control_schedule_by_log.qc_level >= from_qc_level)
                 if (qc_levels.get('lte_level') and qc_levels.get('gt_level')):
                     # Less than or equal to (<=) and greater than (>) timestamp
                     to_qc_level = qc_levels.get('lte_level')
                     from_qc_level = qc_levels.get('gt_level')
-                    log_qc_schedule_info_query.filter(Quality_control_level_info_by_log.qc_level <= to_qc_level)
-                    log_qc_schedule_info_query.filter(Quality_control_level_info_by_log.qc_level > from_qc_level)
+                    log_qc_schedule_info_query.filter(Log_quality_control_schedule_by_log.qc_level <= to_qc_level)
+                    log_qc_schedule_info_query.filter(Log_quality_control_schedule_by_log.qc_level > from_qc_level)
 
         for row in log_qc_schedule_info_query:
             qc = {
@@ -248,7 +248,7 @@ class QCData(object):
                     month_first_day = None
                 else:
                     tm = TimeManager()
-                    month_first_day = tm.date_handler(row.month_first_day)
+                    month_first_day = tm.json_date_handler(row.month_first_day)
             else:
                 month_first_day = row.month_first_day
             qc = {
@@ -285,8 +285,8 @@ class QCData(object):
                 print("Index error!")
             if json_request:
                 tm = TimeManager()
-                log_last_qc = tm.date_handler(log_qc_schedule_query.log_last_quality_control)
-                log_next_qc = tm.date_handler(log_qc_schedule_query.log_next_quality_control)
+                log_last_qc = tm.json_date_handler(log_qc_schedule_query.log_last_quality_control)
+                log_next_qc = tm.json_date_handler(log_qc_schedule_query.log_next_quality_control)
             else:
                 log_last_qc = log_qc_schedule_query.log_last_quality_control
                 log_next_qc = log_qc_schedule_query.log_next_quality_control

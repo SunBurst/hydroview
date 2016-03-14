@@ -44,9 +44,8 @@
                 </div>
                 <div class="modal-body">Delete this log? This operation cannot be undone!</div>
                 <div class="modal-footer">
-                    <a href="{% url 'sites:delete_log' %}?site_name={{ site_name }}
-                        &location_id={{ location_id }}&location_name={{ location_name }}&log_id={{ log_id }}
-                        &log_name={{ log_name }}" class = "btn btn-default" role = "button">OK
+                    <a href="{% url 'sites:delete_log' %}?site_name={{ site_name }}&location_id={{ location_id }}&location_name={{ location_name }}&log_id={{ log_id }}&log_name={{ log_name }}"
+                       class = "btn btn-default" role = "button">OK
                     </a>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
