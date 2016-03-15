@@ -812,7 +812,9 @@ def manage_log_update_info(request):
             )
         try:
             log_parameters_info_exists = log_parameters_info_data[0]
-            Log_parameters_by_log(log_id=log_id).update(
+            Log_parameters_by_log(log_id=log_id).delete()
+            Log_parameters_by_log.create(
+                log_id=log_id,
                 log_parameters=log_parameters,
                 log_reading_types=log_parameters_reading_types
             )

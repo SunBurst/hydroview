@@ -443,30 +443,30 @@ class ManageLogUpdateInfoForm(forms.Form):
         if (is_active and update_interval):
             tm = timemanager.TimeManager()
             utc_time_now = datetime.utcnow()
-            local_time_now = tm.utc_dt_to_local_dt(utc_time_now)
-            year_now = local_time_now.year
-            month_now = local_time_now.month
-            day_now = local_time_now.day
-            hour = local_time_now.hour
+            local_time_now_tz = tm.utc_dt_to_local_dt(utc_time_now)
+            year_now = local_time_now_tz.year
+            month_now = local_time_now_tz.month
+            day_now = local_time_now_tz.day
+            hour = local_time_now_tz.hour
             if (update_interval == 'daily'):
                 time = self.cleaned_data['daily_interval']
                 hour = time.hour
             elif (update_interval == 'hourly'):
                 time = self.cleaned_data['hourly_interval']
+            print(hour)
             minute = time.minute
             second = time.second
 
-            utc_time_next_update = datetime(year_now, month_now, day_now, hour, minute, second)
-            local_time_next_update = tm.utc_dt_to_local_dt(utc_time_next_update)
-            print(local_time_now)
-            print(local_time_next_update)
-            if (local_time_now > local_time_next_update):   #: time candidate has passed.
+            temp_time_next_update = datetime(year_now, month_now, day_now, hour, minute, second)
+            utc_time_next_update = tm.local_dt_to_utc_dt(temp_time_next_update)
+
+            if (tm.utc_dt_to_utc_dt_tz(datetime.utcnow()) > utc_time_next_update):   #: time candidate has passed.
                 if (update_interval == 'daily'):
-                    local_time_next_update += timedelta(days=1)
+                    utc_time_next_update += timedelta(days=1)
                 elif (update_interval == 'hourly'):
-                    local_time_next_update += timedelta(hours=1)
+                    utc_time_next_update += timedelta(hours=1)
             update_info['log_update_interval'] = update_interval
-            update_info['log_next_update'] = local_time_next_update
+            update_info['log_next_update'] = utc_time_next_update
         return update_info
 
     def clean_parameters(self):

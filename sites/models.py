@@ -43,7 +43,7 @@ class Log_info_by_log(models.Model):
 class Log_file_info_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
     log_file_path = columns.Text(default=None)
-    log_file_line_num = columns.Integer(default=0)
+    log_file_line_num = columns.Integer(default=1)
 
 class Log_parameters_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
