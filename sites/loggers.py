@@ -90,3 +90,6 @@ class LoggerData(object):
             }
             log_time_info_data.append(log)
         return log_time_info_data
+
+    def install_stock_logger_time_formats(self):
+        print("")

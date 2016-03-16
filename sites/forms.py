@@ -1,27 +1,27 @@
+import os
 from datetime import datetime, timedelta, timezone
 from django import forms
 from django.core.exceptions import ValidationError
 from pytz import all_timezones
 from collections import OrderedDict
+from configparser import ConfigParser, NoSectionError
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Button, Div, Field, Fieldset, Layout, Reset, Submit
 from crispy_forms.bootstrap import FormActions, Tab, TabHolder
 
-from settings.settings import TIME_ZONE
+from settings.settings import CONFIG_PATH, TIME_ZONE
 from .validators import validate_file_extension
 from utils.tools import MiscTools
 from utils import timemanager
 
+parser = ConfigParser()
+parser.read(os.path.join(CONFIG_PATH, 'static_data.ini'))
+if not parser:
+    print("Config file not found!")
+
 class ManageLoggerTimeFormatForm(forms.Form):
-    MAX_TIME_IDS = 5
-    TIME_ID_TYPES = {
-        'int_year' : 'Integer (Year)',
-        'int_julday' : 'Integer (Julian Day)',
-        'int_hourminute' : 'Integer (HourMinute)',
-        'timetamp' : 'Timestamp (YYYY-MM-DD HH:MM:SS)',
-        'timestamp_tz' : 'Timestamp (YYYY-MM-DD HH:MM:SS+ZZZZ)'
-    }
+
     logger_time_format_name = forms.CharField(label='Logger Time Format Name', required=True)
     logger_time_format_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
 
@@ -45,9 +45,16 @@ class ManageLoggerTimeFormatForm(forms.Form):
                 Submit('save', 'Save', css_class="btn-primary"),
                 Reset('reset', 'Reset', css_class="btn-default"),
                 Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default"),
-                Button('delete', 'Delete', css_id="id-deleteBtn", css_class="btn-danger pull-right")
             )
         )
+
+        try:
+            self.MAX_TIME_IDS = parser.getint('MAX_VALUES', 'max_time_ids')
+            self.TIME_ID_TYPES = OrderedDict()
+            for name in parser['LOGGER_TIME_ID_TYPES']:
+                self.TIME_ID_TYPES[name] = parser['LOGGER_TIME_ID_TYPES'].get(name)
+        except (NoSectionError, TypeError, ValueError) as e:
+            print(e)
 
         TIME_ID_TYPE_CHOICES = (('disabled', ''),)
         for name, description in self.TIME_ID_TYPES.items():
@@ -117,6 +124,7 @@ class ManageLoggerTimeFormatForm(forms.Form):
         return time_format_ids_order, time_format_id_types
 
 class ManageQCForm(forms.Form):
+
     qc_level = forms.IntegerField(label='Quality Control Level', required=True)
     qc_name = forms.CharField(label='Quality Control Name', required=True)
     qc_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
@@ -142,6 +150,7 @@ class ManageQCForm(forms.Form):
         )
 
 class ManageSiteForm(forms.Form):
+
     site_id = forms.CharField(label='Site ID', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=False)
     site_name = forms.CharField(label='Site', required=True)
     site_latitude = forms.FloatField(label='Latitude (WGS 84)', required=False)
@@ -150,7 +159,6 @@ class ManageSiteForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(ManageSiteForm, self).__init__(*args, **kwargs)
-
         self.helper = FormHelper()
         self.helper.form_id = 'id-manageSiteForm'
         self.helper.form_method = 'post'
@@ -160,7 +168,6 @@ class ManageSiteForm(forms.Form):
             Field('site_latitude'),
             Field('site_longitude'),
             Field('site_description'),
-
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
                 Reset('reset', 'Reset', css_class="btn-default"),
@@ -192,7 +199,6 @@ class ManageLocationForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(ManageLocationForm, self).__init__(*args, **kwargs)
-
         self.helper = FormHelper()
         self.helper.form_id = 'id-manageLocationForm'
         self.helper.form_method = 'post'
@@ -203,7 +209,6 @@ class ManageLocationForm(forms.Form):
             Field('location_latitude'),
             Field('location_longitude'),
             Field('location_description'),
-
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
                 Reset('reset', 'Reset', css_class="btn-default"),
@@ -243,7 +248,6 @@ class ManageLogForm(forms.Form):
             Field('log_id'),
             Field('log_name'),
             Field('log_description'),
-
             FormActions(
                 Submit('save', 'Save', css_class="btn-primary"),
                 Reset('reset', 'Reset', css_class="btn-default"),
@@ -252,15 +256,7 @@ class ManageLogForm(forms.Form):
         )
 
 class ManageLogUpdateInfoForm(forms.Form):
-    MAX_TIME_IDS = 5
-    MAX_PARAMETERS = 30
-    PARAMETER_READING_TYPES = OrderedDict([
-        ('ignore', 'Ignore'),
-        ('time', 'Time Identifier'),
-        ('parameter_reading', 'Parameter Reading'),
-        ('profile_reading', 'Profile Reading'),
-        ('status_parameter_reading', 'Status Parameter Reading')
-    ])
+
     log_file_path = forms.CharField(
         label='Current Log File Path',
         widget=forms.TextInput(),
@@ -270,19 +266,6 @@ class ManageLogUpdateInfoForm(forms.Form):
 
     log_file_line_num = forms.IntegerField(label='Last Inserted Line Number', min_value=0, required=False)
     update_is_active = forms.BooleanField(label='Automatic Updating is Active', initial=False, required=False)
-
-    UPDATE_INTERVAL_CHOICES=(
-        ('daily','Daily',), ('hourly','Hourly',),
-    )
-
-    update_interval = forms.ChoiceField(
-        label='Update Interval',
-        choices=UPDATE_INTERVAL_CHOICES,
-        required=False
-    )
-
-    daily_interval = forms.TimeField(label='Update Every Day At Hour HH:MM:SS', required=False)
-    hourly_interval = forms.TimeField(label='Update Every Hour At Minute (00:MM:SS)', required=False)
 
     TZ_CHOICES = ()
     for tz in all_timezones:
@@ -303,10 +286,7 @@ class ManageLogUpdateInfoForm(forms.Form):
             TabHolder(
                 Tab(
                     'Update Info',
-                    Field('update_is_active', css_id="id-updateIsActiveField"),
-                    Field('update_interval', css_id="id-updateIntervalField"),
-                    Field('daily_interval', css_id="id-updateIntervalDailyField"),
-                    Field('hourly_interval', css_id="id-updateIntervalHourlyField"),
+                    Field('update_is_active'),
                 ),
                 Tab(
                     'File Info',
@@ -327,6 +307,29 @@ class ManageLogUpdateInfoForm(forms.Form):
                 Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default pull-right")
             )
         )
+
+        try:
+            self.MAX_TIME_IDS = parser.getint('MAX_VALUES', 'max_time_ids')
+            self.MAX_LOG_PARAMETERS = parser.getint('MAX_VALUES', 'max_log_parameters')
+            self.LOG_PARAMETER_READING_TYPES = OrderedDict()
+            for name in parser['LOG_PARAMETER_READING_TYPES']:
+                self.LOG_PARAMETER_READING_TYPES[name] = parser['LOG_PARAMETER_READING_TYPES'].get(name)
+            self.UPDATE_INTERVAL_CHOICES = OrderedDict()
+            for name in parser['LOG_UPDATE_INTERVALS']:
+                self.UPDATE_INTERVAL_CHOICES[name] = parser['LOG_UPDATE_INTERVALS'].get(name)
+        except (NoSectionError, TypeError, ValueError) as e:
+            print(e)
+
+        self.fields['update_interval'] = forms.ChoiceField(
+            label='Update Interval',
+            choices=self.UPDATE_INTERVAL_CHOICES,
+            required=False
+        )
+        self.helper.layout[0][0].append(Field('update_interval'))
+        self.fields['daily_interval'] = forms.TimeField(label='Update Every Day At Hour HH:MM:SS', required=False)
+        self.fields['hourly_interval'] = forms.TimeField(label='Update Every Hour At Minute (00:MM:SS)', required=False)
+        self.helper.layout[0][0].append(Field('daily_interval'))
+        self.helper.layout[0][0].append(Field('hourly_interval'))
 
         LOGGER_TIME_FORMATS = ()
         if (init_logger_time_formats):
@@ -383,8 +386,9 @@ class ManageLogUpdateInfoForm(forms.Form):
                 self.helper.layout[0][2].append(Field('log_time_format_time_id_{0}'.format(log_time_id_field)))
 
         PARAMETER_READING_TYPE_CHOICES = (('disabled', ''),)
-        for name, description in self.PARAMETER_READING_TYPES.items():
+        for name, description in self.LOG_PARAMETER_READING_TYPES.items():
             PARAMETER_READING_TYPE_CHOICES = PARAMETER_READING_TYPE_CHOICES + ((name, description,),)
+
         if (init_log_parameters and init_log_reading_types):
             num_of_init_fields = 0
             for i, init_log_param_field in enumerate(init_log_parameters):
@@ -404,7 +408,7 @@ class ManageLogUpdateInfoForm(forms.Form):
                 self.helper.layout[0][3].append(Field('reading_type_{0}'.format(i)))
                 num_of_init_fields += 1
 
-            while (num_of_init_fields < self.MAX_PARAMETERS):
+            while (num_of_init_fields < self.MAX_LOG_PARAMETERS):
                 self.fields['parameter_{0}'.format(num_of_init_fields)] = forms.CharField(
                     label='Parameter {0} Name'.format(num_of_init_fields + 1),
                     required=False
@@ -419,7 +423,7 @@ class ManageLogUpdateInfoForm(forms.Form):
                 self.helper.layout[0][3].append(Field('reading_type_{0}'.format(num_of_init_fields)))
                 num_of_init_fields += 1
         else:
-            for param_field in range(self.MAX_PARAMETERS):
+            for param_field in range(self.MAX_LOG_PARAMETERS):
                 self.fields['parameter_{0}'.format(param_field)] = forms.CharField(
                     label='Parameter {0} Name'.format(param_field + 1),
                     required=False
@@ -453,7 +457,6 @@ class ManageLogUpdateInfoForm(forms.Form):
                 hour = time.hour
             elif (update_interval == 'hourly'):
                 time = self.cleaned_data['hourly_interval']
-            print(hour)
             minute = time.minute
             second = time.second
 
@@ -472,7 +475,7 @@ class ManageLogUpdateInfoForm(forms.Form):
     def clean_parameters(self):
         log_parameters = []
         log_parameter_reading_types = {}
-        for i in range(self.MAX_PARAMETERS):
+        for i in range(self.MAX_LOG_PARAMETERS):
             param_field = 'parameter_{0}'.format(i)
             param_reading_type_field = 'reading_type_{0}'.format(i)
             if (

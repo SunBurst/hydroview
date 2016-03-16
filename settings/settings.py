@@ -14,7 +14,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 import os
 import os.path
 
-import configparser
+from configparser import ConfigParser
 
 from cassandra import ConsistencyLevel
 
@@ -23,8 +23,8 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 CONFIG_PATH = os.path.join(PROJECT_ROOT, 'cfg')
 
-parser = configparser.ConfigParser()
-parser.read(os.path.join(CONFIG_PATH, 'config.INI'))
+parser = ConfigParser()
+parser.read(os.path.join(CONFIG_PATH, 'cassandra_config.ini'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -58,6 +58,7 @@ DJANGO_CASSANDRA_ENGINE = ('django_cassandra_engine',
 
 EXTERNAL_APPS = (
     'crispy_forms',
+    'django_cron',
 )
 
 INSTALLED_APPS = DJANGO_CASSANDRA_ENGINE + DJANGO_APPS + LOCAL_APPS + EXTERNAL_APPS
@@ -72,6 +73,11 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 )
+
+CRON_CLASSES = [
+    "utils.crons.UpdateLogsCronJob",
+    # ...
+]
 
 ROOT_URLCONF = 'hydroview.urls'
 

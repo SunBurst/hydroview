@@ -2,6 +2,7 @@ import os
 from collections import defaultdict
 from operator import itemgetter
 from configparser import ConfigParser
+from datetime import datetime, timedelta
 
 from cassandra.cqlengine import connection
 
@@ -11,7 +12,7 @@ from sites.locations import LocationData
 from sites.loggers import LoggerData
 from sites.logs import LogData
 from sites.sites import SiteData
-from utils import timemanager
+from utils import logging, timemanager
 
 TIME_ID_TYPES = {
         'int_year' : 'Integer (Year)',
@@ -22,7 +23,7 @@ TIME_ID_TYPES = {
     }
 
 parser = ConfigParser()
-parser.read(os.path.join(CONFIG_PATH, 'config.INI'))
+parser.read(os.path.join(CONFIG_PATH, 'cassandra_config.ini'))
 
 connection.setup([(parser.get('DBSETTINGS', 'host'))], (parser.get('DBSETTINGS', 'keyspace')))
 
@@ -34,14 +35,6 @@ def process_campbell_legacy_file(log_id, log_name, file_path, time_zone, time_id
             Args: current_line (string): The row to process.
         """
         current_line_as_list = current_line.strip().split(',')
-        #sensor_id = identify_sensor_id(current_line_as_list)
-
-        #sensor_name = config_parser.get('SENSOR_IDS', sensor_id)
-        #raw_file_params_order_list = config_parser.get('RAW_FILE_ORDERS', sensor_name).split(',')
-        #time_identifiers_list = config_parser.get('TIME_IDENTIFIERS', sensor_name).split(',')		#: Year, julianday, hour (minute)
-
-        #ts = tm.raw_format_to_timestamp(current_line_as_list, time_identifiers_list)    #: WORKS FOR RAW QUERIES
-        #ts_as_string = str(ts)    #: WORKS FOR RAW QUERIES
 
         utc_dt = tm.campbell_legacy_time_to_timestamp(current_line_as_list, time_ids)
         indexes = []														#: Replace raw time identifiers with timestamp representation.
@@ -277,7 +270,7 @@ def prepare_log_update(log_id):
     }
     return 0, update_info
 
-if __name__=='__main__':
+def cron_job():
     all_sites_data = SiteData.get_all_sites()
     for site in all_sites_data:
         site_id = site.get('site_id')
@@ -292,11 +285,22 @@ if __name__=='__main__':
                     log_update_info = log_update_info[0]
                 except IndexError:
                     print("Index error!")
+                log_update_interval = log_update_info.get('log_update_interval')
                 log_next_update = log_update_info.get('log_next_update')
-                if log_next_update:
-                    success, update_info = prepare_log_update(log_id)
-                    if (success == 0 and update_info):
-                        print("entering run", success, update_info)
-                        run_log_update(log_id, update_info)
-                        Log_update_schedule_by_log(log_id=log_id).update(log_last_update=log_next_update)
-                    print(success, update_info)
+                print(log_next_update)
+                if log_next_update and \
+                    (log_next_update <= datetime.utcnow()):
+                        success, update_info = prepare_log_update(log_id)
+                        if (success == 0 and update_info):
+                            print("entering run", success, update_info)
+                            #run_log_update(log_id, update_info)
+                            if (log_update_interval == 'daily'):
+                                log_last_update = log_next_update
+                                log_next_update += timedelta(days=1)
+                            elif (log_update_interval == 'hourly'):
+                                log_last_update = log_next_update
+                                log_next_update += timedelta(hours=1)
+                            Log_update_schedule_by_log(log_id=log_id).update(
+                                log_last_update=log_last_update,
+                                log_next_update=log_next_update
+                            )
