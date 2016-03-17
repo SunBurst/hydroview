@@ -100,7 +100,8 @@ class LogData(object):
         log_updates_query = Log_update_schedule_by_log.objects.filter(log_id=log_id)
         for row in log_updates_query:
             log = {
-                'log_update_interval' : row.log_update_interval,
+                'log_update_interval_id' : row.log_update_interval.get('log_update_interval_id'),
+                'log_update_interval' : row.log_update_interval.get('log_update_interval'),
                 'log_last_update' : row.log_last_update,
                 'log_next_update' : row.log_next_update,
             }
@@ -153,7 +154,8 @@ class LogData(object):
             log = {
                 'log_file_path' : log_file_info.log_file_path,
                 'log_file_line_num' : log_file_info.log_file_line_num,
-                'log_update_interval' : log_update_info.log_update_interval,
+                'log_update_interval_id' : log_update_info.get('log_update_interval_id'),
+                'log_update_interval' : log_update_info.get('log_update_interval'),
                 'log_last_update' : log_last_update,
                 'log_next_update' : log_next_update
             }

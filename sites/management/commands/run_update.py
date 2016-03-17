@@ -285,7 +285,9 @@ def cron_job():
                     log_update_info = log_update_info[0]
                 except IndexError:
                     print("Index error!")
-                log_update_interval = log_update_info.get('log_update_interval')
+                log_update_interval_map = log_update_info.get('log_update_interval')
+                log_update_interval_id = log_update_interval_map.get('log_update_interval_id')
+                log_update_interval = log_update_interval_map.get('log_update_interval')
                 log_next_update = log_update_info.get('log_next_update')
                 print(log_next_update)
                 if log_next_update and \
@@ -294,10 +296,10 @@ def cron_job():
                         if (success == 0 and update_info):
                             print("entering run", success, update_info)
                             #run_log_update(log_id, update_info)
-                            if (log_update_interval == 'daily'):
+                            if (log_update_interval_id == 'daily'):
                                 log_last_update = log_next_update
                                 log_next_update += timedelta(days=1)
-                            elif (log_update_interval == 'hourly'):
+                            elif (log_update_interval_id == 'hourly'):
                                 log_last_update = log_next_update
                                 log_next_update += timedelta(hours=1)
                             Log_update_schedule_by_log(log_id=log_id).update(

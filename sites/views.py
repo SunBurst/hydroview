@@ -698,12 +698,14 @@ def manage_log_update_info(request):
         log_file_line_num = 0
     try:
         log_update_info_data = log_update_info_data[0]
-        log_update_interval = log_update_info_data.get('log_update_interval')
+        log_update_interval_map = log_update_info_data.get('log_update_interval')
+        log_update_interval_id = log_update_interval_map.get('log_update_interval_id')
+        log_update_interval = log_update_interval_map.get('log_update_interval')
         log_last_update = log_update_info_data.get('log_last_update')
         log_next_update = log_update_info_data.get('log_next_update')
     except IndexError:
         print("Index error! Setting default values..")
-        log_update_interval = None
+        log_update_interval_id = None
         log_last_update = None
         log_next_update = None
     try:
@@ -731,18 +733,18 @@ def manage_log_update_info(request):
     daily_interval = None
     hourly_interval = None
 
-    if (log_update_interval and log_next_update):
+    if (log_update_interval_id and log_next_update):
         init_log_update_is_active = True
-        if (log_update_interval == 'daily'):
+        if (log_update_interval_id == 'daily'):
             daily_interval = datetime.time(log_next_update)
-        elif (log_update_interval == 'hourly'):
+        elif (log_update_interval_id == 'hourly'):
             hourly_interval = datetime.time(log_next_update).minute
 
     init_log_update_info_form = {
         'log_file_path' : log_file_path,
         'log_file_line_num' : log_file_line_num,
         'update_is_active' : init_log_update_is_active,
-        'update_interval' : log_update_interval,
+        'update_interval' : log_update_interval_id,
         'daily_interval' : daily_interval,
         'hourly_interval' : hourly_interval,
         'logger_time_format' : logger_time_format_id,

@@ -52,7 +52,7 @@ class Log_parameters_by_log(models.Model):
 
 class Log_update_schedule_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
-    log_update_interval = columns.Text(default=None)
+    log_update_interval = columns.Map(columns.Text, columns.Text, default=None)
     log_last_update = columns.DateTime(default=None)
     log_next_update = columns.DateTime(default=None)
 

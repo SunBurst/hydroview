@@ -49,7 +49,7 @@ class ManageLoggerTimeFormatForm(forms.Form):
         )
 
         try:
-            self.MAX_TIME_IDS = parser.getint('MAX_VALUES', 'max_time_ids')
+            self.MAX_TIME_IDS = parser.getint('GLOBAL_LIMITS', 'max_time_ids')
             self.TIME_ID_TYPES = OrderedDict()
             for name in parser['LOGGER_TIME_ID_TYPES']:
                 self.TIME_ID_TYPES[name] = parser['LOGGER_TIME_ID_TYPES'].get(name)
@@ -468,7 +468,12 @@ class ManageLogUpdateInfoForm(forms.Form):
                     utc_time_next_update += timedelta(days=1)
                 elif (update_interval == 'hourly'):
                     utc_time_next_update += timedelta(hours=1)
-            update_info['log_update_interval'] = update_interval
+            #log_update_interval = {}
+            log_update_interval = {
+                'log_update_interval_id' : update_interval,
+                #'log_update_interval' :
+            }
+            update_info['log_update_interval'] = log_update_interval
             update_info['log_next_update'] = utc_time_next_update
         return update_info
 
