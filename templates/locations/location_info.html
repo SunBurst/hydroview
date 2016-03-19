@@ -64,7 +64,7 @@
                     Delete this location? This operation cannot be undone!
                 </div>
                 <div class="modal-footer">
-                    <a href="{% url 'sites:delete_location' %}?site_name={{ site_name }}&location_name={{ location_name }}" class = "btn btn-default" role = "button">OK</a>
+                    <a href="{% url 'locations:delete_location' %}?site_name={{ site_name }}&location_name={{ location_name }}" class = "btn btn-default" role = "button">OK</a>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
@@ -87,15 +87,12 @@
 
     <script type="text/javascript">
     $(document).ready( function () {
-
         var siteName = "{{ site_name }}";
         var locationName = "{{ location_name }}";
 
         function initMap () {
-
             var locationLat = "{{ location_latitude }}";
             var locationLong = "{{ location_longitude }}";
-
                 if (locationLat && locationLong) {
                     var latlng = new google.maps.LatLng(locationLat, locationLong);
                     var myOptions = {
@@ -112,7 +109,6 @@
                     google.maps.event.trigger(map, 'resize');
                 }
         }
-
 
         $('a[href="#info"]').on('shown', function (e) {
             google.maps.event.trigger(map, 'resize');

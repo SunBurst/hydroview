@@ -26,7 +26,7 @@
 {% block extrajs %}
     <script type="text/javascript">
     $(document).ready(function () {
-        var redirectToLocationUrl = '{% url 'sites:location_logs' %}';
+        var redirectToLocationUrl = '{% url 'logs:location_logs' %}';
         var siteName = '{{ site_name }}';
         var locationId = '{{ location_id }}';
         var locationName = '{{ location_name }}';
@@ -39,7 +39,7 @@
         $('.page-header').text("Manage Log: " + logName);
 
         function setTimeFormatIdsField (timeFmtId) {
-            var jsonLoggerTimeFormatUrl = '{% url 'sites:load_logger_time_format_json' %}' + '?json_request=' + true
+            var jsonLoggerTimeFormatUrl = '{% url 'loggers:load_logger_time_format_json' %}' + '?json_request=' + true
                 + '&logger_time_format_id=' + timeFmtId;
             $.getJSON(jsonLoggerTimeFormatUrl, function (TimeFormatData) {
                 if (TimeFormatData.length > 0) {
@@ -63,33 +63,21 @@
         function showUpdateIntervalFields () {
             $('#div_id_update_interval').show();
             $('#id_update_interval').prop('required', true);
+            $('#div_id_update_at_time').show();
+            $('#id_update_at_time').prop('required', true);
             if ($('#id_update_interval').val() == 'daily') {
-                $('#div_id_daily_interval').show();
-                $('#id_daily_interval').prop('required', true);
-                $('#id_daily_interval').attr('value', "");
-                $('#div_id_hourly_interval').hide();
-                $('#id_hourly_interval').prop('required', false);
-                $('#id_hourly_interval').removeAttr('value');
+                $('#div_id_update_at_time').find('label').text("Update At Hour (UTC)");
             }
             else if ($('#id_update_interval').val() == 'hourly') {
-                $('#div_id_hourly_interval').show();
-                $('#id_hourly_interval').prop('required', true);
-                $('#id_hourly_interval').attr('value', "");
-                $('#div_id_daily_interval').hide();
-                $('#id_daily_interval').prop('required', false);
-                $('#id_daily_interval').removeAttr('value');
+                $('#div_id_update_at_time').find('label').text("Update Starting At Hour (UTC)");
             }
         }
 
         function hideUpdateIntervalFields () {
             $('#div_id_update_interval').hide();
             $('#id_update_interval').prop('required', false);
-            $('#div_id_daily_interval').hide();
-            $('#id_daily_interval').prop('required', false);
-            $('#id_daily_interval').removeAttr('value');
-            $('#div_id_hourly_interval').hide();
-            $('#id_hourly_interval').prop('required', false);
-            $('#id_hourly_interval').removeAttr('value');
+            $('#div_id_update_at_time').hide();
+            $('#id_update_at_time').prop('required', false);
         }
 
         function checkInitTimeFormat() {
@@ -123,16 +111,10 @@
 
         $('#id_update_interval').change(function () {
             if ($(this).val() == 'daily') {
-                $('#div_id_daily_interval').show();
-                $('#id_daily_interval').prop('required', true);
-                $('#div_id_hourly_interval').hide();
-                $('#id_hourly_interval').prop('required', false);
+                $('#div_id_update_at_time').find('label').text("Update At Hour (UTC)");
             }
             else if ($(this).val() == 'hourly') {
-                $('#div_id_hourly_interval').show();
-                $('#id_hourly_interval').prop('required', true);
-                $('#div_id_daily_interval').hide();
-                $('#id_daily_interval').prop('required', false);
+                $('#div_id_update_at_time').find('label').text("Update Starting At Hour (UTC)");
             }
         });
 

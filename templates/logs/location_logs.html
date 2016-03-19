@@ -32,9 +32,9 @@
         var siteName = '{{ site_name }}';
         var locationId = '{{ location_id }}';
         var locationName = '{{ location_name }}';
-        var jsonLocationLogsUrl = '{% url 'sites:load_location_logs_json' %}' + '?json_request=' + true;
+        var jsonLocationLogsUrl = '{% url 'logs:load_location_logs_json' %}' + '?json_request=' + true;
         var jsonSiteLocationsDataUrl = jsonLocationLogsUrl + '&location_id=' + locationId;
-        var manageLogBaseUrl = '{% url 'sites:manage_log' %}'
+        var manageLogBaseUrl = '{% url 'logs:manage_log' %}'
             + '?site_name=' + siteName + '&location_id=' + locationId + '&location_name=' + locationName;
         var $logsPanel = $('#id-logsPanel');
 
@@ -89,7 +89,7 @@
                         + '</div>'
                     );
 
-                    var manageLogUpdateInfoUrl = '{% url 'sites:manage_log_update_info' %}'
+                    var manageLogUpdateInfoUrl = '{% url 'logs:manage_log_update_info' %}'
                         + '?site_name=' + siteName + '&location_id=' + locationId
                         + '&location_name=' + locationName + '&log_id=' + logId + '&log_name=' + logName;
 
@@ -98,7 +98,7 @@
                             + '<div class="panel panel-default">'
                                 + '<div class="panel-heading">'
                                     + '<h4 class="panel-title"><i class="fa fa-refresh fa-fw"></i> Update Info'
-                                        + '<a href="' + manageLogUpdateInfoUrl + '">'
+                                        + '<a class="manageUpdateInfoLink" href="' + manageLogUpdateInfoUrl + '">'
                                             + '<i class="fa fa-edit fa-fw pull-right"></i>'
                                         + '</a>'
                                     + '</h4>'
@@ -108,7 +108,7 @@
                         + '</div>'
                     );
 
-                    var manageLogQCInfoUrl = '{% url 'sites:manage_log_qc_info' %}'
+                    var manageLogQCInfoUrl = '{% url 'qcs:manage_log_qc_info' %}'
                         + '?site_name=' + siteName + '&location_id=' + locationId
                         + '&location_name=' + locationName + '&log_id=' + logId + '&log_name=' + logName;
 
@@ -158,7 +158,7 @@
                         + '</div>'
                     );
 
-                    var jsonLogUpdateInfoUrl = '{% url 'sites:load_log_update_info_json' %}' + '?json_request=' + true
+                    var jsonLogUpdateInfoUrl = '{% url 'logs:load_log_update_info_json' %}' + '?json_request=' + true
                         + '&log_id=' + logId;
                     $.getJSON(jsonLogUpdateInfoUrl, function (LogUpdateInfoData) {
                         $.each(LogUpdateInfoData, function (j, log_update_info) {
@@ -173,7 +173,8 @@
                             if (filePath) {
                                 $('#id-' + logId + '-updateInfoFilePath').text(filePath);
                             }
-                            if (updateInterval) {$('#id-' + logId + '-updateInfoUpdateInterval').text(updateInterval);}
+                            if (updateInterval) {
+                                $('#id-' + logId + '-updateInfoUpdateInterval').text(updateInterval);}
                             if (nextUpdate) {
                                 $('#id-' + logId + '-updateInfoStatusIcon').find('i').attr('style',"color:green");
                                 nextUpdateFmt = dateConverter(nextUpdate);
@@ -209,7 +210,7 @@
                         + '</div>'
                     );
 
-                    var jsonLogTimeInfoUrl = '{% url 'sites:load_log_time_info_json' %}' + '?json_request=' + true
+                    var jsonLogTimeInfoUrl = '{% url 'logs:load_log_time_info_json' %}' + '?json_request=' + true
                         + '&log_id=' + logId;
                     $.getJSON(jsonLogTimeInfoUrl, function (LogTimeInfoData) {
                         $.each(LogTimeInfoData, function (j, log_time_info) {
@@ -245,7 +246,7 @@
                         + '</div>'
                     );
 
-                    var jsonLogParamsInfoUrl = '{% url 'sites:load_log_parameters_info_json' %}'
+                    var jsonLogParamsInfoUrl = '{% url 'logs:load_log_parameters_info_json' %}'
                         + '?log_id=' + logId;
                     $.getJSON(jsonLogParamsInfoUrl, function (LogParamsInfoData) {
                         if (LogParamsInfoData.length == 0) {
@@ -290,9 +291,9 @@
                         + '</div>'
                     );
 
-                    var jsonLogQCInfoUrl = '{% url 'sites:load_log_qc_info_json' %}' + '?json_request=' + true
+                    var jsonLogQCInfoUrl = '{% url 'qcs:load_log_qc_info_json' %}' + '?json_request=' + true
                         + '&log_id=' + logId;
-                    var manageLogQCInfoUrl = '{% url 'sites:manage_log_qc_info' %}'
+                    var manageLogQCInfoUrl = '{% url 'qcs:manage_log_qc_info' %}'
                         + '?log_id=' + logId + '&log_name=' + logName;
 
                     $('#id-' + logId + '-qcInfoPanel').append(
@@ -362,7 +363,7 @@
                                 if (qcName) {$('#id-' + logId + '-qcInfoQcName_Row_' + j).text(qcName);}
                                 if (repValue) {$('#id-' + logId + '-qcInfoRepValue_Row_' + j).text(repValue);}
 
-                                var jsonLogQCValuesUrl = '{% url 'sites:load_log_qc_values_json' %}'
+                                var jsonLogQCValuesUrl = '{% url 'qcs:load_log_qc_values_json' %}'
                                     + '?json_request=' + true + '&log_id=' + logId + '&qc_level=' + qcLevel;
                                 $.getJSON(jsonLogQCValuesUrl, function (LogQCValuesData) {
                                     if (LogQCValuesData.length > 0) {
@@ -442,6 +443,20 @@
 
         initLogPanels();
         initAddLogLink();
+
+        $('#id-logsPanel').on('click', '.manageUpdateInfoLink', function () {
+            var jsonLoggerTimeFormatsUrl = '{% url 'loggers:load_all_logger_time_formats_json' %}'
+                + '?json_request=' + true;
+            $.getJSON(jsonLoggerTimeFormatsUrl, function (LoggerTimeFormatsData) {
+                if (LoggerTimeFormatsData.length > 0) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            });
+        });
+
     });
     </script>
 {% endblock %}

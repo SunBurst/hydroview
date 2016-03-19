@@ -4,89 +4,9 @@ from . import views
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(
-        regex=r'^location_info/$',
-        view=views.location_info,
-        name='location_info',
-    ),
-    url(
         regex=r'^load_all_sites_json/$',
         view=views.load_all_sites_json,
         name='load_all_sites_json',
-    ),
-    url(
-        regex=r'^load_site_locations_json/$',
-        view=views.load_site_locations_json,
-        name='load_site_locations_json',
-    ),
-    url(
-        regex=r'^load_location_logs_json/$',
-        view=views.load_location_logs_json,
-        name='load_location_logs_json',
-    ),
-    url(
-        regex=r'^load_log_update_info_json/$',
-        view=views.load_log_update_info_json,
-        name='load_log_update_info_json',
-    ),
-    url(
-        regex=r'^load_log_time_info_json/$',
-        view=views.load_log_time_info_json,
-        name='load_log_time_info_json',
-    ),
-    url(
-        regex=r'^load_log_file_info_json/$',
-        view=views.load_log_file_info_json,
-        name='load_log_file_info_json',
-    ),
-    url(
-        regex=r'^load_log_parameters_info_json/$',
-        view=views.load_log_parameters_info_json,
-        name='load_log_parameters_info_json',
-    ),
-    url(
-        regex=r'^load_log_qc_info_json/$',
-        view=views.load_log_qc_info_json,
-        name='load_log_qc_info_json',
-    ),
-    url(
-        regex=r'^load_log_qc_values_json/$',
-        view=views.load_log_qc_values_json,
-        name='load_log_qc_values_json',
-    ),
-    url(
-        regex=r'^load_all_logger_time_formats_json/$',
-        view=views.load_all_logger_time_formats_json,
-        name='load_all_logger_time_formats_json',
-    ),
-    url(
-        regex=r'^load_logger_time_format_json/$',
-        view=views.load_logger_time_format_json,
-        name='load_logger_time_format_json',
-    ),
-    url(
-        regex=r'^load_all_quality_controls_json/$',
-        view=views.load_all_quality_controls_json,
-        name='load_all_quality_controls_json',
-    ),
-    url(
-        regex=r'^manage_logger_time_format/$',
-        view=views.manage_logger_time_format,
-        name='manage_logger_time_format',
-    ),
-    url(
-        regex=r'^delete_logger_time_format/',
-        view=views.delete_logger_time_format,
-        name='delete_logger_time_format',
-    ),
-    url(
-        regex=r'^manage_quality_control/$',
-        view=views.manage_quality_control,
-        name='manage_quality_control',
-    ),
-    url(
-        regex=r'^delete_quality_control/$',
-        view=views.delete_quality_control,
-        name='delete_quality_control',
     ),
     url(
         regex=r'^manage_site/',
@@ -97,46 +17,6 @@ urlpatterns = [
         regex=r'^delete_site/',
         view=views.delete_site,
         name='delete_site',
-    ),
-    url(
-        regex=r'^location_logs/$',
-        view=views.location_logs,
-        name='location_logs',
-    ),
-    url(
-        regex=r'^manage_location/$',
-        view=views.manage_location,
-        name='manage_location',
-    ),
-    url(
-        regex=r'^delete_location/$',
-        view=views.delete_location,
-        name='delete_location',
-    ),
-    url(
-        regex=r'^manage_log/$',
-        view=views.manage_log,
-        name='manage_log',
-    ),
-    url(
-        regex=r'^manage_log_update_info/$',
-        view=views.manage_log_update_info,
-        name='manage_log_update_info',
-    ),
-    url(
-        regex=r'^manage_log_qc_info/$',
-        view=views.manage_log_qc_info,
-        name='manage_log_qc_info',
-    ),
-    url(
-        regex=r'^manage_log_qc_values/$',
-        view=views.manage_log_qc_values,
-        name='manage_log_qc_values',
-    ),
-    url(
-        regex=r'^delete_log/$',
-        view=views.delete_log,
-        name='delete_log',
     ),
     url(
         regex=r'^chart_data_json/$',

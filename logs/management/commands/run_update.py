@@ -1,31 +1,42 @@
 import os
 from collections import defaultdict
 from operator import itemgetter
-from configparser import ConfigParser
 from datetime import datetime, timedelta
 
 from cassandra.cqlengine import connection
 
-from settings.settings import CONFIG_PATH
-from sites.models import Log_update_schedule_by_log, Parameters_readings_by_log
-from sites.locations import LocationData
-from sites.loggers import LoggerData
-from sites.logs import LogData
-from sites.sites import SiteData
-from utils import logging, timemanager
+from settings.base import CONFIG_PATH
+from locations.models import Locations_by_site
+from loggers.models import Logger_time_format_by_logger_time_format
+from logs.models import Logs_by_location, Log_file_info_by_log, Log_info_by_log, Log_parameters_by_log, \
+    Log_time_info_by_log, Log_update_schedule_by_log
+from readings.models import Parameters_readings_by_log
+from sites.models import Sites
+from utils import logging, parser, timemanager
 
-TIME_ID_TYPES = {
-        'int_year' : 'Integer (Year)',
-        'int_julday' : 'Integer (Julian Day)',
-        'int_hourminute' : 'Integer (HourMinute)',
-        'timetamp' : 'Timestamp (YYYY-MM-DD HH:MM:SS)',
-        'timestamp_tz' : 'Timestamp (YYYY-MM-DD HH:MM:SS+ZZZZ)'
-    }
+db_settings = parser.DatabaseSettingsParser('cassandra_config.ini')
 
-parser = ConfigParser()
-parser.read(os.path.join(CONFIG_PATH, 'cassandra_config.ini'))
+connection.setup([db_settings.cassandra_host], db_settings.cassandra_keyspace)
 
-connection.setup([(parser.get('DBSETTINGS', 'host'))], (parser.get('DBSETTINGS', 'keyspace')))
+class UpdateLog:
+
+    def __init__(self, log_name, log_file_path, log_file_line_num, log_time_ids, log_time_zone, logger_time_ids,
+        logger_time_id_types, log_parameters, log_parameters_reading_types):
+        self.log_name = log_name
+        self.log_file_path = log_file_path
+        self.log_file_line_num = log_file_line_num
+        self.log_time_ids = log_time_ids
+        self.log_time_zone = log_time_zone
+        self.logger_time_ids = logger_time_ids
+        self.logger_time_id_types = logger_time_id_types
+        self.log_parameters = log_parameters
+        self.log_parameters_reading_types = log_parameters_reading_types
+
+#class TimeFormat:
+
+    #def __init__(self):
+
+
 
 def process_campbell_legacy_file(log_id, log_name, file_path, time_zone, time_ids, parameters, reading_types,
     last_line_num=1, load_data=None):
@@ -37,7 +48,7 @@ def process_campbell_legacy_file(log_id, log_name, file_path, time_zone, time_id
         current_line_as_list = current_line.strip().split(',')
 
         utc_dt = tm.campbell_legacy_time_to_timestamp(current_line_as_list, time_ids)
-        indexes = []														#: Replace raw time identifiers with timestamp representation.
+        indexes = []
         for i, time_id in enumerate(time_params):
             indexes.append(i+1)
 
@@ -184,12 +195,8 @@ def run_log_update(log_id, update_info):
             print("Other formats are not supported yet!")
 
 def validate_log_file_info(file_path, line_num):
-    if (
-		(not file_path) or
-            (not line_num) or
-                (line_num < 1)
-        ):
-            return False
+    if (not file_path or not line_num or line_num < 1):
+        return False
     return True
 
 def validate_log_time_info(log_time_ids, log_time_zone, logger_time_ids, logger_time_id_types):
@@ -212,97 +219,82 @@ def validate_log_parameters(log_parameters, log_parameters_reading_types):
     return False
 
 def prepare_log_update(log_id):
-    log_info_data = LogData.get_log(log_id)
-    log_file_info_data = LogData.get_log_file_info(log_id)
-    log_time_info_data = LogData.get_log_time_info(log_id)
-    log_parameters_info_data = LogData.get_log_parameters(log_id)
-    try:
-        log_info_data = log_info_data[0]
-        log_name = log_info_data.get('log_name')
-    except IndexError:
-        print("Index error!")
-    try:
-        log_file_info_data = log_file_info_data[0]
-        log_file_path = log_file_info_data.get('log_file_path')
-        log_last_line_num = log_file_info_data.get('log_file_line_num')
-        if not validate_log_file_info(log_file_path, log_last_line_num):
-            print("log file validation falied!")
-            return -1, None
-    except IndexError:
-        print("Index error!")
-    try:
-        log_time_info_data = log_time_info_data[0]
-        logger_time_format_id = log_time_info_data.get('logger_time_format_id')
-        log_time_ids = log_time_info_data.get('log_time_ids')
-        log_time_zone = log_time_info_data.get('log_time_zone')
-        logger_time_format_data = LoggerData.get_logger_time_format(logger_time_format_id)
-        try:
-            logger_time_format_data = logger_time_format_data[0]
-            logger_time_ids = logger_time_format_data.get('logger_time_ids')
-            logger_time_id_types = logger_time_format_data.get('logger_time_id_types')
-            if not validate_log_time_info(log_time_ids, log_time_zone, logger_time_ids, logger_time_id_types):
-                print("log time info validation falied!")
+    log_info_data = Log_info_by_log.get_log(log_id)
+    log_file_info_data = Log_file_info_by_log.get_log_file_info(log_id)
+    log_time_info_data = Log_time_info_by_log.get_log_time_info(log_id)
+    log_parameters_info_data = Log_parameters_by_log.get_log_parameters(log_id)
+    if log_info_data:
+        log_info_map = log_info_data[0]
+        log_name = log_info_map.get('log_name')
+        if log_file_info_data:
+            log_file_info_map = log_file_info_data[0]
+            log_file_path = log_file_info_map.get('log_file_path')
+            log_last_line_num = log_file_info_map.get('log_file_line_num')
+            if not validate_log_file_info(log_file_path, log_last_line_num):
+                print("log file validation falied!")
                 return -1, None
-        except IndexError:
-            print("Index error!")
-    except IndexError:
-        print("Index error!")
-    try:
-        log_parameters_info_data = log_parameters_info_data[0]
-        log_parameters = log_parameters_info_data.get('log_parameters')
-        log_parameters_reading_types = log_parameters_info_data.get('log_reading_types')
-        if not validate_log_parameters(log_parameters, log_parameters_reading_types):
-            print("log parameters validation falied!")
-            return -1, None
-    except IndexError:
-        print("Index error!")
-
-    update_info = {
-        'log_name' : log_name,
-        'log_file_path' : log_file_path,
-        'log_file_line_num' : log_last_line_num,
-        'log_time_ids' : log_time_ids,
-        'log_time_zone' : log_time_zone,
-        'logger_time_ids' : logger_time_ids,
-        'logger_time_id_types' : logger_time_id_types,
-        'log_parameters' : log_parameters,
-        'log_parameters_reading_types' : log_parameters_reading_types
-    }
-    return 0, update_info
+            if log_time_info_data:
+                log_time_info_map = log_time_info_data[0]
+                logger_time_format_id = log_time_info_map.get('logger_time_format_id')
+                log_time_ids = log_time_info_map.get('log_time_ids')
+                log_time_zone = log_time_info_map.get('log_time_zone')
+                logger_time_format_data = Logger_time_format_by_logger_time_format.get_logger_time_format(logger_time_format_id)
+                if logger_time_format_data:
+                    logger_time_format_map = logger_time_format_data[0]
+                    logger_time_ids = logger_time_format_map.get('logger_time_ids')
+                    logger_time_id_types = logger_time_format_data.get('logger_time_id_types')
+                    if not validate_log_time_info(log_time_ids, log_time_zone, logger_time_ids, logger_time_id_types):
+                        print("log time info validation falied!")
+                        return -1, None
+                    if log_parameters_info_data:
+                        log_parameters_info_map = log_parameters_info_data[0]
+                        log_parameters = log_parameters_info_map.get('log_parameters')
+                        log_parameters_reading_types = log_parameters_info_map.get('log_reading_types')
+                        if not validate_log_parameters(log_parameters, log_parameters_reading_types):
+                            print("log parameters validation falied!")
+                            return -1, None
+                        update_info = {
+                            'log_name' : log_name,
+                            'log_file_path' : log_file_path,
+                            'log_file_line_num' : log_last_line_num,
+                            'log_time_ids' : log_time_ids,
+                            'log_time_zone' : log_time_zone,
+                            'logger_time_ids' : logger_time_ids,
+                            'logger_time_id_types' : logger_time_id_types,
+                            'log_parameters' : log_parameters,
+                            'log_parameters_reading_types' : log_parameters_reading_types
+                        }
+                        return 0, update_info
 
 def cron_job():
-    all_sites_data = SiteData.get_all_sites()
+    all_sites_data = Sites.get_all_sites()
     for site in all_sites_data:
         site_id = site.get('site_id')
-        all_site_locations = LocationData.get_all_locations(site_id)
+        all_site_locations = Locations_by_site.get_all_locations(site_id)
         for location in all_site_locations:
             location_id = location.get('location_id')
-            all_location_logs = LogData.get_all_logs(location_id)
+            all_location_logs = Logs_by_location.get_all_logs(location_id)
             for log in all_location_logs:
                 log_id = log.get('log_id')
-                log_update_info = LogData.get_log_update_info(log_id)
-                try:
-                    log_update_info = log_update_info[0]
-                except IndexError:
-                    print("Index error!")
-                log_update_interval_map = log_update_info.get('log_update_interval')
-                log_update_interval_id = log_update_interval_map.get('log_update_interval_id')
-                log_update_interval = log_update_interval_map.get('log_update_interval')
-                log_next_update = log_update_info.get('log_next_update')
-                print(log_next_update)
-                if log_next_update and \
-                    (log_next_update <= datetime.utcnow()):
-                        success, update_info = prepare_log_update(log_id)
-                        if (success == 0 and update_info):
-                            print("entering run", success, update_info)
-                            #run_log_update(log_id, update_info)
-                            if (log_update_interval_id == 'daily'):
-                                log_last_update = log_next_update
-                                log_next_update += timedelta(days=1)
-                            elif (log_update_interval_id == 'hourly'):
-                                log_last_update = log_next_update
-                                log_next_update += timedelta(hours=1)
-                            Log_update_schedule_by_log(log_id=log_id).update(
-                                log_last_update=log_last_update,
-                                log_next_update=log_next_update
-                            )
+                log_update_info_data = Log_update_schedule_by_log.get_log_updates(log_id)
+                if log_update_info_data:
+                    log_update_info_map = log_update_info_data[0]
+                    log_update_interval_map = log_update_info_map.get('log_update_interval')
+                    log_update_interval_id = log_update_interval_map.get('log_update_interval_id')
+                    log_update_interval = log_update_interval_map.get('log_update_interval')
+                    log_next_update = log_update_info_map.get('log_next_update')
+                    if log_next_update and \
+                        (log_next_update <= datetime.utcnow()):
+                            success, update_info = prepare_log_update(log_id)
+                            if (success == 0 and update_info):
+                                run_log_update(log_id, update_info)
+                                if (log_update_interval_id == 'daily'):
+                                    log_last_update = log_next_update
+                                    log_next_update += timedelta(days=1)
+                                elif (log_update_interval_id == 'hourly'):
+                                    log_last_update = log_next_update
+                                    log_next_update += timedelta(hours=1)
+                                Log_update_schedule_by_log(log_id=log_id).update(
+                                    log_last_update=log_last_update,
+                                    log_next_update=log_next_update
+                                )

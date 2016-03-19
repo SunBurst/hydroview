@@ -1,9 +1,12 @@
-from .models import Parameters_readings_by_log, Profiles_readings_by_log, Status_parameter_readings_by_log
+from cassandra.cqlengine import columns, models
 
-class ReadingData(object):
-    """Helper class for getting reading related data from the Cassandra database. """
+class Parameters_readings_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True, partition_key=True)
+    reading_qc_level = columns.Integer(primary_key=True, partition_key=True)
+    reading_parameter = columns.Text(primary_key=True, partition_key=True)
+    reading_time = columns.DateTime(primary_key=True, clustering_order="DESC")
+    reading_value = columns.Float()
 
-    @classmethod
     def get_parameter_readings(cls, log_id, qc_level, parameter, **time):
         """
         Return readings for a specific log with a given quality control level and parameter name on a given time range,
@@ -79,7 +82,13 @@ class ReadingData(object):
             parameter_readings_data.append(reading)
         return parameter_readings_data
 
-    @classmethod
+class Profiles_readings_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True, partition_key=True)
+    reading_qc_level = columns.Integer(primary_key=True, partition_key=True)
+    reading_profile = columns.Text(primary_key=True, partition_key=True)
+    reading_time = columns.DateTime(primary_key=True, clustering_order="DESC")
+    reading_values = columns.Map(columns.Text, columns.Float)
+
     def get_profile_readings(cls, log_id, qc_level, profile, **time):
         """
         Return readings for a specific log with a given quality control level and profile name on a given time range,
@@ -155,7 +164,13 @@ class ReadingData(object):
             profile_readings_data.append(reading)
         return profile_readings_data
 
-    @classmethod
+class Status_parameter_readings_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True, partition_key=True)
+    reading_qc_level = columns.Integer(primary_key=True, partition_key=True)
+    reading_parameter = columns.Text(primary_key=True, partition_key=True)
+    reading_time = columns.DateTime(primary_key=True, clustering_order="DESC")
+    reading_value = columns.Float()
+
     def get_status_parameter_readings(cls, log_id, qc_level, parameter, **time):
         """
         Return readings for a specific log with a given quality control level and status parameter name on a given time range,

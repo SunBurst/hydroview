@@ -1,10 +1,12 @@
-from .models import Logs_by_location, Log_info_by_log, Log_file_info_by_log, Log_parameters_by_log,\
-    Log_time_info_by_log, Log_update_schedule_by_log
-from utils.tools import MiscTools
-from utils.timemanager import TimeManager
+from cassandra.cqlengine import columns, models
 
-class LogData(object):
-    """Helper class for getting log related data from the Cassandra database. """
+from utils import tools
+
+class Logs_by_location(models.Model):
+    location_id = columns.UUID(primary_key=True)
+    log_name = columns.Text(primary_key=True, clustering_order="ASC")
+    log_id = columns.UUID()
+    log_description = columns.Text(default=None)
 
     @classmethod
     def get_all_logs(cls, location_id, log_name=None, json_request=None):
@@ -18,12 +20,12 @@ class LogData(object):
         json_request -- if true, convert uuid to string representation (bool).
         """
         logs_data = []
-        all_logs_query = Logs_by_location.objects.filter(location_id=location_id)
+        all_logs_query = cls.objects.filter(location_id=location_id)
         if log_name:
             all_logs_query = all_logs_query.filter(log_name=log_name)
         for row in all_logs_query:
             if json_request:
-                log_id = MiscTools.uuid_to_str(row.log_id)
+                log_id = tools.MiscTools.uuid_to_str(row.log_id)
             else:
                 log_id = row.log_id
             log = {
@@ -34,6 +36,11 @@ class LogData(object):
             logs_data.append(log)
         return logs_data
 
+class Log_info_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True)
+    log_name = columns.Text()
+    log_description = columns.Text(default=None)
+
     @classmethod
     def get_log(cls, log_id):
         """
@@ -43,7 +50,7 @@ class LogData(object):
         log_id -- log identifier (UUID)
         """
         log_data = []
-        log_query = Log_info_by_log.objects.filter(log_id=log_id)
+        log_query = cls.objects.filter(log_id=log_id)
         for row in log_query:
             log = {
                 'log_name' : row.log_name,
@@ -51,6 +58,11 @@ class LogData(object):
             }
             log_data.append(log)
         return log_data
+
+class Log_file_info_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True)
+    log_file_path = columns.Text(default=None)
+    log_file_line_num = columns.Integer(default=1)
 
     @classmethod
     def get_log_file_info(cls, log_id):
@@ -61,7 +73,7 @@ class LogData(object):
         log_id -- log identifier (UUID)
         """
         log_file_info_data = []
-        log_file_info_query = Log_file_info_by_log.objects.filter(log_id=log_id)
+        log_file_info_query = cls.objects.filter(log_id=log_id)
         for row in log_file_info_query:
             log = {
                 'log_file_path' : row.log_file_path,
@@ -69,6 +81,11 @@ class LogData(object):
             }
             log_file_info_data.append(log)
         return log_file_info_data
+
+class Log_parameters_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True)
+    log_parameters = columns.List(columns.Text)
+    log_reading_types = columns.Map(columns.Text, columns.Text)
 
     @classmethod
     def get_log_parameters(cls, log_id):
@@ -79,7 +96,7 @@ class LogData(object):
         log_id -- log identifier (UUID)
         """
         log_parameters_data = []
-        log_parameters_query = Log_parameters_by_log.objects.filter(log_id=log_id)
+        log_parameters_query = cls.objects.filter(log_id=log_id)
         for row in log_parameters_query:
             log = {
                 'log_parameters' : row.log_parameters,
@@ -87,6 +104,12 @@ class LogData(object):
             }
             log_parameters_data.append(log)
         return log_parameters_data
+
+class Log_update_schedule_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True)
+    log_update_interval = columns.Map(columns.Text, columns.Text, default=None)
+    log_last_update = columns.DateTime(default=None)
+    log_next_update = columns.DateTime(default=None)
 
     @classmethod
     def get_log_updates(cls, log_id):
@@ -97,7 +120,7 @@ class LogData(object):
         log_id -- log identifier (UUID)
         """
         log_updates_data = []
-        log_updates_query = Log_update_schedule_by_log.objects.filter(log_id=log_id)
+        log_updates_query = cls.objects.filter(log_id=log_id)
         for row in log_updates_query:
             log = {
                 'log_update_interval_id' : row.log_update_interval.get('log_update_interval_id'),
@@ -108,59 +131,34 @@ class LogData(object):
             log_updates_data.append(log)
         return log_updates_data
 
+class Log_time_info_by_log(models.Model):
+    log_id = columns.UUID(primary_key=True)
+    logger_time_format_id = columns.UUID()
+    logger_time_format_name = columns.Text()
+    log_time_ids = columns.List(columns.Text)
+    log_time_zone = columns.Text()
+
     @classmethod
-    def get_log_time_info(cls, log_id):
+    def get_log_time_info(cls, log_id, json_request=None):
         """
         Return log time info or an empty list if not found.
 
         Keyword arguments:
         log_id -- log identifier (UUID)
+        json_request -- if true, convert uuid to string representation (bool).
         """
         log_time_info_data = []
-        log_time_info_query = Log_time_info_by_log.objects.filter(log_id=log_id)
+        log_time_info_query = cls.objects.filter(log_id=log_id)
         for row in log_time_info_query:
+            if json_request:
+                logger_time_format_id = tools.MiscTools.uuid_to_str(row.log_id)
+            else:
+                logger_time_format_id = row.logger_time_format_id
             log = {
-                'logger_time_format_id' : row.logger_time_format_id,
+                'logger_time_format_id' : logger_time_format_id,
                 'logger_time_format_name' : row.logger_time_format_name,
                 'log_time_ids' : row.log_time_ids,
                 'log_time_zone' : row.log_time_zone,
             }
             log_time_info_data.append(log)
         return log_time_info_data
-
-    @classmethod
-    def get_log_update_info(cls, log_id, json_request=None):
-        """
-        Return log file and update info or an empty list if not found.
-
-        Keyword arguments:
-        log_id -- log identifier (UUID)
-        json_request -- if true, convert datetime to timestamp representation (bool).
-        """
-        log_update_info_data = []
-        log_file_info_query = Log_file_info_by_log.objects.filter(log_id=log_id)
-        log_update_info_query = Log_update_schedule_by_log.objects.filter(log_id=log_id)
-        try:
-            log_file_info = log_file_info_query[0]
-            log_update_info = log_update_info_query[0]
-            if json_request:
-                tm = TimeManager()
-                log_last_update = tm.json_date_handler(log_update_info.log_last_update)
-                log_next_update = tm.json_date_handler(log_update_info.log_next_update)
-                print(log_next_update, type(log_next_update))
-            else:
-                log_last_update = log_update_info.log_last_update
-                log_next_update = log_update_info.log_next_update
-            log = {
-                'log_file_path' : log_file_info.log_file_path,
-                'log_file_line_num' : log_file_info.log_file_line_num,
-                'log_update_interval_id' : log_update_info.get('log_update_interval_id'),
-                'log_update_interval' : log_update_info.get('log_update_interval'),
-                'log_last_update' : log_last_update,
-                'log_next_update' : log_next_update
-            }
-            log_update_info_data.append(log)
-        except IndexError:
-            print("Index error!")
-        return log_update_info_data
-

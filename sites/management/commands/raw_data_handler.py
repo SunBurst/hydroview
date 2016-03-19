@@ -1,28 +1,16 @@
 __author__ = 'Marcus'
 
-import calendar
-import datetime
 import os
-#import pytz
-import time
-import configparser
-#import timezone
 from collections import defaultdict
 from operator import itemgetter
-#from pytz import timezone
-from utils import timemanager
+
+from utils import parser, timemanager
 
 """ Script consisting of a bunch of function to help formatting raw file structures """
 
-cfg = ('cfg/identifiers.INI')
-#cfg = os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, 'cfg', 'identifiers.INI')
-
-config_parser = configparser.ConfigParser()
-config_parser.read(cfg)
+parser = parser.CustomParser('identifiers.INI')
 
 tm = timemanager.TimeManager()
-#local_tz = timezone('Europe/Stockholm') #
-#fmt = '%Y-%m-%d %H:%M:%S %Z%z' #
 
 def identify_sensor_id(row):
 

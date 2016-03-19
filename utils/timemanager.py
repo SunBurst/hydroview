@@ -1,10 +1,9 @@
 import calendar
-import configparser
 import datetime
 import pytz
 from pytz import timezone
 
-from settings.settings import TIME_ZONE
+from settings.base import TIME_ZONE
 
 class RawTimeManager(object):
 
@@ -73,7 +72,7 @@ class TimeManager(object):
         self.local_tz = timezone(TIME_ZONE)
 
     def datetime_to_timestamp(self, from_datetime_utc, to_datetime_utc):
-        from_ts_utc = self.utc_dt_to_utc_ts_millis(from_datetime_utc)    
+        from_ts_utc = self.utc_dt_to_utc_ts_millis(from_datetime_utc)
         to_ts_utc = self.utc_dt_to_utc_ts_millis(to_datetime_utc)
         return (from_ts_utc, to_ts_utc)
 
@@ -84,7 +83,7 @@ class TimeManager(object):
         loc_dt = self.local_tz.localize(local_dt)
         utc_dt = loc_dt.astimezone(pytz.utc)
         return utc_dt
-    
+
     def utc_dt_to_local_dt(self, utc_dt):
         utc = pytz.utc
         loc_dt = utc.localize(utc_dt).astimezone(self.local_tz)

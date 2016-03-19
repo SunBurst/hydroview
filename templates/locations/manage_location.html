@@ -44,7 +44,7 @@
                 </div>
                 <div class="modal-body">Delete this location? This operation cannot be undone!</div>
                 <div class="modal-footer">
-                    <a href="{% url 'sites:delete_location' %}?site_id={{ site_id }}
+                    <a href="{% url 'locations:delete_location' %}?site_id={{ site_id }}
                         &location_id={{ location_id }}&location_name={{ location_name }}"
                         class="btn btn-default" role="button">OK
                     </a>

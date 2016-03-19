@@ -83,7 +83,7 @@
                 <ul class="dropdown-menu dropdown-loggers">
                     <li class="dropdown-header">Installed QC:s</li>
                     <li id="id-qualityControlsDropdown" class="divider"></li>
-                    <li><a href="{% url 'sites:manage_quality_control' %}"><i class="fa fa-plus fa-fw"></i> Add QC</a></li>
+                    <li><a href="{% url 'qcs:manage_quality_control' %}"><i class="fa fa-plus fa-fw"></i> Add QC</a></li>
                 </ul>
                 <!-- /.dropdown-qcs -->
             </li>
@@ -97,7 +97,7 @@
                     <li class="dropdown-header">Installed Logger Time Formats</li>
                     <li id="id-timeFormatsDropdown" class="divider"></li>
                     <li>
-                        <a href="{% url 'sites:manage_logger_time_format' %}">
+                        <a href="{% url 'loggers:manage_logger_time_format' %}">
                             <i class="fa fa-plus fa-fw"></i> Add Time Format
                         </a>
                     </li>
@@ -161,7 +161,7 @@
     $(document).ready(function () {
 
         var jsonSitesUrl = '{% url 'sites:load_all_sites_json' %}' + '?json_request=' + true;
-        var jsonSiteLocationsUrl = '{% url 'sites:load_site_locations_json' %}' + '?json_request=' + true;
+        var jsonSiteLocationsUrl = '{% url 'locations:load_site_locations_json' %}' + '?json_request=' + true;
         var jsonAllSitesDataUrl = jsonSitesUrl;
         var $sideMenu = $('#side-menu');
 
@@ -176,7 +176,7 @@
                         + '<ul id="id-' + site.site_id + '-nav"' + ' class="nav nav-second-level collapse in"></ul>'
                     + '</li>'
                 );
-                var manageLocationUrl = '{% url 'sites:manage_location' %}'
+                var manageLocationUrl = '{% url 'locations:manage_location' %}'
                     + '?site_id=' + site.site_id + '&site_name=' + site.site_name;
                 $('#id-' + site.site_id + '-nav').append(
                     '<li>'
@@ -195,12 +195,12 @@
                 );
                 $.getJSON(jsonSiteLocationsDataUrl, function (locationData) {
                     $.each(locationData, function (i, location) {
-                        var loadLocationUrl = '{% url 'sites:location_info' %}'
+                        var loadLocationUrl = '{% url 'locations:location_info' %}'
                             + '?site_id=' + site.site_id + '&location_id=' + location.location_id;
-                        loadLocationLogsUrl = '{% url 'sites:location_logs' %}'
+                        loadLocationLogsUrl = '{% url 'logs:location_logs' %}'
                             + '?site_name=' + site.site_name + '&location_id=' + location.location_id
                             + '&location_name=' + location.location_name;
-                        var manageLocationUrl = '{% url 'sites:manage_location' %}'
+                        var manageLocationUrl = '{% url 'locations:manage_location' %}'
                             + '?site_id=' + site.site_id + '&site_name=' + site.site_name
                             + '&location_id=' + location.location_id + '&location_name=' + location.location_name;
                         $('#id-' + site.site_id + '-nav').append(
@@ -234,10 +234,11 @@
                 });
             });
         });
-        var jsonLoggerTimeFormatsUrl = '{% url 'sites:load_all_logger_time_formats_json' %}' + '?json_request=' + true;
+        var jsonLoggerTimeFormatsUrl = '{% url 'loggers:load_all_logger_time_formats_json' %}'
+            + '?json_request=' + true;
         $.getJSON(jsonLoggerTimeFormatsUrl, function (allTimeFormatsData) {
             $.each(allTimeFormatsData, function (i, timeFormat) {
-                var manageLoggerTimeFormatUrl = '{% url 'sites:manage_logger_time_format' %}'
+                var manageLoggerTimeFormatUrl = '{% url 'loggers:manage_logger_time_format' %}'
                     + '?logger_time_format_id=' + timeFormat.logger_time_format_id
                     + '&logger_time_format_name=' + timeFormat.logger_time_format_name;
                 $('#id-timeFormatsDropdown').before(
@@ -249,10 +250,10 @@
                 );
             });
         });
-        var jsonQualityControlsUrl = '{% url 'sites:load_all_quality_controls_json' %}';
+        var jsonQualityControlsUrl = '{% url 'qcs:load_all_quality_controls_json' %}';
         $.getJSON(jsonQualityControlsUrl, function (allQualityControlsData) {
             $.each(allQualityControlsData, function (i, QC) {
-                var manageQualityControlUrl = '{% url 'sites:manage_quality_control' %}';
+                var manageQualityControlUrl = '{% url 'qcs:manage_quality_control' %}';
                 manageQualityControlUrl += '?qc_level=' + QC.qc_level + '&qc_name=' + QC.qc_name;
                 $('#id-qualityControlsDropdown').before(
                     '<li>'

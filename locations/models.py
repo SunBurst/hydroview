@@ -1,8 +1,13 @@
-from .models import Locations_by_site, Location_info_by_location
-from utils.tools import MiscTools
+from cassandra.cqlengine import columns, models
 
-class LocationData(object):
-    """Helper class for getting location related data from the Cassandra database. """
+from utils import tools
+
+class Locations_by_site(models.Model):
+    site_id = columns.UUID(primary_key=True)
+    location_name = columns.Text(primary_key=True, clustering_order="ASC")
+    location_id = columns.UUID()
+    location_description = columns.Text(default=None)
+    location_position = columns.Map(columns.Text, columns.Float, default=None)
 
     @classmethod
     def get_all_locations(cls, site_id, location_name=None, json_request=None):
@@ -16,12 +21,12 @@ class LocationData(object):
         json_request -- if true, convert uuid to string representation (bool).
         """
         locations_data = []
-        all_locations_query = Locations_by_site.objects.filter(site_id=site_id)
+        all_locations_query = cls.objects.filter(site_id=site_id)
         if location_name:
             all_locations_query = all_locations_query.filter(location_name=location_name)
         for row in all_locations_query:
             if json_request:
-                location_id = MiscTools.uuid_to_str(row.location_id)
+                location_id = tools.MiscTools.uuid_to_str(row.location_id)
             else:
                 location_id = row.location_id
             location = {
@@ -34,6 +39,12 @@ class LocationData(object):
             locations_data.append(location)
         return locations_data
 
+class Location_info_by_location(models.Model):
+    location_id = columns.UUID(primary_key=True)
+    location_name = columns.Text()
+    location_description = columns.Text(default=None)
+    location_position = columns.Map(columns.Text, columns.Float, default=None)
+
     @classmethod
     def get_location(cls, location_id):
         """
@@ -43,7 +54,7 @@ class LocationData(object):
         location_id -- location identifier (UUID)
         """
         location_data = []
-        location_query = Location_info_by_location.objects.filter(location_id=location_id)
+        location_query = cls.objects.filter(location_id=location_id)
         for row in location_query:
             location = {
                 'location_name' : row.location_name,
