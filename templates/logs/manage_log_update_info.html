@@ -38,28 +38,6 @@
 
         $('.page-header').text("Manage Log: " + logName);
 
-        function setTimeFormatIdsField (timeFmtId) {
-            var jsonLoggerTimeFormatUrl = '{% url 'loggers:load_logger_time_format_json' %}' + '?json_request=' + true
-                + '&logger_time_format_id=' + timeFmtId;
-            $.getJSON(jsonLoggerTimeFormatUrl, function (TimeFormatData) {
-                if (TimeFormatData.length > 0) {
-                    loggerTimeIds = TimeFormatData[0].logger_time_ids;
-                    $('#id_logger_time_format_time_ids').val(loggerTimeIds);
-                    totalNumOfTimeIdFields = $('div[id^=div_id_log_time_format_time_id_]').length;
-                    allocatedTimeIdFields = 0;
-                    $.each(loggerTimeIds, function (i, timeId) {
-                        $('#div_id_log_time_format_time_id_' + i).show();
-                        $('#id_log_time_format_time_id_' + i).val(timeId);
-                        allocatedTimeIdFields += 1;
-                    });
-                    while(allocatedTimeIdFields < totalNumOfTimeIdFields) {
-                        $('#div_id_log_time_format_time_id_' + allocatedTimeIdFields).hide();
-                        allocatedTimeIdFields += 1;
-                    }
-                }
-            });
-        }
-
         function showUpdateIntervalFields () {
             $('#div_id_update_interval').show();
             $('#id_update_interval').prop('required', true);
@@ -78,13 +56,6 @@
             $('#id_update_interval').prop('required', false);
             $('#div_id_update_at_time').hide();
             $('#id_update_at_time').prop('required', false);
-        }
-
-        function checkInitTimeFormat() {
-            loggerTimeFormatId = $('#id_logger_time_format').val()
-            if (loggerTimeFormatId) {
-                setTimeFormatIdsField(loggerTimeFormatId);
-            }
         }
 
         function checkInitUpdateInterval() {
@@ -118,14 +89,8 @@
             }
         });
 
-        $('#id_logger_time_format').change(function () {
-            loggerTimeFormatId = $(this).val();
-            initSet = false;
-            setTimeFormatIdsField(loggerTimeFormatId, initSet);
-        });
 
     checkInitUpdateInterval();
-    checkInitTimeFormat();
     });
     </script>
 {% endblock %}

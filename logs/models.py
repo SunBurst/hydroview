@@ -133,9 +133,7 @@ class Log_update_schedule_by_log(models.Model):
 
 class Log_time_info_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
-    logger_time_format_id = columns.UUID()
-    logger_time_format_name = columns.Text()
-    log_time_ids = columns.List(columns.Text)
+    log_time_formats = columns.Map(columns.Text, columns.Text)
     log_time_zone = columns.Text()
 
     @classmethod
@@ -155,9 +153,7 @@ class Log_time_info_by_log(models.Model):
             else:
                 logger_time_format_id = row.logger_time_format_id
             log = {
-                'logger_time_format_id' : logger_time_format_id,
-                'logger_time_format_name' : row.logger_time_format_name,
-                'log_time_ids' : row.log_time_ids,
+                'log_time_formats' : row.log_time_formats,
                 'log_time_zone' : row.log_time_zone,
             }
             log_time_info_data.append(log)

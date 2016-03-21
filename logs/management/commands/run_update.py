@@ -1,5 +1,6 @@
 import os
-from collections import defaultdict
+import sys
+from collections import defaultdict, OrderedDict
 from operator import itemgetter
 from datetime import datetime, timedelta
 
@@ -7,7 +8,6 @@ from cassandra.cqlengine import connection
 
 from settings.base import CONFIG_PATH
 from locations.models import Locations_by_site
-from loggers.models import Logger_time_format_by_logger_time_format
 from logs.models import Logs_by_location, Log_file_info_by_log, Log_info_by_log, Log_parameters_by_log, \
     Log_time_info_by_log, Log_update_schedule_by_log
 from readings.models import Parameters_readings_by_log
@@ -18,24 +18,56 @@ db_settings = parser.DatabaseSettingsParser('cassandra_config.ini')
 
 connection.setup([db_settings.cassandra_host], db_settings.cassandra_keyspace)
 
-class UpdateLog:
+class UpdateLog(object):
 
-    def __init__(self, log_name, log_file_path, log_file_line_num, log_time_ids, log_time_zone, logger_time_ids,
-        logger_time_id_types, log_parameters, log_parameters_reading_types):
-        self.log_name = log_name
-        self.log_file_path = log_file_path
-        self.log_file_line_num = log_file_line_num
-        self.log_time_ids = log_time_ids
-        self.log_time_zone = log_time_zone
-        self.logger_time_ids = logger_time_ids
-        self.logger_time_id_types = logger_time_id_types
-        self.log_parameters = log_parameters
-        self.log_parameters_reading_types = log_parameters_reading_types
 
-#class TimeFormat:
+    def __init__(self, **kwargs):
+        self.log_id = kwargs.get('log_id')
+        self.log_name = kwargs.get('log_name')
+        self.log_file_path = kwargs.get('log_file_path')
+        self.log_file_line_num = kwargs.get('log_file_line_num')
+        self.log_time_zone = kwargs.get('log_time_zone')
+        self.log_time_ids = kwargs.get('log_time_ids')
+        self.logger_time_ids = kwargs.get('logger_time_ids')
+        self.logger_time_id_types = kwargs.get('logger_time_id_types')
+        self.log_parameters = kwargs.get('log_parameters')
+        self.log_parameters_reading_types = kwargs.get('log_parameters_reading_types')
 
-    #def __init__(self):
+        self.log_data = self.load_file()
+        self.process_data()
 
+    def load_file(self):
+        with open(self.log_file_path) as f_in:
+            data = [line.rstrip('\n') for line in f_in]
+        return data
+
+    def process_row(self, row, raw_tm, ):
+        """ Helper function to break current row to each corresponding parameter file.
+            Args: row (string): The row to process.
+        """
+
+        row_as_list = row.strip().split(',')  #: list representation of current line.
+        if (len(row_as_list) != len(self.log_parameters)):
+            print("Parameter numbers doesn't match!")
+            return
+        for i, param in enumerate(self.log_parameters):
+            if (self.log_parameters_reading_types.get(param) == 'ignore'):
+                pass
+            if (self.log_parameters_reading_types.get(param) == 'time'):
+                if ()
+
+        #utc_dt = raw_tm.campbell_legacy_time_to_timestamp(line_as_list, time_ids)
+
+    def process_data(self):
+        last_line_num_fixed = self.log_file_line_num - 1
+        readings_params_dict = defaultdict(list)
+        temp_params_dict = defaultdict(list)
+        num_new_readings = 0
+        raw_time_manager = timemanager.RawTimeManager(self.log_time_zone)
+
+        for line_number, line in enumerate(self.log_data):
+            if (last_line_num_fixed <= line_number):
+                self.process_row(line, raw_time_manager, time_ids)
 
 
 def process_campbell_legacy_file(log_id, log_name, file_path, time_zone, time_ids, parameters, reading_types,
@@ -235,10 +267,8 @@ def prepare_log_update(log_id):
                 return -1, None
             if log_time_info_data:
                 log_time_info_map = log_time_info_data[0]
-                logger_time_format_id = log_time_info_map.get('logger_time_format_id')
-                log_time_ids = log_time_info_map.get('log_time_ids')
+                log_time_formats = log_time_info_map.get('log_time_formats')
                 log_time_zone = log_time_info_map.get('log_time_zone')
-                logger_time_format_data = Logger_time_format_by_logger_time_format.get_logger_time_format(logger_time_format_id)
                 if logger_time_format_data:
                     logger_time_format_map = logger_time_format_data[0]
                     logger_time_ids = logger_time_format_map.get('logger_time_ids')
@@ -287,7 +317,9 @@ def cron_job():
                         (log_next_update <= datetime.utcnow()):
                             success, update_info = prepare_log_update(log_id)
                             if (success == 0 and update_info):
-                                run_log_update(log_id, update_info)
+                                upd = UpdateLog(**update_info)
+
+                                #run_log_update(log_id, update_info)
                                 if (log_update_interval_id == 'daily'):
                                     log_last_update = log_next_update
                                     log_next_update += timedelta(days=1)

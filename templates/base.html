@@ -88,23 +88,6 @@
                 <!-- /.dropdown-qcs -->
             </li>
             <!-- /.dropdown -->
-            <!-- /dropdown-loggerTimeFormats -->
-            <li class="dropdown">
-                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                    <i class="fa fa-list fa-fw"></i>  <i class="fa fa-caret-down"></i>
-                </a>
-                <ul class="dropdown-menu dropdown-loggerTimeFormats">
-                    <li class="dropdown-header">Installed Logger Time Formats</li>
-                    <li id="id-timeFormatsDropdown" class="divider"></li>
-                    <li>
-                        <a href="{% url 'loggers:manage_logger_time_format' %}">
-                            <i class="fa fa-plus fa-fw"></i> Add Time Format
-                        </a>
-                    </li>
-                </ul>
-                <!-- /.dropdown-loggerTimeFormats -->
-            </li>
-            <!-- /.dropdown -->
             <!-- /dropdown-users -->
             <li class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -232,22 +215,6 @@
                         );
                     });
                 });
-            });
-        });
-        var jsonLoggerTimeFormatsUrl = '{% url 'loggers:load_all_logger_time_formats_json' %}'
-            + '?json_request=' + true;
-        $.getJSON(jsonLoggerTimeFormatsUrl, function (allTimeFormatsData) {
-            $.each(allTimeFormatsData, function (i, timeFormat) {
-                var manageLoggerTimeFormatUrl = '{% url 'loggers:manage_logger_time_format' %}'
-                    + '?logger_time_format_id=' + timeFormat.logger_time_format_id
-                    + '&logger_time_format_name=' + timeFormat.logger_time_format_name;
-                $('#id-timeFormatsDropdown').before(
-                    '<li>'
-                        + '<a href="' + manageLoggerTimeFormatUrl + '">'
-                            + '<i class="fa fa-edit fa-fw"></i>' + ' ' + timeFormat.logger_time_format_name
-                        + '</a>'
-                    + '</li>'
-                );
             });
         });
         var jsonQualityControlsUrl = '{% url 'qcs:load_all_quality_controls_json' %}';

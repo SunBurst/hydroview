@@ -11,7 +11,6 @@ from .forms import ManageLogForm, ManageLogUpdateInfoForm
 from .models import Logs_by_location, Log_info_by_log, Log_file_info_by_log, Log_parameters_by_log, \
     Log_time_info_by_log, Log_update_schedule_by_log
 from .logs import LogData
-from loggers.models import Logger_time_formats, Logger_time_format_by_logger_time_format
 from qcs.models import Log_quality_control_schedule_by_log, Quality_control_info_by_log, \
     Quality_control_level_info_by_log
 from qcs.qcs import QCData
@@ -237,7 +236,6 @@ def manage_log_update_info(request):
 
     # Set initial data
 
-    all_logger_time_formats_data = Logger_time_formats.get_all_logger_time_formats()
     log_file_info_data = Log_file_info_by_log.get_log_file_info(log_id)
     log_update_info_data = Log_update_schedule_by_log.get_log_updates(log_id)
     log_parameters_info_data = Log_parameters_by_log.get_log_parameters(log_id)
@@ -274,15 +272,11 @@ def manage_log_update_info(request):
         log_reading_types = None
     if log_time_info_data:    # Log time info already configured.
         log_time_info_map = log_time_info_data[0]
-        logger_time_format_id = log_time_info_map.get('logger_time_format_id')
-        logger_time_format_name = log_time_info_map.get('logger_time_format_name')
-        log_time_ids = log_time_info_map.get('log_time_ids')
+        log_time_formats = log_time_info_map.get('log_time_formats')
         log_time_zone = log_time_info_map.get('log_time_zone')
     else:   # Log time info not yet configured. Set default values.
         print("Setting default values for log time info..")
-        logger_time_format_id = 'disabled'
-        logger_time_format_name = None
-        log_time_ids = None
+        log_time_formats = None
         log_time_zone = TIME_ZONE   # Use server time zone configured in settings.settings.py
 
     init_log_update_is_active = False
@@ -300,7 +294,6 @@ def manage_log_update_info(request):
         'update_is_active' : init_log_update_is_active,
         'update_interval' : log_update_interval_id,
         'update_at_time' : init_update_at_local_time,
-        'logger_time_format' : logger_time_format_id,
         'log_time_zone' : log_time_zone
     }
 
@@ -309,8 +302,7 @@ def manage_log_update_info(request):
         initial=init_log_update_info_form,
         init_log_parameters=log_parameters,
         init_log_reading_types=log_reading_types,
-        init_logger_time_formats=all_logger_time_formats_data,
-        init_log_time_ids=log_time_ids
+        init_log_time_formats=log_time_formats
     )
 
     if form.is_valid():
@@ -320,16 +312,7 @@ def manage_log_update_info(request):
         log_update_interval = log_update_info.get('log_update_interval')
         log_next_update = log_update_info.get('log_next_update')
         log_time_zone = form.cleaned_data['log_time_zone']
-        logger_time_format_id = form.cleaned_data['logger_time_format']
-        log_time_ids = form.clean_time_ids()
-        log_parameters, log_parameters_reading_types = form.clean_parameters()
-
-        logger_time_format_data = Logger_time_format_by_logger_time_format.get_logger_time_format(logger_time_format_id)
-        if logger_time_format_data:
-            logger_time_format_map = logger_time_format_data[0]
-            logger_time_format_name = logger_time_format_map.get('logger_time_format_name')
-        else:
-            print("logger time format not found!")
+        log_parameters, log_parameters_reading_types, log_time_formats = form.clean_parameters()
 
         log_file_info_data = Log_file_info_by_log.get_log_file_info(log_id)
         log_update_info_data = Log_update_schedule_by_log.get_log_updates(log_id)
@@ -362,9 +345,7 @@ def manage_log_update_info(request):
             Log_time_info_by_log(log_id=log_id).delete()
         Log_time_info_by_log.create(
             log_id=log_id,
-            logger_time_format_id=logger_time_format_id,
-            logger_time_format_name=logger_time_format_name,
-            log_time_ids=log_time_ids,
+            log_time_formats=log_time_formats,
             log_time_zone=log_time_zone
         )
         url = reverse('logs:location_logs')

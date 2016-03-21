@@ -16,7 +16,6 @@ DJANGO_APPS = (
 
 LOCAL_APPS = (
     'locations',
-    'loggers',
     'logs',
     'qcs',
     'readings',
