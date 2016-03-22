@@ -46,9 +46,10 @@ class RawTimeManager(object):
 
     def convert_time(self, time_ids):
         for key, val in time_ids.items():
-            if (key not in TIME_FORMATS) or (key not in CUSTOM_TIME_FORMATS):
+            print(key, type(key))
+            if key not in TIME_FORMATS and key not in CUSTOM_TIME_FORMATS:
                 print("Time format not supported!")
-            if key in CUSTOM_TIME_FORMATS:     #: Call your custom time format parser here.
+            elif key in CUSTOM_TIME_FORMATS:     #: Call your custom time format parser here.
                 if key == 'hourminute':
                     time_fmt_fixed, time_string_fixed = self.parse_hourminute(val)
                     del time_ids[key]

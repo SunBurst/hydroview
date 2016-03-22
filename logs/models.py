@@ -148,10 +148,6 @@ class Log_time_info_by_log(models.Model):
         log_time_info_data = []
         log_time_info_query = cls.objects.filter(log_id=log_id)
         for row in log_time_info_query:
-            if json_request:
-                logger_time_format_id = tools.MiscTools.uuid_to_str(row.log_id)
-            else:
-                logger_time_format_id = row.logger_time_format_id
             log = {
                 'log_time_formats' : row.log_time_formats,
                 'log_time_zone' : row.log_time_zone,
