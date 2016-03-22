@@ -4,7 +4,7 @@ from pytz import all_timezones
 from collections import OrderedDict
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Button, Field, Layout, Reset, Submit
+from crispy_forms.layout import Button, Field, Layout, Reset, Div, Submit, Row, HTML, Fieldset
 from crispy_forms.bootstrap import FormActions, Tab, TabHolder
 
 from .validators import validate_file_extension
@@ -67,12 +67,18 @@ class ManageLogUpdateInfoForm(forms.Form):
         super(ManageLogUpdateInfoForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_id = 'id-manageLogUpdateInfoForm'
+        self.helper.form_class = 'form-inline'
+        self.helper.field_template = 'bootstrap3/layout/inline_field.html'
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
             TabHolder(
                 Tab(
                     'Update Info',
-                    Field('update_is_active'),
+                    Fieldset(
+                        'Status',
+                        Field('update_is_active'),
+                        css_class="customFieldset",
+                    ),
                 ),
                 Tab(
                     'File Info',
@@ -81,7 +87,10 @@ class ManageLogUpdateInfoForm(forms.Form):
                 ),
                 Tab(
                     'Time Info',
-                    Field('log_time_zone'),
+                    Fieldset(
+                        'Time Zone',
+                        Field('log_time_zone'),
+                    ),
                 ),
                 Tab(
                     'Parameters',
@@ -102,9 +111,7 @@ class ManageLogUpdateInfoForm(forms.Form):
                 'LOG_PARAMETER_READING_TYPES', name
             )
 
-        self.LOG_TIME_FORMATS = OrderedDict()
-        for fmt in static_data_parser['TIME_FORMATS']:
-            self.LOG_TIME_FORMATS[fmt] = static_data_parser.safe_get('TIME_FORMATS', fmt)
+        self.LOG_TIME_FORMATS = timemanager.TIME_FORMATS
 
         def _init_update_interval():
             self.LOG_UPDATE_INTERVALS = OrderedDict()
@@ -116,7 +123,7 @@ class ManageLogUpdateInfoForm(forms.Form):
                 UPDATE_INTERVAL_CHOICES = UPDATE_INTERVAL_CHOICES + ((id, name,),)
 
             self.fields['update_interval'] = forms.ChoiceField(
-                label='Update Interval',
+                label="",
                 choices=UPDATE_INTERVAL_CHOICES,
                 required=False
             )
@@ -126,75 +133,31 @@ class ManageLogUpdateInfoForm(forms.Form):
                 UPDATE_HOURS_CHOICES = UPDATE_HOURS_CHOICES + ((i, time(i).strftime('%H:%M'),),)
 
             self.fields['update_at_time'] = forms.ChoiceField(
-                label='Update At Hour (UTC)',
+                label='Update At Hour',
                 choices=UPDATE_HOURS_CHOICES,
                 required=False
             )
 
-            self.helper.layout[0][0].append(Field('update_interval'))
-            self.helper.layout[0][0].append(Field('update_at_time'))
-
-        #def _init_logger_time_format():
-        #    LOGGER_TIME_FORMATS_CHOICES = ()
-        #    if (init_logger_time_formats):
-        #        for logger_time_fmt in init_logger_time_formats:
-        #            logger_time_fmt_id = logger_time_fmt.get('logger_time_format_id')
-        #            logger_time_fmt_name = logger_time_fmt.get('logger_time_format_name')
-        #            logger_time_fmt_description = logger_time_fmt.get('logger_time_format_description')
-        #            if not logger_time_fmt_description:
-        #                logger_time_fmt_description = "No Info Available."
-        #            logger_time_fmt_name_description = logger_time_fmt_name + " (" + logger_time_fmt_description + ")"
-        #            LOGGER_TIME_FORMATS_CHOICES = LOGGER_TIME_FORMATS_CHOICES + (
-        #                (logger_time_fmt_id, logger_time_fmt_name_description,),
-        #            )
-
-        #    self.fields['logger_time_format'] = forms.ChoiceField(
-        #        label='Logger Time Format',
-        #        choices=LOGGER_TIME_FORMATS_CHOICES,
-        #        initial='disabled',
-        #        required=True
-        #    )
-        #    self.fields['logger_time_format_time_ids'] = forms.CharField(
-        #        label='Logger Time Format Identifiers Register',
-        #        widget=forms.TextInput(attrs={'readonly':'readonly'}),
-        #        required=False
-        #    )
-
-        #    self.helper.layout[0][2].append(Field('logger_time_format', css_id="id-loggerTimeFormatField"))
-        #    self.helper.layout[0][2].append(Field('logger_time_format_time_ids', css_id="id-loggerTimeFormatIdsField"))
-
-        #    if init_log_time_ids:
-        #        num_of_init_fields = 0
-        #        for i, init_log_time_id_field in enumerate(init_log_time_ids):
-        #            self.fields['log_time_format_time_id_{0}'.format(i)] =  forms.CharField(
-        #                label='Log Time Identifier {0}'.format(i + 1),
-        #                initial=init_log_time_id_field,
-        #                required=False
-        #            )
-        #            self.helper.layout[0][2].append(Field('log_time_format_time_id_{0}'.format(i)))
-        #            num_of_init_fields += 1
-
-        #        while (num_of_init_fields < self.MAX_TIME_IDS):
-        #            self.fields['log_time_format_time_id_{0}'.format(num_of_init_fields)] = forms.CharField(
-        #                label='Log Time Identifier {0}'.format(num_of_init_fields + 1),
-        #                required=False
-        #                )
-        #            self.helper.layout[0][2].append(Field('log_time_format_time_id_{0}'.format(num_of_init_fields)))
-        #            num_of_init_fields += 1
-        #    else:
-        #        for log_time_id_field in range(self.MAX_TIME_IDS):
-        #            self.fields['log_time_format_time_id_{0}'.format(log_time_id_field)] = forms.CharField(
-        #                label='Log Time Identifier {0}'.format(log_time_id_field + 1),
-        #                required=False
-        #            )
-        #            self.helper.layout[0][2].append(Field('log_time_format_time_id_{0}'.format(log_time_id_field)))
+            self.helper.layout[0][0].append(
+                Fieldset(
+                    'Update Interval',
+                    Div(
+                        Field('update_interval'),
+                    ),
+                    Div(
+                        Field('update_at_time'),
+                    ),
+                    css_id="id-updateIntervalFieldset",
+                    css_class="customFieldset"
+                ),
+            )
 
         def _init_parameters():
             PARAMETER_READING_TYPE_CHOICES = (('disabled', ''),)
             for name, description in self.LOG_PARAMETER_READING_TYPES.items():
                 PARAMETER_READING_TYPE_CHOICES = PARAMETER_READING_TYPE_CHOICES + ((name, description,),)
 
-            TIME_FORMAT_CHOICES = ()
+            TIME_FORMAT_CHOICES = (('disabled', ''),)
             for name, description in self.LOG_TIME_FORMATS.items():
                 TIME_FORMAT_CHOICES = TIME_FORMAT_CHOICES + ((name, description,),)
 
@@ -202,66 +165,92 @@ class ManageLogUpdateInfoForm(forms.Form):
                 num_of_init_fields = 0
                 for i, init_log_param_field in enumerate(init_log_parameters):
                     self.fields['parameter_{0}'.format(i)] =  forms.CharField(
-                        label='Parameter {0} Name'.format(i + 1),
+                        label='Name'.format(i+1),
                         initial=init_log_param_field,
                         required=False
                     )
                     init_log_param_type_field = init_log_reading_types.get(init_log_param_field)
                     self.fields['reading_type_{0}'.format(i)] = forms.ChoiceField(
-                        label='Parameter {0} Type'.format(i + 1),
+                        label='Type'.format(i+1),
                         choices=PARAMETER_READING_TYPE_CHOICES,
                         initial=init_log_param_type_field,
                         required=False
                     )
                     init_log_param_time_fmt = init_log_time_formats.get(init_log_param_field)
                     self.fields['time_format_{0}'.format(i)] = forms.ChoiceField(
+                        label='Time ID'.format(i+1),
                         choices=TIME_FORMAT_CHOICES,
                         initial=init_log_param_time_fmt,
                         required=False
                     )
-                    self.helper.layout[0][3].append(Field('parameter_{0}'.format(i)))
-                    self.helper.layout[0][3].append(Field('reading_type_{0}'.format(i)))
-                    self.helper.layout[0][3].append(Field('time_format_{0}'.format(i)))
+                    self.helper.layout[0][3].append(
+                        Fieldset(
+                            'Parameter (Position {0})'.format(i+1),
+                            Field('parameter_{0}'.format(i)),
+                            Field('reading_type_{0}'.format(i)),
+                            Field('time_format_{0}'.format(i)),
+                            css_class="customFieldset"
+                        ),
+                    )
                     num_of_init_fields += 1
 
                 while (num_of_init_fields < self.MAX_LOG_PARAMETERS):   #: Fill up rest of parameters.
                     self.fields['parameter_{0}'.format(num_of_init_fields)] = forms.CharField(
-                        label='Parameter {0} Name'.format(num_of_init_fields + 1),
+                        label='Name'.format(num_of_init_fields+1),
                         required=False
                         )
                     self.fields['reading_type_{0}'.format(num_of_init_fields)] = forms.ChoiceField(
-                        label='Parameter {0} Type'.format(num_of_init_fields + 1),
+                        label='Type'.format(num_of_init_fields+1),
                         choices=PARAMETER_READING_TYPE_CHOICES,
                         initial='disabled',
                         required=False
                     )
                     self.fields['time_format_{0}'.format(num_of_init_fields)] = forms.ChoiceField(
+                        label='Time ID'.format(num_of_init_fields+1),
                         choices=TIME_FORMAT_CHOICES,
+                        initial='disabled',
                         required=False
                     )
-                    self.helper.layout[0][3].append(Field('parameter_{0}'.format(num_of_init_fields)))
-                    self.helper.layout[0][3].append(Field('reading_type_{0}'.format(num_of_init_fields)))
-                    self.helper.layout[0][3].append(Field('time_format_{0}'.format(num_of_init_fields)))
+
+                    self.helper.layout[0][3].append(
+                        Fieldset(
+                            'Parameter (Position {0})'.format(num_of_init_fields+1),
+                            Field('parameter_{0}'.format(num_of_init_fields)),
+                            Field('reading_type_{0}'.format(num_of_init_fields)),
+                            Field('time_format_{0}'.format(num_of_init_fields)),
+                            css_class="customFieldset"
+                        ),
+                    )
                     num_of_init_fields += 1
             else:
                 for param_field in range(self.MAX_LOG_PARAMETERS):
                     self.fields['parameter_{0}'.format(param_field)] = forms.CharField(
-                        label='Parameter {0} Name'.format(param_field + 1),
+                        label='Name'.format(param_field+1),
                         required=False
                     )
                     self.fields['reading_type_{0}'.format(param_field)] = forms.ChoiceField(
-                        label='Parameter {0} Type'.format(param_field + 1),
+                        label='Type'.format(param_field+1),
                         choices=PARAMETER_READING_TYPE_CHOICES,
                         initial='disabled',
                         required=False
                     )
                     self.fields['time_format_{0}'.format(param_field)] = forms.ChoiceField(
+                        label='Time ID'.format(param_field+1),
                         choices=TIME_FORMAT_CHOICES,
+                        initial='disabled',
                         required=False
                     )
-                    self.helper.layout[0][3].append(Field('parameter_{0}'.format(param_field)))
-                    self.helper.layout[0][3].append(Field('reading_type_{0}'.format(param_field)))
-                    self.helper.layout[0][3].append(Field('time_format_{0}'.format(param_field)))
+                    self.helper.layout[0][3].append(
+                        Fieldset(
+                            'Parameter (Position {0})'.format(param_field+1),
+                            Field('parameter_{0}'.format(param_field)),
+                            Field('reading_type_{0}'.format(param_field)),
+                            Field('time_format_{0}'.format(param_field)),
+                            css_class="customFieldset"
+                        ),
+                    )
+                    #self.helper.layout[0][3].append(Field('reading_type_{0}'.format(param_field)))
+                    #self.helper.layout[0][3].append(Field('time_format_{0}'.format(param_field)))
 
         _init_update_interval()
         _init_parameters()
@@ -274,7 +263,7 @@ class ManageLogUpdateInfoForm(forms.Form):
             'log_next_update' : None
         }
         if (is_active and update_interval_id):
-            update_interval = self.LOG_UPDATE_INTERVAL_CHOICES.get(update_interval_id)
+            update_interval = self.LOG_UPDATE_INTERVALS.get(update_interval_id)
             tm = timemanager.TimeManager()
             utc_time_now = datetime.utcnow()
             local_time_now_tz = tm.utc_dt_to_local_dt(utc_time_now)
@@ -320,16 +309,7 @@ class ManageLogUpdateInfoForm(forms.Form):
                 log_parameter_reading_type = self.cleaned_data[param_reading_type_field]
                 log_parameters.append(log_parameter)
                 log_parameter_reading_types[log_parameter] = log_parameter_reading_type
-                if (log_parameter_reading_type == 'time'):
+                if (log_parameter_reading_type == 'time' and self.cleaned_data[param_time_format_field] != 'disabled'):
                     log_parameter_time_format[log_parameter] = self.cleaned_data[param_time_format_field]
 
         return log_parameters, log_parameter_reading_types, log_parameter_time_format
-
-    #def clean_time_ids(self):
-    #    time_format_ids_order = []
-    #    for i in range(self.MAX_TIME_IDS):
-    #        time_id_field = 'log_time_format_time_id_{0}'.format(i)
-    #        if (time_id_field in self.cleaned_data and self.cleaned_data[time_id_field]):
-    #            time_id = self.cleaned_data[time_id_field]
-    #            time_format_ids_order.append(time_id)
-    #    return time_format_ids_order

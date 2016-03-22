@@ -28,8 +28,7 @@ class UpdateLog(object):
         self.log_file_line_num = kwargs.get('log_file_line_num')
         self.log_time_zone = kwargs.get('log_time_zone')
         self.log_time_ids = kwargs.get('log_time_ids')
-        self.logger_time_ids = kwargs.get('logger_time_ids')
-        self.logger_time_id_types = kwargs.get('logger_time_id_types')
+        self.logger_time_formats = kwargs.get('logger_time_formats')
         self.log_parameters = kwargs.get('log_parameters')
         self.log_parameters_reading_types = kwargs.get('log_parameters_reading_types')
 
@@ -41,33 +40,71 @@ class UpdateLog(object):
             data = [line.rstrip('\n') for line in f_in]
         return data
 
-    def process_row(self, row, raw_tm, ):
-        """ Helper function to break current row to each corresponding parameter file.
-            Args: row (string): The row to process.
-        """
+    def process_row(self, row, raw_tm):
 
         row_as_list = row.strip().split(',')  #: list representation of current line.
         if (len(row_as_list) != len(self.log_parameters)):
             print("Parameter numbers doesn't match!")
             return
+
+        row_time_ids = OrderedDict()
+        parameter_readings = {}
+        status_parameter_readings = {}
+        profile_reading = {}
+
         for i, param in enumerate(self.log_parameters):
             if (self.log_parameters_reading_types.get(param) == 'ignore'):
                 pass
-            if (self.log_parameters_reading_types.get(param) == 'time'):
-                if ()
+            elif (self.log_parameters_reading_types.get(param) == 'time'):
+                time_id_fmt = self.logger_time_formats.get(param)
+                row_time_ids[time_id_fmt] = row_as_list[i]
+            elif (self.log_parameters_reading_types.get(param) == 'parameter_reading'):
+                parameter_readings[param] = float(row_as_list[i])
+            elif (self.log_parameters_reading_types.get(param) == 'status_parameter_reading'):
+                status_parameter_readings[param] = float(row_as_list[i])
+            elif (self.log_parameters_reading_types.get(param) == 'profile_reading'):
+                profile_reading[param] = float(row_as_list[i])
 
-        #utc_dt = raw_tm.campbell_legacy_time_to_timestamp(line_as_list, time_ids)
+        utc_dt = raw_tm.convert_time(row_time_ids)
+
+        return {
+                'timestamp' : utc_dt,
+                'parameter_readings' : parameter_readings,
+                'status_parameter_readings' : status_parameter_readings,
+                'profile_reading' : profile_reading
+        }
 
     def process_data(self):
         last_line_num_fixed = self.log_file_line_num - 1
-        readings_params_dict = defaultdict(list)
+        parameter_readings_dictlist = defaultdict(list)
+        status_parameter_readings_dictlist = defaultdict(list)
+        profile_readings_dictlist = defaultdict(list)
         temp_params_dict = defaultdict(list)
         num_new_readings = 0
         raw_time_manager = timemanager.RawTimeManager(self.log_time_zone)
 
         for line_number, line in enumerate(self.log_data):
             if (last_line_num_fixed <= line_number):
-                self.process_row(line, raw_time_manager, time_ids)
+                readings_map = self.process_row(line, raw_time_manager)
+                timestamp = readings_map.get('timestamp')
+                parameter_readings = readings_map.get('parameter_readings')
+                status_parameter_readings = readings_map.get('status_parameter_readings')
+                profile_reading = readings_map.get('profile_reading')
+                if parameter_readings:
+                    for param_name, param_value in parameter_readings.items():
+                        parameter_readings_dictlist[param_name].append({
+                            'time' : timestamp,
+                            'value' : param_value
+                        })
+                if status_parameter_readings:
+                    for param_name, param_value in status_parameter_readings.items():
+                        status_parameter_readings_dictlist[param_name].append({
+                            'time' : timestamp,
+                            'value' : param_value
+                        })
+                if profile_reading:
+                    for profile_param_name, profile_param_value in profile_reading.items():
+                        profile_readings_dictlist[]
 
 
 def process_campbell_legacy_file(log_id, log_name, file_path, time_zone, time_ids, parameters, reading_types,

@@ -6,6 +6,14 @@
 
 {% block heading %}<h1 class="page-header"></h1>{% endblock %}
 
+{% block extracss %}
+    <style>
+        .customFieldset{
+            line-height: 40px;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
     <div class="row">
         <div class="col-lg-8">
@@ -39,20 +47,20 @@
         $('.page-header').text("Manage Log: " + logName);
 
         function showUpdateIntervalFields () {
-            $('#div_id_update_interval').show();
+            $('#id-updateIntervalFieldset').show();
             $('#id_update_interval').prop('required', true);
             $('#div_id_update_at_time').show();
             $('#id_update_at_time').prop('required', true);
             if ($('#id_update_interval').val() == 'daily') {
-                $('#div_id_update_at_time').find('label').text("Update At Hour (UTC)");
+                $('#div_id_update_at_time').find('label').text("Update At Hour");
             }
             else if ($('#id_update_interval').val() == 'hourly') {
-                $('#div_id_update_at_time').find('label').text("Update Starting At Hour (UTC)");
+                $('#div_id_update_at_time').find('label').text("Update Starting At Hour");
             }
         }
 
         function hideUpdateIntervalFields () {
-            $('#div_id_update_interval').hide();
+            $('#id-updateIntervalFieldset').hide();
             $('#id_update_interval').prop('required', false);
             $('#div_id_update_at_time').hide();
             $('#id_update_at_time').prop('required', false);
@@ -82,10 +90,10 @@
 
         $('#id_update_interval').change(function () {
             if ($(this).val() == 'daily') {
-                $('#div_id_update_at_time').find('label').text("Update At Hour (UTC)");
+                $('#div_id_update_at_time').find('label').text("Update At Hour");
             }
             else if ($(this).val() == 'hourly') {
-                $('#div_id_update_at_time').find('label').text("Update Starting At Hour (UTC)");
+                $('#div_id_update_at_time').find('label').text("Update Starting At Hour");
             }
         });
 

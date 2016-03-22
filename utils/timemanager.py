@@ -1,70 +1,93 @@
 import calendar
-import datetime
+import time
+
 import pytz
+
+from collections import OrderedDict
+from datetime import datetime
 from pytz import timezone
 
 from settings.base import TIME_ZONE
+
+TIME_FORMATS = OrderedDict([
+    ('%a', "(%a) Locale’s abbreviated weekday name."),
+    ('%A', "(%A) Locale’s full weekday name."),
+    ('%b', "(%b) Locale’s abbreviated month name."),
+    ('%B', "(%B) Locale’s full month name."),
+    ('%c', "(%c) Locale’s appropriate date and time representation."),
+    ('%d', "(%d) Day of the month as a decimal number [01,31]."),
+    ('%H', "(%H) Hour (24-hour clock) as a decimal number [00,23]."),
+    ('%I', "(%I) Hour (12-hour clock) as a decimal number [01,12]."),
+    ('%j', "(%j) Day of the year as a decimal number [001,366]."),
+    ('%m', "(%m) Month as a decimal number [01,12]."),
+    ('%M', "(%M) Minute as a decimal number [00,59]."),
+    ('%p', "(%p) Locale’s equivalent of either AM or PM. (1)"),
+    ('%S', "(%S) Second as a decimal number [00,61]. (2)"),
+    ('%U', "(%U) Week number of the year (Sunday as the first day of the week) as a decimal number [00,53]. All days in a new year preceding the first Sunday are considered to be in week 0. (3)"),
+    ('%w', "(%w) Weekday as a decimal number [0(Sunday),6]."),
+    ('%W', "(%W) Week number of the year (Monday as the first day of the week) as a decimal number [00,53]. All days in a new year preceding the first Monday are considered to be in week 0. (3)"),
+    ('%x', "(%x) Locale’s appropriate date representation."),
+    ('%X', "(%X) Locale’s appropriate time representation."),
+    ('%y', "(%y) Year without century as a decimal number [00,99]."),
+    ('%Y', "(%Y) Year with century as a decimal number."),
+    ('%z', "(%z) Time zone offset indicating a positive or negative time difference from UTC/GMT of the form +HHMM or -HHMM, where H represents decimal hour digits and M represents decimal minute digits [-23:59, +23:59]."),
+    ('%Z', "(%Z) Time zone name (no characters if no time zone exists)."),
+    ('hourminute', "(HourMinute) Hour and minute (24-hour clock) combined as a decimal number")
+])
+
+CUSTOM_TIME_FORMATS = OrderedDict([
+    ('hourminute', "(HourMinute) Hour and minute (24-hour clock) combined as a decimal number")
+])
 
 class RawTimeManager(object):
 
     def __init__(self, time_zone):
         self.raw_data_tz = timezone(time_zone)
 
-    def campbell_legacy_time_to_timestamp(self, line_as_list, time_ids):
-        """
-        Converts raw file date and time format to timestamp (millis).
-        Args:
-            line_as_list (list): Current reading
-            time_indexes (list): Determines which parameters that indicate date and time.
-        Returns:
-            The timestamp based on type of reading.
-        """
-        year = 0
-        julianday = 0
-        hour = 0
-        minute = 0
-        second = 0
+    def convert_time(self, time_ids):
+        for key, val in time_ids.items():
+            if (key not in TIME_FORMATS) or (key not in CUSTOM_TIME_FORMATS):
+                print("Time format not supported!")
+            if key in CUSTOM_TIME_FORMATS:     #: Call your custom time format parser here.
+                if key == 'hourminute':
+                    time_fmt_fixed, time_string_fixed = self.parse_hourminute(val)
+                    del time_ids[key]
+                    time_ids[time_fmt_fixed] = time_string_fixed    #: Replace with "%H:%M" : "HH:MM".
+                # if key == ...... #: Call your custom time format parser here.
 
-        if (len(time_ids) == 2):
-            year = int(line_as_list[1])
-            julianday = int(line_as_list[2])-1
-
-        elif (len(time_ids) == 3):
-            year = int(line_as_list[1])
-            julianday = int(line_as_list[2])-1
-            hour = int(line_as_list[3])
-            hour = int(hour/100)
-            temp_min_hour = line_as_list[3]
-
-            if (len(temp_min_hour) == 1):            #: 0
-                hour = 0
-                minute = int(temp_min_hour)
-            elif (len(temp_min_hour) == 2):           #: 10 - 50
-                hour = 0
-                minute = int(temp_min_hour[-2:])
-            elif (len(temp_min_hour) == 3):          #: 100 - 950
-                hour = int(temp_min_hour[:1])
-                minute = int(temp_min_hour[-2:])
-            elif (len(temp_min_hour) == 4):          #: 1000 - 2350
-                hour = int(temp_min_hour[:2])
-                minute = int(temp_min_hour[-2:])
-
-        date = datetime.datetime
-
-        #: if current year is a leap year, make entry for feb 29th.
-
-        if (calendar.isleap(year) is False):
-            date = datetime.datetime(year, 1, 1, hour, minute, second) + datetime.timedelta(julianday)
-        else:
-            if (julianday == 59):
-                date = datetime.datetime(year, 2, 29, hour, minute, second)
-            else:
-                date = datetime.datetime(year, 1, 1, hour, minute, second) + datetime.timedelta(julianday)
-
-        loc_dt = self.raw_data_tz.localize(date)
+        time_id_str = ",".join(time_ids.values())
+        time_id_fmt = ",".join(time_ids.keys())
+        t = time.strptime(time_id_str, time_id_fmt)
+        dt = datetime.fromtimestamp(time.mktime(t))
+        loc_dt = self.raw_data_tz.localize(dt)
         utc_dt = loc_dt.astimezone(pytz.utc)
-
         return utc_dt
+
+    def parse_hourminute(self, hm):
+        hm_int = int(hm)
+        hour = int(hm_int/100)
+        temp_min_hour = hm
+        parsed_fmt = "%H:%M"
+        parsed_time = ""
+
+        if (len(temp_min_hour) == 1):            #: 0
+            hour = 0
+            minute = temp_min_hour
+            parsed_time = "00:0" + minute
+        elif (len(temp_min_hour) == 2):           #: 10 - 50
+            hour = 0
+            minute = temp_min_hour[-2:]
+            parsed_time = "00:" + minute
+        elif (len(temp_min_hour) == 3):          #: 100 - 950
+            hour = temp_min_hour[:1]
+            minute = temp_min_hour[-2:]
+            parsed_time = "0" + hour + ":" + minute
+        elif (len(temp_min_hour) == 4):          #: 1000 - 2350
+            hour = temp_min_hour[:2]
+            minute = temp_min_hour[-2:]
+            parsed_time = hour + ":" + minute
+
+        return parsed_fmt, parsed_time
 
 class TimeManager(object):
 
