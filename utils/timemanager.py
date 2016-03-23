@@ -48,7 +48,7 @@ class RawTimeManager(object):
         for key, val in time_ids.items():
             print(key, type(key))
             if key not in TIME_FORMATS and key not in CUSTOM_TIME_FORMATS:
-                print("Time format not supported!")
+                pass
             elif key in CUSTOM_TIME_FORMATS:     #: Call your custom time format parser here.
                 if key == 'hourminute':
                     time_fmt_fixed, time_string_fixed = self.parse_hourminute(val)
@@ -101,7 +101,7 @@ class TimeManager(object):
         return (from_ts_utc, to_ts_utc)
 
     def dt_str_to_datetime(self, dt_str):
-        return datetime.datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+        return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
 
     def local_dt_to_utc_dt(self, local_dt):
         loc_dt = self.local_tz.localize(local_dt)
@@ -119,7 +119,7 @@ class TimeManager(object):
         return utc_dt_tz
 
     def timestamp_to_datetime_utc(self, ts):
-        return datetime.datetime.utcfromtimestamp(ts)
+        return datetime.utcfromtimestamp(ts)
 
     def utc_dt_to_utc_ts_millis(self, utc_dt):
         utc_ts = int(calendar.timegm(utc_dt.timetuple()))

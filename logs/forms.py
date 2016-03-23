@@ -10,8 +10,6 @@ from crispy_forms.bootstrap import FormActions, Tab, TabHolder
 from .validators import validate_file_extension
 from utils import parser, timemanager
 
-static_data_parser = parser.CustomParser('static_data.ini')
-
 class ManageLogForm(forms.Form):
 
     location = forms.CharField(
@@ -102,9 +100,8 @@ class ManageLogUpdateInfoForm(forms.Form):
                 Button('cancel', 'Cancel', css_id="id-cancelBtn", css_class="btn-default pull-right")
             )
         )
-
+        static_data_parser = parser.CustomParser('static_data.ini')
         self.MAX_LOG_PARAMETERS = static_data_parser.getint('GLOBAL_LIMITS', 'max_log_parameters')
-
         self.LOG_PARAMETER_READING_TYPES = OrderedDict()
         for name in static_data_parser['LOG_PARAMETER_READING_TYPES']:
             self.LOG_PARAMETER_READING_TYPES[name] = static_data_parser.safe_get(

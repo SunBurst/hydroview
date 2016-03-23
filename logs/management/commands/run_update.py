@@ -278,7 +278,7 @@ def prepare_log_update(log_id):
                     }
                     return 0, update_info
 
-def cron_job():
+def run_update_cron_job():
     all_sites_data = Sites.get_all_sites()
     for site in all_sites_data:
         site_id = site.get('site_id')
