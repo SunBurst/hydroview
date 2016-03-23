@@ -22,16 +22,10 @@ class LogData(object):
             if json_request:
                 tm = timemanager.TimeManager()
                 log_last_update = tm.json_date_handler(log_update_schedule_map.get('log_last_update'))
-                log_next_update = tm.json_date_handler(log_update_schedule_map.get('log_next_update'))
             else:
                 log_last_update = log_update_schedule_map.get('log_last_update')
-                log_next_update = log_update_schedule_map.get('log_next_update')
-            log_update_interval_id = log_update_schedule_map.get('log_update_interval_id')
-            log_update_interval = log_update_schedule_map.get('log_update_interval')
             log['log_last_update'] = log_last_update
-            log['log_next_update'] = log_next_update
-            log['log_update_interval_id'] = log_update_interval_id
-            log['log_update_interval'] = log_update_interval
+            log['log_update_is_active'] = log_update_schedule_map.get('log_update_is_active')
         if log_file_info_data:
             log_file_info_map = log_file_info_data[0]
             log_file_path = log_file_info_map.get('log_file_path')

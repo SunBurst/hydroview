@@ -107,9 +107,8 @@ class Log_parameters_by_log(models.Model):
 
 class Log_update_schedule_by_log(models.Model):
     log_id = columns.UUID(primary_key=True)
-    log_update_interval = columns.Map(columns.Text, columns.Text, default=None)
+    log_update_is_active = columns.Boolean(default=False)
     log_last_update = columns.DateTime(default=None)
-    log_next_update = columns.DateTime(default=None)
 
     @classmethod
     def get_log_updates(cls, log_id):
@@ -123,10 +122,8 @@ class Log_update_schedule_by_log(models.Model):
         log_updates_query = cls.objects.filter(log_id=log_id)
         for row in log_updates_query:
             log = {
-                'log_update_interval_id' : row.log_update_interval.get('log_update_interval_id'),
-                'log_update_interval' : row.log_update_interval.get('log_update_interval'),
-                'log_last_update' : row.log_last_update,
-                'log_next_update' : row.log_next_update,
+                'log_update_is_active' : row.log_update_is_active,
+                'log_last_update' : row.log_last_update
             }
             log_updates_data.append(log)
         return log_updates_data

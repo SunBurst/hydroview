@@ -50,7 +50,7 @@ class ManageLogUpdateInfoForm(forms.Form):
     )
 
     log_file_line_num = forms.IntegerField(label='Last Inserted Line Number', min_value=0, required=False)
-    update_is_active = forms.BooleanField(label='Automatic Updating is Active', initial=False, required=False)
+    log_update_is_active = forms.BooleanField(label='Automatic Updating is Active', initial=False, required=False)
 
     TZ_CHOICES = ()
     for tz in all_timezones:
@@ -74,7 +74,7 @@ class ManageLogUpdateInfoForm(forms.Form):
                     'Update Info',
                     Fieldset(
                         'Status',
-                        Field('update_is_active'),
+                        Field('log_update_is_active'),
                         css_class="customFieldset",
                     ),
                 ),
@@ -110,45 +110,6 @@ class ManageLogUpdateInfoForm(forms.Form):
 
         self.LOG_TIME_FORMATS = timemanager.TIME_FORMATS
 
-        def _init_update_interval():
-            self.LOG_UPDATE_INTERVALS = OrderedDict()
-            for name in static_data_parser['LOG_UPDATE_INTERVALS']:
-                self.LOG_UPDATE_INTERVALS[name] = static_data_parser.safe_get('LOG_UPDATE_INTERVALS', name)
-
-            UPDATE_INTERVAL_CHOICES = ()
-            for id, name in self.LOG_UPDATE_INTERVALS.items():
-                UPDATE_INTERVAL_CHOICES = UPDATE_INTERVAL_CHOICES + ((id, name,),)
-
-            self.fields['update_interval'] = forms.ChoiceField(
-                label="",
-                choices=UPDATE_INTERVAL_CHOICES,
-                required=False
-            )
-
-            UPDATE_HOURS_CHOICES = ()
-            for i in range(24):
-                UPDATE_HOURS_CHOICES = UPDATE_HOURS_CHOICES + ((i, time(i).strftime('%H:%M'),),)
-
-            self.fields['update_at_time'] = forms.ChoiceField(
-                label='Update At Hour',
-                choices=UPDATE_HOURS_CHOICES,
-                required=False
-            )
-
-            self.helper.layout[0][0].append(
-                Fieldset(
-                    'Update Interval',
-                    Div(
-                        Field('update_interval'),
-                    ),
-                    Div(
-                        Field('update_at_time'),
-                    ),
-                    css_id="id-updateIntervalFieldset",
-                    css_class="customFieldset"
-                ),
-            )
-
         def _init_parameters():
             PARAMETER_READING_TYPE_CHOICES = (('disabled', ''),)
             for name, description in self.LOG_PARAMETER_READING_TYPES.items():
@@ -181,12 +142,11 @@ class ManageLogUpdateInfoForm(forms.Form):
                         required=False
                     )
                     self.helper.layout[0][3].append(
-                        Fieldset(
-                            'Parameter (Position {0})'.format(i+1),
+                        Row(
                             Field('parameter_{0}'.format(i)),
-                            Field('reading_type_{0}'.format(i)),
+                            Field('reading_type_{0}'.format(i), css_class="readingTypeSelect"),
                             Field('time_format_{0}'.format(i)),
-                            css_class="customFieldset"
+                            css_class="parameterDiv"
                         ),
                     )
                     num_of_init_fields += 1
@@ -210,12 +170,11 @@ class ManageLogUpdateInfoForm(forms.Form):
                     )
 
                     self.helper.layout[0][3].append(
-                        Fieldset(
-                            'Parameter (Position {0})'.format(num_of_init_fields+1),
+                        Row(
                             Field('parameter_{0}'.format(num_of_init_fields)),
-                            Field('reading_type_{0}'.format(num_of_init_fields)),
+                            Field('reading_type_{0}'.format(num_of_init_fields), css_class="readingTypeSelect"),
                             Field('time_format_{0}'.format(num_of_init_fields)),
-                            css_class="customFieldset"
+                            css_class="parameterDiv"
                         ),
                     )
                     num_of_init_fields += 1
@@ -238,56 +197,16 @@ class ManageLogUpdateInfoForm(forms.Form):
                         required=False
                     )
                     self.helper.layout[0][3].append(
-                        Fieldset(
-                            'Parameter (Position {0})'.format(param_field+1),
+                        Row(
                             Field('parameter_{0}'.format(param_field)),
-                            Field('reading_type_{0}'.format(param_field)),
+                            Field('reading_type_{0}'.format(param_field), css_class="readingTypeSelect"),
                             Field('time_format_{0}'.format(param_field)),
-                            css_class="customFieldset"
+                            css_class="parameterDiv"
                         ),
                     )
                     #self.helper.layout[0][3].append(Field('reading_type_{0}'.format(param_field)))
                     #self.helper.layout[0][3].append(Field('time_format_{0}'.format(param_field)))
-
-        _init_update_interval()
         _init_parameters()
-
-    def get_update_info(self):
-        is_active = self.cleaned_data['update_is_active']
-        update_interval_id = self.cleaned_data['update_interval']
-        update_info = {
-            'log_update_interval' : None,
-            'log_next_update' : None
-        }
-        if (is_active and update_interval_id):
-            update_interval = self.LOG_UPDATE_INTERVALS.get(update_interval_id)
-            tm = timemanager.TimeManager()
-            utc_time_now = datetime.utcnow()
-            local_time_now_tz = tm.utc_dt_to_local_dt(utc_time_now)
-            year_now = local_time_now_tz.year
-            month_now = local_time_now_tz.month
-            day_now = local_time_now_tz.day
-            hour_choice = int(self.cleaned_data['update_at_time'])
-            time_choice = time(hour_choice)
-            minute_choice = time_choice.minute
-            second_choice = time_choice.second
-
-            temp_time_next_update = datetime(year_now, month_now, day_now, hour_choice, minute_choice, second_choice)
-            utc_time_next_update = tm.local_dt_to_utc_dt(temp_time_next_update)
-
-            if (tm.utc_dt_to_utc_dt_tz(datetime.utcnow()) > utc_time_next_update):   #: time candidate has passed.
-                if (update_interval_id == 'daily'):
-                    utc_time_next_update += timedelta(days=1)
-                elif (update_interval_id == 'hourly'):
-                    while(tm.utc_dt_to_utc_dt_tz(datetime.utcnow()) > utc_time_next_update):
-                        utc_time_next_update += timedelta(hours=1)
-            log_update_interval = {
-                'log_update_interval_id' : update_interval_id,
-                'log_update_interval' : update_interval,
-            }
-            update_info['log_update_interval'] = log_update_interval
-            update_info['log_next_update'] = utc_time_next_update
-        return update_info
 
     def clean_parameters(self):
         log_parameters = []

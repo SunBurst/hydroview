@@ -1,1 +1,0 @@
-D:\virtualenv\hydro\Scripts\python.exe manage.py runserver --settings=settings.settings

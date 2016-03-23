@@ -137,9 +137,7 @@
                                             + '<th>Status</th>'
                                             + '<th>File Path</th>'
                                             + '<th>Line Number</th>'
-                                            + '<th>Update Interval</th>'
                                             + '<th>Last Update</th>'
-                                            + '<th>Next Update</th>'
                                         + '</tr>'
                                     + '</thead>'
                                     + '<tbody>'
@@ -148,9 +146,7 @@
                                                 + '<i class="fa fa-circle fa-fw" style="color:orange"></td>'
                                             + '<td id="id-' + logId + '-updateInfoFilePath">-</td>'
                                             + '<td id="id-' + logId + '-updateInfoFileLineNum">-</td>'
-                                            + '<td id="id-' + logId + '-updateInfoUpdateInterval">-</td>'
                                             + '<td id="id-' + logId + '-updateInfoLastUpdate">-</td>'
-                                            + '<td id="id-' + logId + '-updateInfoNextUpdate">-</td>'
                                         + '</tr>'
                                     + '</tbody>'
                                 + '</table>'
@@ -162,9 +158,7 @@
                         + '&log_id=' + logId;
                     $.getJSON(jsonLogUpdateInfoUrl, function (LogUpdateInfoData) {
                         $.each(LogUpdateInfoData, function (j, log_update_info) {
-                            var updateInterval = log_update_info.log_update_interval;
                             var lastUpdate = log_update_info.log_last_update;
-                            var nextUpdate = log_update_info.log_next_update;
                             var filePath = log_update_info.log_file_path;
                             var lineNum = log_update_info.log_file_line_num;
                             if (lineNum || lineNum == 0) {
@@ -175,11 +169,6 @@
                             }
                             if (updateInterval) {
                                 $('#id-' + logId + '-updateInfoUpdateInterval').text(updateInterval);}
-                            if (nextUpdate) {
-                                $('#id-' + logId + '-updateInfoStatusIcon').find('i').attr('style',"color:green");
-                                nextUpdateFmt = dateConverter(nextUpdate);
-                                $('#id-' + logId + '-updateInfoNextUpdate').text(nextUpdateFmt);
-                            }
                             if (lastUpdate) {
                                 lastUpdateFmt = dateConverter(lastUpdate);
                                 $('#id-' + logId + '-updateInfoLastUpdate').text(lastUpdateFmt);

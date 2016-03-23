@@ -12,13 +12,13 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
 ]
 
-# Route for media files in local development.
+## Route for media files in local development.
 if settings.DEBUG:
     # This serves static files and media files.
     urlpatterns += staticfiles_urlpatterns()
     # In case media is not served correctly
     urlpatterns += patterns('',
         url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
-            'document_root': settings.MEDIA_ROOT,
+           'document_root': settings.MEDIA_ROOT,
             }),
     )

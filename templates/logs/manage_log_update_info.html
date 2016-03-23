@@ -46,59 +46,15 @@
 
         $('.page-header').text("Manage Log: " + logName);
 
-        function showUpdateIntervalFields () {
-            $('#id-updateIntervalFieldset').show();
-            $('#id_update_interval').prop('required', true);
-            $('#div_id_update_at_time').show();
-            $('#id_update_at_time').prop('required', true);
-            if ($('#id_update_interval').val() == 'daily') {
-                $('#div_id_update_at_time').find('label').text("Update At Hour");
-            }
-            else if ($('#id_update_interval').val() == 'hourly') {
-                $('#div_id_update_at_time').find('label').text("Update Starting At Hour");
-            }
-        }
-
-        function hideUpdateIntervalFields () {
-            $('#id-updateIntervalFieldset').hide();
-            $('#id_update_interval').prop('required', false);
-            $('#div_id_update_at_time').hide();
-            $('#id_update_at_time').prop('required', false);
-        }
-
-        function checkInitUpdateInterval() {
-            if ($('#id_update_is_active').is(":checked")) {
-                showUpdateIntervalFields();
-            }
-            else {
-                hideUpdateIntervalFields();
-            }
-        }
-
         $('#id-cancelBtn').on('click', function () {
             document.location.href = redirectToLocationUrl;
         });
 
-        $('#id_update_is_active').on('click', function() {
-            if ($(this).is(":checked")) {
-                showUpdateIntervalFields();
-            }
-            else {
-                hideUpdateIntervalFields();
+        $('.readingTypeSelect').change(function () {
+            if ($(this).val() == 'time') {
+                $(this).parents('.parameterDiv').find('div[id^="div_id_time_format_"]').hide();
             }
         });
-
-        $('#id_update_interval').change(function () {
-            if ($(this).val() == 'daily') {
-                $('#div_id_update_at_time').find('label').text("Update At Hour");
-            }
-            else if ($(this).val() == 'hourly') {
-                $('#div_id_update_at_time').find('label').text("Update Starting At Hour");
-            }
-        });
-
-
-    checkInitUpdateInterval();
     });
     </script>
 {% endblock %}

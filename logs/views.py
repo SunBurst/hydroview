@@ -219,7 +219,7 @@ def delete_log(request):
         except:
             print("Exception in Log_quality_control_schedule_by_log")
 
-    url = reverse('locations:location_logs')
+    url = reverse('logs:location_logs')
     url += '?site_name=' + site_name
     url += '&location_id=' + MiscTools.uuid_to_str(location_id)
     url += '&location_name=' + location_name
@@ -253,15 +253,12 @@ def manage_log_update_info(request):
         log_file_line_num = 1
     if log_update_info_data:     # Log update info already configured.
         log_update_info_map = log_update_info_data[0]
-        log_update_interval_id = log_update_info_map.get('log_update_interval_id')
-        log_update_interval = log_update_info_map.get('log_update_interval')
+        log_update_is_active = log_update_info_map.get('log_update_is_active')
         log_last_update = log_update_info_map.get('log_last_update')
-        log_next_update = log_update_info_map.get('log_next_update')
     else:   # Log file info not yet configured. Set default values.
         print("Setting default values for log update info..")
-        log_update_interval_id = None
+        log_update_is_active = False
         log_last_update = None
-        log_next_update = None
     if log_parameters_info_data:    # Log parameters info already configured.
         log_parameters_info_map = log_parameters_info_data[0]
         log_parameters = log_parameters_info_map.get('log_parameters')
@@ -279,21 +276,10 @@ def manage_log_update_info(request):
         log_time_formats = None
         log_time_zone = TIME_ZONE   # Use server time zone configured in settings.settings.py
 
-    init_log_update_is_active = False
-    init_update_at_local_time = 0
-
-    if (log_update_interval_id and log_next_update):
-        init_log_update_is_active = True
-        tm = timemanager.TimeManager()
-        log_next_update_local_time = tm.utc_dt_to_local_dt(log_next_update)
-        init_update_at_local_time = datetime.time(log_next_update_local_time).hour
-
     init_log_update_info_form = {
         'log_file_path' : log_file_path,
         'log_file_line_num' : log_file_line_num,
-        'update_is_active' : init_log_update_is_active,
-        'update_interval' : log_update_interval_id,
-        'update_at_time' : init_update_at_local_time,
+        'update_is_active' : log_update_is_active,
         'log_time_zone' : log_time_zone
     }
 
@@ -308,9 +294,7 @@ def manage_log_update_info(request):
     if form.is_valid():
         log_file_path = form.cleaned_data['log_file_path']
         log_file_line_num = form.cleaned_data['log_file_line_num']
-        log_update_info = form.get_update_info()
-        log_update_interval = log_update_info.get('log_update_interval')
-        log_next_update = log_update_info.get('log_next_update')
+        log_update_is_active = form.cleaned_data['log_update_is_active']
         log_time_zone = form.cleaned_data['log_time_zone']
         log_parameters, log_parameters_reading_types, log_time_formats = form.clean_parameters()
 
@@ -330,9 +314,8 @@ def manage_log_update_info(request):
             Log_update_schedule_by_log(log_id=log_id).delete()
         Log_update_schedule_by_log.create(
             log_id=log_id,
-            log_update_interval=log_update_interval,
+            log_update_is_active=log_update_is_active,
             log_last_update=log_last_update,
-            log_next_update=log_next_update,
         )
         if log_parameters_info_data:
             Log_parameters_by_log(log_id=log_id).delete()

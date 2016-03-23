@@ -163,11 +163,11 @@ class UpdateLog(object):
 
         Log_file_info_by_log(log_id=self.log_id).update(log_file_line_num=new_line_num)
 
-    def update_log_update_info(self, log_last_update, log_next_update):
+    def update_log_update_info(self, log_update_time):
 
         Log_update_schedule_by_log(log_id=self.log_id).update(
-            log_last_update=log_last_update,
-            log_next_update=log_next_update
+            log_update_is_active=True,
+            log_last_update=log_update_time,
         )
 
         #self.new_data.get('status_parameter_readings')
@@ -291,10 +291,8 @@ def run_update_cron_job():
                 log_update_info_data = Log_update_schedule_by_log.get_log_updates(log_id)
                 if log_update_info_data:
                     log_update_info_map = log_update_info_data[0]
-                    log_update_interval_id = log_update_info_map.get('log_update_interval_id')
-                    log_next_update = log_update_info_map.get('log_next_update')
-                    if log_next_update: #and \
-                        #(log_next_update <= datetime.utcnow()):
+                    log_update_is_active = log_update_info_map.get('log_update_is_active')
+                    if log_update_is_active:
                         success, update_info = prepare_log_update(log_id)
                         if (success == 0 and update_info):
                             upd = UpdateLog(log_id, **update_info)
@@ -311,11 +309,6 @@ def run_update_cron_job():
                                 upd.store_profile_readings(profile_readings)
                             update_log_line_num = readings_map.get('update_log_line_num')
                             upd.update_log_line_num(update_log_line_num)
-                            #if (log_update_interval_id == 'daily'):
-                            #    log_last_update = log_next_update
-                            #    log_next_update += timedelta(days=1)
-                            #elif (log_update_interval_id == 'hourly'):
-                            #    log_last_update = log_next_update
-                            #    log_next_update += timedelta(hours=1)
-                            #upd.update_log_update_info(log_last_update, log_next_update)
+                            log_update_time = datetime.utcnow()
+                            upd.update_log_update_info(log_update_time)
 
