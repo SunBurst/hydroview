@@ -10,11 +10,39 @@ from datetime import datetime, timedelta
 from .charts import ChartData
 from .forms import ManageSiteForm
 from .models import Sites, Site_info_by_site
+from locations.models import Locations_by_site
 
 def index(request):
     template_name = 'sites/index.html'
     context = {}
     return render(request, template_name, context)
+
+def settings(request):
+    template_name = 'sites/settings.html'
+    context = {}
+    return render(request, template_name, context)
+
+def site_info(request):
+    params = request.GET
+    site_id = params.get('site_id', '')
+    template = 'sites/site_info.html'
+
+    site_data = Site_info_by_site.get_site(site_id)
+
+    if site_data:
+        site_map = site_data[0]
+        site_name = site_map.get('site_name')
+        site_description = site_map.get('site_description')
+        site_latitude = site_map.get('site_latitude')
+        site_longitude = site_map.get('site_longitude')
+
+        context = {
+            'site_name' : site_name,
+            'site_description' : site_description,
+            'site_latitude' : site_latitude,
+            'site_longitude' : site_longitude
+        }
+        return render(request, template, context)
 
 def load_all_sites_json(request):
     params = request.GET

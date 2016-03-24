@@ -4,6 +4,16 @@ from . import views
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(
+        regex=r'^settings/$',
+        view=views.settings,
+        name='settings',
+    ),
+    url(
+        regex=r'^site_info/$',
+        view=views.site_info,
+        name='site_info',
+    ),
+    url(
         regex=r'^load_all_sites_json/$',
         view=views.load_all_sites_json,
         name='load_all_sites_json',

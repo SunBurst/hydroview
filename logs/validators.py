@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from utils import parser
 
-def validate_file_extension(value):
+def validate_file(value):
     static_data_parser = parser.CustomParser('static_data.ini')
     VALID_FILE_EXTENTIONS = (static_data_parser.get('VALIDATION', 'file_extentions'))
     if VALID_FILE_EXTENTIONS:

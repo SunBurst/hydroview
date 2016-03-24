@@ -14,7 +14,7 @@ class ManageSiteForm(forms.Form):
     site_name = forms.CharField(label='Site', required=True)
     site_latitude = forms.FloatField(label='Latitude (WGS 84)', required=False)
     site_longitude = forms.FloatField(label='Longitude (WGS 84)', required=False)
-    site_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
+    site_description = forms.CharField(label='Description', widget=forms.Textarea, max_length=255, required=False)
 
     def __init__(self, *args, **kwargs):
         super(ManageSiteForm, self).__init__(*args, **kwargs)

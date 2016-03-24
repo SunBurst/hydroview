@@ -274,12 +274,12 @@ def manage_log_update_info(request):
     else:   # Log time info not yet configured. Set default values.
         print("Setting default values for log time info..")
         log_time_formats = None
-        log_time_zone = TIME_ZONE   # Use server time zone configured in settings.settings.py
+        log_time_zone = TIME_ZONE   # Use server time zone configured in settings.base.py
 
     init_log_update_info_form = {
         'log_file_path' : log_file_path,
         'log_file_line_num' : log_file_line_num,
-        'update_is_active' : log_update_is_active,
+        'log_update_is_active' : log_update_is_active,
         'log_time_zone' : log_time_zone
     }
 
@@ -290,42 +290,28 @@ def manage_log_update_info(request):
         init_log_reading_types=log_reading_types,
         init_log_time_formats=log_time_formats
     )
-
     if form.is_valid():
+        log_update_is_active = form.cleaned_data['log_update_is_active']
         log_file_path = form.cleaned_data['log_file_path']
         log_file_line_num = form.cleaned_data['log_file_line_num']
-        log_update_is_active = form.cleaned_data['log_update_is_active']
         log_time_zone = form.cleaned_data['log_time_zone']
-        log_parameters, log_parameters_reading_types, log_time_formats = form.clean_parameters()
+        log_parameters, log_reading_types, log_time_formats = form.clean_parameters()
 
-        log_file_info_data = Log_file_info_by_log.get_log_file_info(log_id)
-        log_update_info_data = Log_update_schedule_by_log.get_log_updates(log_id)
-        log_parameters_info_data = Log_parameters_by_log.get_log_parameters(log_id)
-        log_time_info_data = Log_time_info_by_log.get_log_time_info(log_id)
-
-        if log_file_info_data:
-            Log_file_info_by_log(log_id=log_id).delete()
+        Log_update_schedule_by_log.create(
+            log_id=log_id,
+            log_update_is_active=log_update_is_active,
+            log_last_update=log_last_update
+        )
         Log_file_info_by_log.create(
             log_id=log_id,
             log_file_path=log_file_path,
             log_file_line_num=log_file_line_num
         )
-        if log_update_info_data:
-            Log_update_schedule_by_log(log_id=log_id).delete()
-        Log_update_schedule_by_log.create(
-            log_id=log_id,
-            log_update_is_active=log_update_is_active,
-            log_last_update=log_last_update,
-        )
-        if log_parameters_info_data:
-            Log_parameters_by_log(log_id=log_id).delete()
         Log_parameters_by_log.create(
             log_id=log_id,
             log_parameters=log_parameters,
-            log_reading_types=log_parameters_reading_types
+            log_reading_types=log_reading_types
         )
-        if log_time_info_data:
-            Log_time_info_by_log(log_id=log_id).delete()
         Log_time_info_by_log.create(
             log_id=log_id,
             log_time_formats=log_time_formats,

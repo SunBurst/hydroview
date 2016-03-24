@@ -9,7 +9,7 @@
 {% block extracss %}
     <style>
         .customFieldset{
-            line-height: 40px;
+            line-height: 35px;
         }
     </style>
 {% endblock %}
@@ -46,15 +46,29 @@
 
         $('.page-header').text("Manage Log: " + logName);
 
+        function initHideTimeFields () {
+            $('.readingTypeSelect').each(function (i, obj) {
+                if ($(obj).val() != 'time') {
+                    $(obj).parents('.parameterDiv').find('div[id^="div_id_time_format_"]').hide();
+                    $(obj).parents('.parameterDiv').find('div[id^="div_id_time_format_"] select').val("disabled");
+                }
+            });
+        }
+
         $('#id-cancelBtn').on('click', function () {
             document.location.href = redirectToLocationUrl;
         });
 
         $('.readingTypeSelect').change(function () {
             if ($(this).val() == 'time') {
+                $(this).parents('.parameterDiv').find('div[id^="div_id_time_format_"]').show();
+            }
+            else {
                 $(this).parents('.parameterDiv').find('div[id^="div_id_time_format_"]').hide();
+                $(this).parents('.parameterDiv').find('div[id^="div_id_time_format_"] select').val("disabled");
             }
         });
+        initHideTimeFields();
     });
     </script>
 {% endblock %}

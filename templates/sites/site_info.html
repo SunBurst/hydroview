@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% load staticfiles %}
+
+{% block title %} {{ site_name }} {% endblock %}
+
+{% block heading %}<h1 class="page-header"><i class="fa fa-globe fa-fw"></i>{{ site_name }}</h1>{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">Site Info
+                    </h4>
+                    <div class="panel-body">
+                        <div id="map_container" class="col-md-6">
+                            <div id="map_canvas"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.panel-body -->
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+    <!-- /.row -->
+{% endblock %}
+
+{% block extrajs %}
+    <!--Google Maps API-->
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDnycWatbGyK6ldFqErjFtko1yeMclNUOA&amp;sensor=true"></script>
+
+    <script type="text/javascript">
+    $(document).ready(function () {
+        function initMap () {
+            var siteLat = "{{ site_latitude }}";
+            var siteLong = "{{ site_longitude }}";
+                if (siteLat && siteLong) {
+                    var latlng = new google.maps.LatLng(siteLat, siteLong);
+                    var myOptions = {
+                        zoom: 13,
+                        center: latlng,
+                        mapTypeId: google.maps.MapTypeId.TERRAIN
+                    };
+                    map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+                    var marker = new google.maps.Marker({
+                        position: latlng,
+                        map: map,
+                        title: '{{ location_name }}' + ' (locationLat, locationLong)'
+                    });
+                    google.maps.event.trigger(map, 'resize');
+                }
+        }
+    });
+    </script>
+{% endblock %}

@@ -19,7 +19,7 @@ class ManageLocationForm(forms.Form):
     location_name = forms.CharField(label='Location', required=True)
     location_latitude = forms.FloatField(label='Latitude (WGS 84)', required=False)
     location_longitude = forms.FloatField(label='Longitude (WGS 84)', required=False)
-    location_description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
+    location_description = forms.CharField(label='Description', widget=forms.Textarea, max_length=255, required=False)
 
     def __init__(self, *args, **kwargs):
         super(ManageLocationForm, self).__init__(*args, **kwargs)

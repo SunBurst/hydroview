@@ -137,6 +137,7 @@
                                             + '<th>Status</th>'
                                             + '<th>File Path</th>'
                                             + '<th>Line Number</th>'
+                                            + '<th>Time Zone</th>'
                                             + '<th>Last Update</th>'
                                         + '</tr>'
                                     + '</thead>'
@@ -146,6 +147,7 @@
                                                 + '<i class="fa fa-circle fa-fw" style="color:orange"></td>'
                                             + '<td id="id-' + logId + '-updateInfoFilePath">-</td>'
                                             + '<td id="id-' + logId + '-updateInfoFileLineNum">-</td>'
+                                            + '<td id="id-' + logId + '-updateInfoLogTimeZone">-</td>'
                                             + '<td id="id-' + logId + '-updateInfoLastUpdate">-</td>'
                                         + '</tr>'
                                     + '</tbody>'
@@ -158,17 +160,20 @@
                         + '&log_id=' + logId;
                     $.getJSON(jsonLogUpdateInfoUrl, function (LogUpdateInfoData) {
                         $.each(LogUpdateInfoData, function (j, log_update_info) {
+                            var updateIsActive = log_update_info.log_update_is_active;
+                            console.log(updateIsActive);
                             var lastUpdate = log_update_info.log_last_update;
                             var filePath = log_update_info.log_file_path;
                             var lineNum = log_update_info.log_file_line_num;
+                            if (updateIsActive) {
+                                $('#id-' + logId + '-updateInfoStatusIcon').find('i').attr('style', "color:green");
+                            }
                             if (lineNum || lineNum == 0) {
                                 $('#id-' + logId + '-updateInfoFileLineNum').text(lineNum);
                             }
                             if (filePath) {
                                 $('#id-' + logId + '-updateInfoFilePath').text(filePath);
                             }
-                            if (updateInterval) {
-                                $('#id-' + logId + '-updateInfoUpdateInterval').text(updateInterval);}
                             if (lastUpdate) {
                                 lastUpdateFmt = dateConverter(lastUpdate);
                                 $('#id-' + logId + '-updateInfoLastUpdate').text(lastUpdateFmt);
@@ -176,31 +181,12 @@
                         });
                     });
 
-                    $('#id-' + logId + '-updateInfoPanel').append(
-                        '<div class="panel-body"><h4>Time Info</h4>'
-                            + '<div class="table-responsive table-bordered">'
-                                + '<table class="table">'
-                                    + '<thead>'
-                                        + '<tr>'
-                                            + '<th>Time Zone</th>'
-                                        + '</tr>'
-                                    + '</thead>'
-                                    + '<tbody>'
-                                    + '<tr>'
-                                        + '<td id="id-' + logId + '-timeInfoLogTimeZone">-</td>'
-                                    + '</tr>'
-                                    + '</tbody>'
-                                + '</table>'
-                            + '</div>'
-                        + '</div>'
-                    );
-
                     var jsonLogTimeInfoUrl = '{% url 'logs:load_log_time_info_json' %}' + '?json_request=' + true
                         + '&log_id=' + logId;
                     $.getJSON(jsonLogTimeInfoUrl, function (LogTimeInfoData) {
                         $.each(LogTimeInfoData, function (j, log_time_info) {
                             var logTimeZone = log_time_info.log_time_zone;
-                            if(logTimeZone) {$('#id-' + logId + '-timeInfoLogTimeZone').text(logTimeZone);}
+                            if(logTimeZone) {$('#id-' + logId + '-updateInfoLogTimeZone').text(logTimeZone);}
                         });
                     });
 
