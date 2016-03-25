@@ -1,19 +1,19 @@
 from django import forms
+from django.core.exceptions import ValidationError
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Button, Field,  Layout, Reset, Submit
 from crispy_forms.bootstrap import FormActions
 
 from utils import parser
-
-static_data_parser = parser.CustomParser('static_data.ini')
+from utils.validators import validate_wgs84_latitude, validate_wgs84_longitude
 
 class ManageSiteForm(forms.Form):
 
     site_id = forms.CharField(label='Site ID', widget=forms.TextInput(attrs={'readonly':'readonly'}), required=False)
     site_name = forms.CharField(label='Site', required=True)
-    site_latitude = forms.FloatField(label='Latitude (WGS 84)', required=False)
-    site_longitude = forms.FloatField(label='Longitude (WGS 84)', required=False)
+    site_latitude = forms.CharField(label='Latitude (WGS 84)', validators=[validate_wgs84_latitude], required=False)
+    site_longitude = forms.CharField(label='Longitude (WGS 84)', validators=[validate_wgs84_longitude], required=False)
     site_description = forms.CharField(label='Description', widget=forms.Textarea, max_length=255, required=False)
 
     def __init__(self, *args, **kwargs):
@@ -34,11 +34,22 @@ class ManageSiteForm(forms.Form):
             )
         )
 
-    def clean_gps_coordinates(self):
+    def clean(self):
+        cleaned_data = super(ManageSiteForm, self).clean()
+        site_latitude = cleaned_data.get('site_latitude')
+        site_longitude = cleaned_data.get('site_longitude')
+        if (site_latitude and not site_longitude):
+            raise ValidationError(u"Site longitude unfilled!")
+        if (not site_latitude and site_longitude):
+            raise ValidationError(u"Site latitude unfilled!")
+
+    def clean_wgs84_coordinates(self):
         position = None
         site_latitude = self.cleaned_data['site_latitude']
         site_longitude = self.cleaned_data['site_longitude']
         if (site_latitude and site_longitude):
-            position = {'site_latitude' : site_latitude,
-                        'site_longitude' : site_longitude}
+            position = {
+                'site_latitude' : site_latitude,
+                'site_longitude' : site_longitude
+            }
         return position

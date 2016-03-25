@@ -237,17 +237,17 @@ class ManageLogUpdateInfoForm(forms.Form):
             param_reading_type_field = 'reading_type_{0}'.format(i)
             param_time_format_field = 'time_format_{0}'.format(i)
             if not (param_field and param_reading_type_field in cleaned_data):
-                raise ValidationError("Form error!")
+                raise ValidationError(u"Form error!")
             else:
                 param_field_value = cleaned_data[param_field]
                 param_reading_type_field_value = cleaned_data[param_reading_type_field]
                 param_time_format_field_value = cleaned_data[param_time_format_field]
                 if (param_field_value and param_reading_type_field_value == 'disabled'):
-                    raise ValidationError("Parameter {0} ({1}) reading type unfilled!".format((i+1), param_field_value))
+                    raise ValidationError(u"Parameter {0} ({1}) reading type unfilled!".format((i+1), param_field_value))
                 elif (not param_field_value and param_reading_type_field_value !='disabled'):
-                    raise ValidationError("Parameter {0} name unfilled!".format((i+1)))
+                    raise ValidationError(u"Parameter {0} name unfilled!".format((i+1)))
                 elif (param_reading_type_field_value == 'time' and param_time_format_field_value =='disabled'):
-                    raise ValidationError("Parameter {0} ({1}) time format unfilled!".format((i+1), param_field_value))
+                    raise ValidationError(u"Parameter {0} ({1}) time format unfilled!".format((i+1), param_field_value))
 
     def clean_parameters(self):
         log_parameters = []

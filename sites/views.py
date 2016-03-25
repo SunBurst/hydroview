@@ -5,12 +5,9 @@ from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, HttpResponse, redirect, render
 from django.core.urlresolvers import reverse
 
-from datetime import datetime, timedelta
-
 from .charts import ChartData
 from .forms import ManageSiteForm
 from .models import Sites, Site_info_by_site
-from locations.models import Locations_by_site
 
 def index(request):
     template_name = 'sites/index.html'
@@ -37,6 +34,7 @@ def site_info(request):
         site_longitude = site_map.get('site_longitude')
 
         context = {
+            'site_id' : site_id,
             'site_name' : site_name,
             'site_description' : site_description,
             'site_latitude' : site_latitude,
@@ -65,6 +63,7 @@ def manage_site(request):
             init_site_description = site_map.get('site_description')
             init_site_latitude = site_map.get('site_latitude')
             init_site_longitude = site_map.get('site_longitude')
+
             init_site_form = {
             'site_id' : site_id,
             'site_name' : init_site_name,
@@ -83,7 +82,7 @@ def manage_site(request):
     if form.is_valid():
         site_name = form.cleaned_data['site_name']
         site_description = form.cleaned_data['site_description']
-        site_position = form.clean_gps_coordinates()
+        site_position = form.clean_wgs84_coordinates()
         if not site_id:
             site_id = uuid.uuid4()
         else:

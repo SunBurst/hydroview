@@ -57,13 +57,13 @@ def manage_location(request):
     template = 'locations/manage_location.html'
 
     if location_id:    #: Edit existing location
-        location_data = Locations_by_site.get_location(location_id)
+        location_data = Location_info_by_location.get_location(location_id)
         if location_data:
             location_map = location_data[0]
-            init_location_name = location_data.get('location_name')
-            init_location_latitude = location_data.get('location_latitude')
-            init_location_longitude = location_data.get('location_longitude')
-            init_location_description = location_data.get('location_description')
+            init_location_name = location_map.get('location_name')
+            init_location_latitude = location_map.get('location_latitude')
+            init_location_longitude = location_map.get('location_longitude')
+            init_location_description = location_map.get('location_description')
             init_location_form = {
                 'site' : init_site_id_name,
                 'location_id' : location_id,
@@ -82,7 +82,7 @@ def manage_location(request):
     if form.is_valid():
         location_name = form.cleaned_data['location_name']
         location_description = form.cleaned_data['location_description']
-        location_position = form.clean_gps_coordinates()
+        location_position = form.clean_wgs84_coordinates()
         if not location_id:
             location_id = uuid.uuid4()
         else:

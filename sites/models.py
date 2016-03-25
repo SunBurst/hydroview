@@ -55,7 +55,7 @@ class Site_info_by_site(models.Model):
                 'site_name' : row.site_name,
                 'site_description' : row.site_description,
                 'site_latitude' : row.site_position.get('site_latitude'),
-                'site_longitude' : row.site_position.get('site_longitude')
+                'site_longitude' : row.site_position.get('site_longitude'),
             }
             site_data.append(site)
         return site_data

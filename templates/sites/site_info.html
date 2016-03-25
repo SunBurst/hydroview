@@ -6,21 +6,28 @@
 
 {% block heading %}<h1 class="page-header"><i class="fa fa-globe fa-fw"></i>{{ site_name }}</h1>{% endblock %}
 
+{% block extracss %}
+    <style>
+        .mapCanvas {
+            height: 500px;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
     <div class="row">
         <div class="col-lg-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h4 class="panel-title">Site Info
-                    </h4>
-                    <div class="panel-body">
-                        <div id="map_container" class="col-md-6">
-                            <div id="map_canvas"></div>
-                        </div>
-                    </div>
+                    <h4 class="panel-title">Site Info</h4>
                 </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+                    <div id="map" class="mapCanvas"></div>
+                </div>
+                <!-- /.panel-body -->
             </div>
-            <!-- /.panel-body -->
+            <!-- /.panel-default -->
         </div>
         <!-- /.col-lg-12 -->
     </div>
@@ -28,30 +35,43 @@
 {% endblock %}
 
 {% block extrajs %}
-    <!--Google Maps API-->
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDnycWatbGyK6ldFqErjFtko1yeMclNUOA&amp;sensor=true"></script>
+
+    <!-- Google Maps API-->
+    <script type="text/javascript" src="//maps.google.com/maps/api/js?sensor=true"></script>
+
+    <!-- GMaps javasript-->
+    <script type="text/javascript" src="{% static 'hpneo-gmaps-41d5eaa/gmaps.js' %}"></script>
 
     <script type="text/javascript">
-    $(document).ready(function () {
-        function initMap () {
-            var siteLat = "{{ site_latitude }}";
-            var siteLong = "{{ site_longitude }}";
-                if (siteLat && siteLong) {
-                    var latlng = new google.maps.LatLng(siteLat, siteLong);
-                    var myOptions = {
-                        zoom: 13,
-                        center: latlng,
-                        mapTypeId: google.maps.MapTypeId.TERRAIN
-                    };
-                    map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
-                    var marker = new google.maps.Marker({
-                        position: latlng,
-                        map: map,
-                        title: '{{ location_name }}' + ' (locationLat, locationLong)'
+    var map;
+    $(document).ready(function(){
+        var siteId = '{{ site_id }}';
+        var siteName = '{{ site_name }}';
+        var siteLatitude = {{ site_latitude }};
+        var siteLongitude = {{ site_longitude }};
+        map = new GMaps({
+            div: '#map',
+            lat: Math.round(siteLatitude * 1000000) / 1000000,
+            lng: Math.round(siteLongitude * 1000000) / 1000000
+        });
+        var jsonSiteLocationsDataUrl = '{% url 'locations:load_site_locations_json' %}' + '?json_request=' + true
+            + '&site_id=' + siteId;
+        $.getJSON(jsonSiteLocationsDataUrl, function (locationData) {
+            $.each(locationData, function (i, location) {
+                var locationLatitude = location.location_latitude;
+                var locationLongitude = location.location_longitude;
+                if (locationLatitude && locationLongitude) {
+                    map.addMarker({
+                        lat: Math.round(locationLatitude * 1000000) / 1000000,
+                        lng: Math.round(locationLongitude * 1000000) / 1000000,
+                        title: location.location_name,
+                        details: {
+                            database_id: 42,
+                        },
                     });
-                    google.maps.event.trigger(map, 'resize');
                 }
-        }
+            });
+        });
     });
     </script>
 {% endblock %}
