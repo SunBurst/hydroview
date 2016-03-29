@@ -151,3 +151,38 @@ class Log_time_info_by_log(models.Model):
             }
             log_time_info_data.append(log)
         return log_time_info_data
+
+class Logs_by_update(models.Model):
+    log_update_is_active = columns.Boolean(primary_key=True, default=False)
+    log_id = columns.UUID(primary_key=True, clustering_order="ASC")
+    log_last_update = columns.DateTime(default=None)
+
+    @classmethod
+    def get_active_logs(cls, log_id=None):
+        """Return all logs where automatic updating is active. """
+        logs_data = []
+        logs_query = cls.objects.filter(log_update_is_active=True)
+        if log_id:
+            logs_query = logs_query.filter(log_id=log_id)
+        for row in logs_query:
+            log = {
+                'log_id' : row.log_id,
+                'log_last_update' : row.log_last_update
+            }
+            logs_data.append(log)
+        return logs_data
+
+    @classmethod
+    def get_disabled_logs(cls, log_id=None):
+        """Return all logs where automatic updating is disabled. """
+        logs_data = []
+        logs_query = cls.objects.filter(log_update_is_active=False)
+        if log_id:
+            logs_query = logs_query.filter(log_id=log_id)
+        for row in logs_query:
+            log = {
+                'log_id' : row.log_id,
+                'log_last_update' : row.log_last_update
+            }
+            logs_data.append(log)
+        return logs_data

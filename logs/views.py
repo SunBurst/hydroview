@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from datetime import datetime
 
 from .forms import ManageLogForm, ManageLogUpdateInfoForm
-from .models import Logs_by_location, Log_info_by_log, Log_file_info_by_log, Log_parameters_by_log, \
+from .models import Logs_by_location, Logs_by_update, Log_info_by_log, Log_file_info_by_log, Log_parameters_by_log, \
     Log_time_info_by_log, Log_update_schedule_by_log
 from .logs import LogData
 from qcs.models import Log_quality_control_schedule_by_log, Quality_control_info_by_log, \
@@ -194,6 +194,19 @@ def delete_log(request):
     else:
         print("Couldn't load log update info from database!")
 
+    active_logs_info_data = Logs_by_update.get_active_logs(log_id)
+    disabled_logs_info_data = Logs_by_update.get_disabled_logs(log_id)
+    logs_info_map = {}
+    if active_logs_info_data:
+        logs_info_map = active_logs_info_data[0]
+    elif disabled_logs_info_data:
+        logs_info_map = disabled_logs_info_data[0]
+    if logs_info_map:
+        try:
+            Logs_by_update(log_update_is_active=logs_info_map.get('log_update_is_active'), log_id=log_id).delete()
+        except:
+            print("Delete log update info query failed!")
+
     log_time_info_data = Log_time_info_by_log.get_log_time_info(log_id)
     if log_time_info_data:
         try:
@@ -300,6 +313,11 @@ def manage_log_update_info(request):
         Log_update_schedule_by_log.create(
             log_id=log_id,
             log_update_is_active=log_update_is_active,
+            log_last_update=log_last_update
+        )
+        Logs_by_update.create(
+            log_update_is_active=log_update_is_active,
+            log_id=log_id,
             log_last_update=log_last_update
         )
         Log_file_info_by_log.create(

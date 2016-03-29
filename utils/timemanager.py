@@ -46,7 +46,7 @@ class RawTimeManager(object):
 
     def convert_time(self, time_ids):
         for key, val in time_ids.items():
-            print(key, type(key))
+            #print(key, type(key))
             if key not in TIME_FORMATS and key not in CUSTOM_TIME_FORMATS:
                 pass
             elif key in CUSTOM_TIME_FORMATS:     #: Call your custom time format parser here.
