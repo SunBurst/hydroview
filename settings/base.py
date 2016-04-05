@@ -22,12 +22,12 @@ LOCAL_APPS = (
     'sites',
 )
 
-DJANGO_CASSANDRA_ENGINE = ('django_cassandra_engine',
+DJANGO_CASSANDRA_ENGINE = (
+    'django_cassandra_engine',
 )
 
 EXTERNAL_APPS = (
     'crispy_forms',
-    'django_cron',
 )
 
 INSTALLED_APPS = DJANGO_CASSANDRA_ENGINE + DJANGO_APPS + LOCAL_APPS + EXTERNAL_APPS
@@ -42,11 +42,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 )
-
-CRON_CLASSES = [
-    "utils.crons.UpdateLogsCronJob",
-    # ...
-]
 
 ROOT_URLCONF = 'hydroview.urls'
 
@@ -71,6 +66,8 @@ TEMPLATES = [
         },
     },
 ]
+
+BROKER_URL = "amqp://myuser:mypassword@localhost:5672/myvhost"
 
 # Internationalization
 

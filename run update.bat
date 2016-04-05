@@ -1,0 +1,1 @@
+D:\virtualenv\hydro\Scripts\python.exe manage.py run_update

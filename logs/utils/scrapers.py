@@ -211,43 +211,43 @@ class UpdateLog(object):
     #return num_new_readings, temp_params_dict
 
 def run_update():
-    all_active_logs = Logs_by_update.get_active_logs()
-    for log in all_active_logs:
-        log_id = log.get('log_id')
-        log_info_data = Log_info_by_log.get_log(log_id)
-        log_file_info_data = Log_file_info_by_log.get_log_file_info(log_id)
-        log_parameters_info_data = Log_parameters_by_log.get_log_parameters(log_id)
-        log_time_info_data = Log_time_info_by_log.get_log_time_info(log_id)
-        update_info = {}
-        if log_info_data:
-            log_info_map = log_info_data[0]
-            update_info['log_name'] = log_info_map.get('log_name')
-        if log_file_info_data:
-            log_file_info_map = log_file_info_data[0]
-            update_info['log_file_path'] = log_file_info_map.get('log_file_path')
-            update_info['log_file_line_num'] = log_file_info_map.get('log_file_line_num')
-        if log_parameters_info_data:
-            log_parameters_info_map = log_parameters_info_data[0]
-            update_info['log_parameters'] = log_parameters_info_map.get('log_parameters')
-            update_info['log_parameters_reading_types'] = log_parameters_info_map.get('log_reading_types')
-        if log_time_info_data:
-            log_time_info_map = log_time_info_data[0]
-            update_info['log_time_formats'] = log_time_info_map.get('log_time_formats')
-            update_info['log_time_zone'] = log_time_info_map.get('log_time_zone')
-        print(update_info)
-        upd = UpdateLog(log_id, **update_info)
-        log_data = upd.load_file()
-        readings_map = upd.process_data(log_data)
-        if readings_map.get('parameter_readings'):
-            parameter_readings = readings_map.get('parameter_readings')
-            upd.store_parameter_readings(parameter_readings)
-        if readings_map.get('status_parameter_readings'):
-            status_parameter_readings = readings_map.get('status_parameter_readings')
-            upd.store_status_parameter_readings(status_parameter_readings)
-        if readings_map.get('profile_readings'):
-            profile_readings = readings_map.get('profile_readings')
-            upd.store_profile_readings(profile_readings)
-        update_log_line_num = readings_map.get('update_log_line_num')
-        upd.update_log_line_num(update_log_line_num)
-        log_update_time = datetime.utcnow()
-        upd.update_log_update_info(log_update_time)
+	all_active_logs = Logs_by_update.get_active_logs()
+	for log in all_active_logs:
+		log_id = log.get('log_id')
+		log_info_data = Log_info_by_log.get_log(log_id)
+		log_file_info_data = Log_file_info_by_log.get_log_file_info(log_id)
+		log_parameters_info_data = Log_parameters_by_log.get_log_parameters(log_id)
+		log_time_info_data = Log_time_info_by_log.get_log_time_info(log_id)
+		update_info = {}
+		if log_info_data:
+			log_info_map = log_info_data[0]
+			update_info['log_name'] = log_info_map.get('log_name')
+		if log_file_info_data:
+			log_file_info_map = log_file_info_data[0]
+			update_info['log_file_path'] = log_file_info_map.get('log_file_path')
+			update_info['log_file_line_num'] = log_file_info_map.get('log_file_line_num')
+		if log_parameters_info_data:
+			log_parameters_info_map = log_parameters_info_data[0]
+			update_info['log_parameters'] = log_parameters_info_map.get('log_parameters')
+			update_info['log_parameters_reading_types'] = log_parameters_info_map.get('log_reading_types')
+		if log_time_info_data:
+			log_time_info_map = log_time_info_data[0]
+			update_info['log_time_formats'] = log_time_info_map.get('log_time_formats')
+			update_info['log_time_zone'] = log_time_info_map.get('log_time_zone')
+		print(update_info)
+		upd = UpdateLog(log_id, **update_info)
+		log_data = upd.load_file()
+		readings_map = upd.process_data(log_data)
+		if readings_map.get('parameter_readings'):
+			parameter_readings = readings_map.get('parameter_readings')
+			upd.store_parameter_readings(parameter_readings)
+		if readings_map.get('status_parameter_readings'):
+			status_parameter_readings = readings_map.get('status_parameter_readings')
+			upd.store_status_parameter_readings(status_parameter_readings)
+		if readings_map.get('profile_readings'):
+			profile_readings = readings_map.get('profile_readings')
+			upd.store_profile_readings(profile_readings)
+		update_log_line_num = readings_map.get('update_log_line_num')
+		upd.update_log_line_num(update_log_line_num)
+		log_update_time = datetime.utcnow()
+		upd.update_log_update_info(log_update_time)
