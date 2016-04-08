@@ -213,6 +213,7 @@ class UpdateLog(object):
 def run_update():
     all_active_logs = Logs_by_update.get_active_logs()
     for log in all_active_logs:
+        print(log)
         log_id = log.get('log_id')
         log_info_data = Log_info_by_log.get_log(log_id)
         log_file_info_data = Log_file_info_by_log.get_log_file_info(log_id)

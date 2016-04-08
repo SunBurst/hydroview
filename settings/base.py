@@ -67,7 +67,7 @@ TEMPLATES = [
     },
 ]
 
-BROKER_URL = "amqp://myuser:mypassword@localhost:5672/myvhost"
+BROKER_URL = 'amqp://myuser:mypassword@localhost:5672/myvhost'
 
 # Internationalization
 
