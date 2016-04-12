@@ -28,6 +28,7 @@ DJANGO_CASSANDRA_ENGINE = (
 
 EXTERNAL_APPS = (
     'crispy_forms',
+    #'compressor',
 )
 
 INSTALLED_APPS = DJANGO_CASSANDRA_ENGINE + DJANGO_APPS + LOCAL_APPS + EXTERNAL_APPS
@@ -83,18 +84,19 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 
-STATIC_ROOT = ''
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    os.path.join(PROJECT_ROOT, 'static'),
+    #os.path.join(PROJECT_ROOT, 'static'),
+	os.path.join(BASE_DIR, 'static'),
 ]
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'django.contrib.staticfiles.finders.FileSystemFinder',
-    'compressor.finders.CompressorFinder',
+    #'compressor.finders.CompressorFinder',
 )
 
 MEDIA_ROOT = 'media'
