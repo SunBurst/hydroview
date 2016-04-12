@@ -213,7 +213,6 @@ class UpdateLog(object):
 def run_update():
     all_active_logs = Logs_by_update.get_active_logs()
     for log in all_active_logs:
-        print(log)
         log_id = log.get('log_id')
         log_info_data = Log_info_by_log.get_log(log_id)
         log_file_info_data = Log_file_info_by_log.get_log_file_info(log_id)
@@ -235,7 +234,6 @@ def run_update():
             log_time_info_map = log_time_info_data[0]
             update_info['log_time_formats'] = log_time_info_map.get('log_time_formats')
             update_info['log_time_zone'] = log_time_info_map.get('log_time_zone')
-        print(update_info)
         upd = UpdateLog(log_id, **update_info)
         log_data = upd.load_file()
         readings_map = upd.process_data(log_data)
@@ -248,7 +246,10 @@ def run_update():
         if readings_map.get('profile_readings'):
             profile_readings = readings_map.get('profile_readings')
             upd.store_profile_readings(profile_readings)
-        update_log_line_num = readings_map.get('update_log_line_num')
-        upd.update_log_line_num(update_log_line_num)
+        if readings_map.get('update_log_line_num'):
+            update_log_line_num = readings_map.get('update_log_line_num')
+            upd.update_log_line_num(update_log_line_num)
+            num_of_new_rows = update_log_line_num - update_info.get('log_file_line_num')
+            print("{0} new rows".format(num_of_new_rows))
         log_update_time = datetime.utcnow()
         upd.update_log_update_info(log_update_time)

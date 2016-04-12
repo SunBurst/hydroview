@@ -3,11 +3,13 @@ from django.conf import settings
 from cassandra.cluster import Cluster
 #from celery import shared_task
 from celery.signals import worker_process_init, worker_process_shutdown
-
 from hydroview.celeryconfig import app
 from .management.commands import run_update
 
+from utils import logging
+
 thread_local = threading.local()
+logging.setup_logging()
 
 @worker_process_init.connect
 def open_cassandra_session(*args, **kwargs):
@@ -21,7 +23,7 @@ def close_cassandra_session(*args, **kwargs):
     session.shutdown()
     thread_local.cassandra_session = None
 
-@app.task
+@app.task(name='logs.tasks.init_run_update')
 def init_run_update():
     print("init run update!")
     run_update.run_update()
